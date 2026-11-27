@@ -133,7 +133,7 @@ function Login({ onLogin }) {
         </form>
 
         <footer className="login-pie">
-          ALTO-SISTEMA · v0.1.1
+          ALTO-SISTEMA · v0.1.2
         </footer>
 
       </section>

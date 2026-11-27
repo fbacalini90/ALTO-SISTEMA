@@ -1,0 +1,150 @@
+.modulo-pendiente {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* CABECERA DEL MODULO */
+
+.modulo-cabecera {
+  margin-bottom: 28px;
+}
+
+.modulo-cabecera h2 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.modulo-cabecera p {
+  margin: 0;
+  color: #999999;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* PANEL PROVISIONAL */
+
+.modulo-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  gap: 20px;
+  padding: 48px 24px;
+  background-color: #151515;
+  border: 1px solid #292929;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.modulo-icono {
+  font-size: 64px;
+  line-height: 1.2;
+}
+
+.modulo-etiqueta {
+  padding: 8px 14px;
+  background-color: #20203b;
+  color: #9999ff;
+  border: 1px solid #333366;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.modulo-panel h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.modulo-panel p {
+  max-width: 460px;
+  margin: 0;
+  color: #aaaaaa;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* BOTON DE REGRESO */
+
+.modulo-volver {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 12px 24px;
+  background-color: #3333ff;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  transition: background-color 0.15s ease;
+}
+
+.modulo-volver:hover {
+  background-color: #5555ff;
+}
+
+.modulo-volver:focus-visible {
+  outline: 2px solid #9999ff;
+  outline-offset: 3px;
+}
+
+/* ADAPTACION A CELULARES */
+
+@media (max-width: 600px) {
+  .modulo-cabecera {
+    margin-bottom: 20px;
+  }
+
+  .modulo-cabecera h2 {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .modulo-cabecera p {
+    font-size: 12px;
+  }
+
+  .modulo-panel {
+    min-height: 360px;
+    gap: 16px;
+    padding: 32px 16px;
+  }
+
+  .modulo-icono {
+    font-size: 48px;
+  }
+
+  .modulo-etiqueta {
+    font-size: 9px;
+  }
+
+  .modulo-panel h3 {
+    font-size: 22px;
+  }
+
+  .modulo-panel p {
+    font-size: 13px;
+  }
+
+  .modulo-volver {
+    width: 100%;
+    max-width: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modulo-volver {
+    transition: none;
+  }
+}

@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
+const VERSION = '0.1.2';
 const PORT = Number(process.env.PORT) || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -50,7 +51,7 @@ app.use('/api', (req, res, next) => {
 app.get('/', (req, res) => {
     res.json({
         sistema: 'ALTO-SISTEMA',
-        version: '0.1.1',
+        version: VERSION,
         mensaje: 'Servidor funcionando correctamente'
     });
 });
@@ -62,7 +63,7 @@ app.get('/api/health', async (req, res) => {
 
         res.json({
             sistema: 'ALTO-SISTEMA',
-            version: '0.1.1',
+            version: VERSION,
             backend: 'ONLINE',
             database: 'ONLINE'
         });
@@ -72,6 +73,7 @@ app.get('/api/health', async (req, res) => {
 
         res.status(503).json({
             sistema: 'ALTO-SISTEMA',
+            version: VERSION,
             backend: 'ONLINE',
             database: 'OFFLINE'
         });
@@ -113,7 +115,7 @@ async function startServer() {
 
         app.listen(PORT, '127.0.0.1', () => {
             console.log('================================');
-            console.log('ALTO-SISTEMA v0.1.1');
+            console.log('ALTO-SISTEMA v' + VERSION);
             console.log('Servidor: http://localhost:' + PORT);
             console.log('Base de datos: ONLINE');
             console.log('Sesiones MySQL: ONLINE');
