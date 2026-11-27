@@ -1,22 +1,10 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import './AppLayout.css';
 
-const modulos = [
-  { ruta: '/', nombre: 'Inicio', icono: '⌂' },
-  { ruta: '/torneos', nombre: 'Torneos', icono: '🏆' },
-  { ruta: '/equipos', nombre: 'Equipos', icono: '🛡' },
-  { ruta: '/listas', nombre: 'Listas de buena fe', icono: '📋' },
-  { ruta: '/partidos', nombre: 'Partidos', icono: '⚽' },
-  { ruta: '/posiciones', nombre: 'Posiciones', icono: '📊' },
-  { ruta: '/goleadores', nombre: 'Goleadores', icono: '🥇' },
-  { ruta: '/valla', nombre: 'Valla menos vencida', icono: '🧤' },
-  { ruta: '/playoffs', nombre: 'Playoffs', icono: '🏅' },
-  { ruta: '/disciplina', nombre: 'Disciplina', icono: '🟥' },
-  { ruta: '/publicaciones', nombre: 'Publicaciones', icono: '🖼' },
-  { ruta: '/historial', nombre: 'Historial', icono: '📁' },
-  { ruta: '/configuracion', nombre: 'Configuración', icono: '⚙' }
-];
+import { APP_CONFIG } from '../config/app.config';
+import { MODULOS } from '../config/modulos.config';
+
+import './AppLayout.css';
 
 function AppLayout({
   usuario,
@@ -42,7 +30,7 @@ function AppLayout({
           <button
             type="button"
             className="app-menu-toggle"
-            onClick={() => setMenuAbierto(!menuAbierto)}
+            onClick={() => setMenuAbierto((anterior) => !anterior)}
             aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={menuAbierto}
             aria-controls="menu-principal"
@@ -51,13 +39,14 @@ function AppLayout({
           </button>
 
           <div className="app-marca">
-            <h1>ALTO-SISTEMA</h1>
+            <h1>{APP_CONFIG.nombre}</h1>
             <span>GESTIÓN DEPORTIVA</span>
           </div>
 
         </div>
 
         <div className="app-header-usuario">
+
           <span className="app-usuario-nombre">
             {usuario.usuario.toUpperCase()}
           </span>
@@ -65,6 +54,7 @@ function AppLayout({
           <span className="app-usuario-rol">
             ADMINISTRADOR
           </span>
+
         </div>
 
       </header>
@@ -100,16 +90,17 @@ function AppLayout({
             aria-label="Navegación principal"
           >
 
-            {modulos.map((modulo) => (
+            {MODULOS.map((modulo) => (
               <NavLink
-                key={modulo.ruta}
+                key={modulo.id}
                 to={modulo.ruta}
-                end={modulo.ruta === '/'}
+                end={modulo.id === 'inicio'}
                 onClick={cerrarMenu}
                 className={({ isActive }) =>
                   `app-nav-link ${isActive ? 'app-nav-activo' : ''}`
                 }
               >
+
                 <span
                   className="app-nav-icono"
                   aria-hidden="true"
@@ -118,7 +109,7 @@ function AppLayout({
                 </span>
 
                 <span className="app-nav-texto">
-                  {modulo.nombre}
+                  {modulo.titulo}
                 </span>
 
               </NavLink>
@@ -146,7 +137,7 @@ function AppLayout({
             </button>
 
             <span className="app-version">
-              ALTO-SISTEMA · v0.1.2
+              {APP_CONFIG.nombre} · v{APP_CONFIG.version}
             </span>
 
           </div>

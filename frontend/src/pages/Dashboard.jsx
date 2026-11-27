@@ -1,33 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Dashboard.css';
 
-const accesos = [
-  {
-    titulo: 'Torneos',
-    descripcion: 'Gestión de ediciones y categorías.',
-    icono: '🏆',
-    ruta: '/torneos'
-  },
-  {
-    titulo: 'Equipos',
-    descripcion: 'Inscripciones y participantes.',
-    icono: '🛡',
-    ruta: '/equipos'
-  },
-  {
-    titulo: 'Partidos',
-    descripcion: 'Carga de resultados en vivo.',
-    icono: '⚽',
-    ruta: '/partidos'
-  },
-  {
-    titulo: 'Publicaciones',
-    descripcion: 'Generación de placas para WhatsApp.',
-    icono: '🖼',
-    ruta: '/publicaciones'
-  }
-];
+import { APP_CONFIG } from '../config/app.config';
+import { ACCESOS_RAPIDOS } from '../config/modulos.config';
+import { api, ApiError } from '../services/api';
+
+import './Dashboard.css';
 
 function Dashboard() {
   const [estado, setEstado] = useState(null);
@@ -37,24 +15,29 @@ function Dashboard() {
 
     async function verificarEstado() {
       try {
-        const respuesta = await fetch(
-          'http://localhost:3000/api/health',
-          {
-            credentials: 'include',
-            signal: controller.signal
-          }
-        );
-
-        const datos = await respuesta.json();
+        const datos = await api.get('/health', {
+          signal: controller.signal
+        });
 
         if (!controller.signal.aborted) {
           setEstado(datos);
         }
-      } catch {
-        if (!controller.signal.aborted) {
+
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        if (
+          error instanceof ApiError &&
+          error.status === 503 &&
+          error.datos?.backend === 'ONLINE'
+        ) {
+          setEstado(error.datos);
+        } else {
           setEstado({
-            backend: 'OFFLINE',
-            database: 'NO DISPONIBLE'
+            backend: 'NO DISPONIBLE',
+            database: 'NO VERIFICADA'
           });
         }
       }
@@ -65,12 +48,16 @@ function Dashboard() {
     return () => controller.abort();
   }, []);
 
-  const fechaActual = new Intl.DateTimeFormat('es-AR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(new Date());
+  const fechaActual = new Intl.DateTimeFormat(
+    APP_CONFIG.idioma,
+    {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: APP_CONFIG.zonaHoraria
+    }
+  ).format(new Date());
 
   const indicadores = [
     {
@@ -93,7 +80,7 @@ function Dashboard() {
       <header className="dashboard-cabecera">
         <div>
           <h2>PANEL PRINCIPAL</h2>
-          <p>Sistema integral de gestión deportiva</p>
+          <p>{APP_CONFIG.descripcion}</p>
         </div>
 
         <span className="dashboard-fecha">
@@ -107,7 +94,7 @@ function Dashboard() {
             GESTIÓN DE TORNEOS AMATEURS
           </span>
 
-          <h3>Bienvenido a ALTO-SISTEMA</h3>
+          <h3>Bienvenido a {APP_CONFIG.nombre}</h3>
 
           <p>
             Administrá tus torneos, registrá los partidos
@@ -129,9 +116,9 @@ function Dashboard() {
 
         <div className="dashboard-accesos">
 
-          {accesos.map((acceso) => (
+          {ACCESOS_RAPIDOS.map((acceso) => (
             <Link
-              key={acceso.ruta}
+              key={acceso.id}
               to={acceso.ruta}
               className="dashboard-acceso"
             >
@@ -144,7 +131,9 @@ function Dashboard() {
 
               <h4>{acceso.titulo}</h4>
 
-              <p>{acceso.descripcion}</p>
+              <p>
+                {acceso.descripcionRapida || acceso.descripcion}
+              </p>
 
               <span className="dashboard-acceso-accion">
                 INGRESAR →

@@ -6,89 +6,16 @@ import {
   Navigate
 } from 'react-router-dom';
 
+import { APP_CONFIG } from './config/app.config';
+import { MODULOS_SECUNDARIOS } from './config/modulos.config';
+import { api } from './services/api';
+
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ModuloPendiente from './pages/ModuloPendiente';
 import AppLayout from './layouts/AppLayout';
 
 import './App.css';
-
-const API_URL = 'http://localhost:3000/api';
-
-const modulos = [
-  {
-    ruta: 'torneos',
-    titulo: 'Torneos',
-    descripcion: 'Gestión de torneos, ediciones y categorías.',
-    icono: '🏆'
-  },
-  {
-    ruta: 'equipos',
-    titulo: 'Equipos',
-    descripcion: 'Administración de equipos e inscripciones.',
-    icono: '🛡'
-  },
-  {
-    ruta: 'listas',
-    titulo: 'Listas de buena fe',
-    descripcion: 'Registro y control de jugadores habilitados.',
-    icono: '📋'
-  },
-  {
-    ruta: 'partidos',
-    titulo: 'Partidos',
-    descripcion: 'Programación de jornadas y carga de resultados.',
-    icono: '⚽'
-  },
-  {
-    ruta: 'posiciones',
-    titulo: 'Posiciones',
-    descripcion: 'Tablas de posiciones y clasificación deportiva.',
-    icono: '📊'
-  },
-  {
-    ruta: 'goleadores',
-    titulo: 'Goleadores',
-    descripcion: 'Clasificación individual de goleadores.',
-    icono: '🥇'
-  },
-  {
-    ruta: 'valla',
-    titulo: 'Valla menos vencida',
-    descripcion: 'Clasificación del rendimiento defensivo.',
-    icono: '🧤'
-  },
-  {
-    ruta: 'playoffs',
-    titulo: 'Playoffs',
-    descripcion: 'Gestión de copas, llaves y fases eliminatorias.',
-    icono: '🏅'
-  },
-  {
-    ruta: 'disciplina',
-    titulo: 'Disciplina',
-    descripcion: 'Administración de expulsiones, sanciones y habilitaciones.',
-    icono: '🟥'
-  },
-  {
-    ruta: 'publicaciones',
-    titulo: 'Publicaciones',
-    descripcion: 'Generación y exportación de placas deportivas.',
-    icono: '🖼'
-  },
-  {
-    ruta: 'historial',
-    titulo: 'Historial',
-    descripcion: 'Consulta de ediciones y registros históricos.',
-    icono: '📁'
-  },
-  {
-    ruta: 'configuracion',
-    titulo: 'Configuración',
-    descripcion: 'Configuración general y preferencias del sistema.',
-    icono: '⚙'
-  }
-];
 
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -103,29 +30,19 @@ function App() {
 
     async function verificarSesion() {
       try {
-        const respuesta = await fetch(
-          `${API_URL}/auth/me`,
-          {
-            credentials: 'include',
-            signal: controller.signal
-          }
-        );
+        const datos = await api.get('/auth/me', {
+          signal: controller.signal
+        });
 
-        if (respuesta.ok) {
-          const datos = await respuesta.json();
-
-          if (!controller.signal.aborted) {
-            setUsuario(datos.usuario);
-          }
-        } else {
-          if (!controller.signal.aborted) {
-            setUsuario(null);
-          }
+        if (!controller.signal.aborted) {
+          setUsuario(datos.usuario);
         }
+
       } catch {
         if (!controller.signal.aborted) {
           setUsuario(null);
         }
+
       } finally {
         if (!controller.signal.aborted) {
           setVerificando(false);
@@ -156,23 +73,15 @@ function App() {
     setError('');
 
     try {
-      const respuesta = await fetch(
-        `${API_URL}/auth/logout`,
-        {
-          method: 'POST',
-          credentials: 'include'
-        }
-      );
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo cerrar la sesión.');
-      }
+      await api.post('/auth/logout');
 
       setUsuario(null);
+
     } catch {
       setError(
         'No se pudo cerrar la sesión. Intentá nuevamente.'
       );
+
     } finally {
       setCerrandoSesion(false);
     }
@@ -183,7 +92,7 @@ function App() {
   if (verificando) {
     return (
       <main className="contenedor">
-        <h1>ALTO-SISTEMA</h1>
+        <h1>{APP_CONFIG.nombre}</h1>
         <p>Verificando sesión...</p>
       </main>
     );
@@ -221,9 +130,9 @@ function App() {
             element={<Dashboard />}
           />
 
-          {modulos.map((modulo) => (
+          {MODULOS_SECUNDARIOS.map((modulo) => (
             <Route
-              key={modulo.ruta}
+              key={modulo.id}
               path={modulo.ruta}
               element={
                 <ModuloPendiente

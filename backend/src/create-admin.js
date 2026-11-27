@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { pool } = require('./config/database');
+const usuarioRepository = require('./repositories/usuario.repository');
 
 async function createAdmin() {
     try {
@@ -7,32 +8,32 @@ async function createAdmin() {
         const password = process.env.ADMIN_PASSWORD;
 
         if (!usuario || usuario.length > 50) {
-            throw new Error('Nombre de usuario invalido.');
+            throw new Error('Nombre de usuario inválido.');
         }
 
-        if (!password || password.length < 12 ||
-            Buffer.byteLength(password, 'utf8') > 72) {
+        if (
+            !password ||
+            password.length < 12 ||
+            Buffer.byteLength(password, 'utf8') > 72
+        ) {
             throw new Error(
                 'La contraseña debe tener al menos 12 caracteres y no superar los 72 bytes.'
             );
         }
 
-        const [usuarios] = await pool.query(
-            'SELECT id FROM usuarios LIMIT 1'
-        );
+        const cantidadUsuarios =
+            await usuarioRepository.contarUsuarios();
 
-        if (usuarios.length > 0) {
+        if (cantidadUsuarios > 0) {
             console.log('Ya existe un usuario administrador.');
             return;
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
 
-        await pool.execute(
-            `INSERT INTO usuarios
-            (usuario, password_hash, activo)
-            VALUES (?, ?, TRUE)`,
-            [usuario, passwordHash]
+        await usuarioRepository.crearUsuario(
+            usuario,
+            passwordHash
         );
 
         console.log('================================');

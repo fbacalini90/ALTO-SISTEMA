@@ -1,3 +1,5 @@
+const { APP_CONFIG } = require('./config/app.config');
+
 const express = require('express');
 const cors = require('cors');
 
@@ -8,18 +10,18 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
-const VERSION = '0.1.2';
-const PORT = Number(process.env.PORT) || 3000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const { nombre, version, servidor } = APP_CONFIG;
 
 app.disable('x-powered-by');
 
 app.use(cors({
-    origin: FRONTEND_URL,
+    origin: servidor.frontendUrl,
     credentials: true
 }));
 
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({
+    limit: servidor.limiteJson
+}));
 
 // Proteccion de solicitudes que modifican datos
 app.use((req, res, next) => {
@@ -28,7 +30,7 @@ app.use((req, res, next) => {
     if (metodosProtegidos.includes(req.method)) {
         const origen = req.get('origin');
 
-        if (origen !== FRONTEND_URL) {
+        if (origen !== servidor.frontendUrl) {
             return res.status(403).json({
                 mensaje: 'Origen de solicitud no autorizado.'
             });
@@ -50,8 +52,8 @@ app.use('/api', (req, res, next) => {
 // Ruta publica del servidor
 app.get('/', (req, res) => {
     res.json({
-        sistema: 'ALTO-SISTEMA',
-        version: VERSION,
+        sistema: nombre,
+        version,
         mensaje: 'Servidor funcionando correctamente'
     });
 });
@@ -62,8 +64,8 @@ app.get('/api/health', async (req, res) => {
         await pool.query('SELECT 1');
 
         res.json({
-            sistema: 'ALTO-SISTEMA',
-            version: VERSION,
+            sistema: nombre,
+            version,
             backend: 'ONLINE',
             database: 'ONLINE'
         });
@@ -72,8 +74,8 @@ app.get('/api/health', async (req, res) => {
         console.error(error.message);
 
         res.status(503).json({
-            sistema: 'ALTO-SISTEMA',
-            version: VERSION,
+            sistema: nombre,
+            version,
             backend: 'ONLINE',
             database: 'OFFLINE'
         });
@@ -113,15 +115,22 @@ async function startServer() {
         await testConnection();
         await sessionStore.onReady();
 
-        app.listen(PORT, '127.0.0.1', () => {
-            console.log('================================');
-            console.log('ALTO-SISTEMA v' + VERSION);
-            console.log('Servidor: http://localhost:' + PORT);
-            console.log('Base de datos: ONLINE');
-            console.log('Sesiones MySQL: ONLINE');
-            console.log('Autenticacion: HABILITADA');
-            console.log('================================');
-        });
+        app.listen(
+            servidor.puerto,
+            servidor.host,
+            () => {
+                console.log('================================');
+                console.log(`${nombre} v${version}`);
+                console.log(
+                    `Servidor: http://${servidor.host}:${servidor.puerto}`
+                );
+                console.log(`Entorno: ${APP_CONFIG.entorno}`);
+                console.log('Base de datos: ONLINE');
+                console.log('Sesiones MySQL: ONLINE');
+                console.log('Autenticacion: HABILITADA');
+                console.log('================================');
+            }
+        );
 
     } catch (error) {
         console.error('Error al iniciar el servidor:');

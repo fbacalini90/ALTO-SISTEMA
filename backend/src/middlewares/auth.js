@@ -1,33 +1,32 @@
-const { pool } = require('../config/database');
+const authService = require('../services/auth.service');
 
 async function requireAuth(req, res, next) {
     if (!req.session?.usuarioId) {
         return res.status(401).json({
-            mensaje: 'Debes iniciar sesion.'
+            mensaje: 'Debes iniciar sesión.'
         });
     }
 
     try {
-        const [usuarios] = await pool.execute(
-            'SELECT id, usuario, activo FROM usuarios WHERE id = ?',
-            [req.session.usuarioId]
+        const usuario = await authService.obtenerUsuarioActivo(
+            req.session.usuarioId
         );
 
-        if (usuarios.length === 0 || !usuarios[0].activo) {
+        if (!usuario) {
             return res.status(401).json({
                 mensaje: 'Usuario no habilitado.'
             });
         }
 
         req.usuario = {
-            id: usuarios[0].id,
-            usuario: usuarios[0].usuario
+            id: usuario.id,
+            usuario: usuario.usuario
         };
 
         next();
 
     } catch (error) {
-        console.error('Error de autenticacion:', error.message);
+        console.error('Error de autenticación:', error.message);
 
         return res.status(500).json({
             mensaje: 'Error interno del servidor.'

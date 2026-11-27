@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { APP_CONFIG } from '../config/app.config';
+import { api, ApiError } from '../services/api';
 import './Login.css';
 
 function Login({ onLogin }) {
@@ -17,36 +19,19 @@ function Login({ onLogin }) {
     setCargando(true);
 
     try {
-      const respuesta = await fetch(
-        'http://localhost:3000/api/auth/login',
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            usuario: usuario.trim(),
-            password
-          })
-        }
-      );
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setError(
-          datos.mensaje || 'No se pudo iniciar sesión.'
-        );
-        return;
-      }
+      const datos = await api.post('/auth/login', {
+        usuario: usuario.trim(),
+        password
+      });
 
       setPassword('');
       onLogin(datos.usuario);
 
-    } catch {
+    } catch (error) {
       setError(
-        'No se pudo establecer conexión con el servidor.'
+        error instanceof ApiError
+          ? error.message
+          : 'No se pudo iniciar sesión.'
       );
 
     } finally {
@@ -60,7 +45,7 @@ function Login({ onLogin }) {
       <section className="login-panel">
 
         <header className="login-cabecera">
-          <h1>ALTO-SISTEMA</h1>
+          <h1>{APP_CONFIG.nombre}</h1>
           <p>Gestión de torneos amateurs</p>
         </header>
 
@@ -133,7 +118,7 @@ function Login({ onLogin }) {
         </form>
 
         <footer className="login-pie">
-          ALTO-SISTEMA · v0.1.2
+          {APP_CONFIG.nombre} · v{APP_CONFIG.version}
         </footer>
 
       </section>
