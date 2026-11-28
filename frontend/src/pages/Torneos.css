@@ -1,0 +1,597 @@
+/* ==================================================
+   ALTO-SISTEMA
+   SISTEMA DE DISEÑO v1.0
+   MÓDULO TORNEOS
+   ================================================== */
+
+
+/* CONTENEDOR PRINCIPAL */
+
+.torneos-pagina {
+
+    width: 100%;
+
+    max-width: 1600px;
+
+    margin-inline: auto;
+
+}
+
+
+/* ==================================================
+   CABECERA
+   ================================================== */
+
+.torneos-cabecera-acciones {
+
+    display: flex;
+    align-items: center;
+
+    gap: var(--space-2);
+
+}
+
+
+/* ==================================================
+   INDICADORES
+   ================================================== */
+
+.torneos-indicadores {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: var(--space-4);
+
+}
+
+
+.torneos-indicadores .as-stat-card {
+
+    padding: var(--space-5);
+
+    gap: var(--space-3);
+
+}
+
+
+/* ==================================================
+   MENSAJES
+   ================================================== */
+
+.torneos-alerta {
+
+    align-items: center;
+
+    padding-block: var(--space-2);
+
+}
+
+
+.torneos-alerta > .as-button {
+
+    flex-shrink: 0;
+
+    color: inherit;
+
+}
+
+
+/* ==================================================
+   FORMULARIO
+   ================================================== */
+
+.torneos-formulario-panel {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-5);
+
+    border-left:
+        var(--border-width-accent)
+        solid
+        var(--color-primary);
+
+}
+
+
+.torneos-formulario-cabecera {
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: var(--space-3);
+
+}
+
+
+.torneos-formulario-cabecera p {
+
+    margin-top: var(--space-2);
+
+}
+
+
+.torneos-formulario-cabecera > .as-button {
+
+    flex-shrink: 0;
+
+}
+
+
+.torneos-formulario-panel .as-textarea {
+
+    min-height: 120px;
+
+}
+
+
+.torneos-formulario-panel .as-field-counter.as-text-danger {
+
+    color: var(--color-danger-text);
+
+}
+
+
+/* ==================================================
+   HERRAMIENTAS
+   ================================================== */
+
+.torneos-herramientas {
+
+    gap: var(--space-4);
+
+}
+
+
+.torneos-herramientas .as-search {
+
+    min-width: 200px;
+
+}
+
+
+/* ==================================================
+   LISTADO
+   ================================================== */
+
+.torneos-listado {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-3);
+
+    min-width: 0;
+
+}
+
+
+.torneos-resultados {
+
+    font-size: var(--font-size-xs);
+
+    font-weight: var(--font-weight-medium);
+
+    color: var(--color-text-secondary);
+
+}
+
+
+.torneos-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: var(--space-4);
+
+}
+
+
+/* ==================================================
+   TARJETAS
+   ================================================== */
+
+.torneos-tarjeta {
+
+    min-width: 0;
+
+    gap: var(--space-4);
+
+    border-left:
+        var(--border-width-accent)
+        solid
+        var(--color-success);
+
+    transition:
+        border-color var(--transition-normal),
+        background-color var(--transition-normal);
+
+}
+
+
+.torneos-tarjeta:hover {
+
+    background-color: var(--color-surface-hover);
+
+}
+
+
+.torneos-tarjeta-archivada {
+
+    border-left-color: var(--color-text-muted);
+
+}
+
+
+/* IDENTIDAD DEL TORNEO */
+
+.torneos-tarjeta-cabecera {
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    flex-wrap: wrap;
+
+    gap: var(--space-3);
+
+}
+
+
+.torneos-identidad {
+
+    display: flex;
+    align-items: center;
+
+    gap: var(--space-3);
+
+    flex: 1 1 200px;
+
+    min-width: 0;
+
+}
+
+
+.torneos-identidad h2 {
+
+    font-size: var(--font-size-xl);
+
+    line-height: var(--line-height-heading);
+
+    overflow-wrap: anywhere;
+
+}
+
+
+.torneos-icono {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+
+    flex-shrink: 0;
+
+    background-color: var(--color-primary-muted);
+
+    color: var(--color-primary-light);
+
+    border-radius: var(--radius-md);
+
+}
+
+
+.torneos-icono svg {
+
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+
+}
+
+
+.torneos-tarjeta-archivada .torneos-icono {
+
+    background-color: var(--color-surface-active);
+
+    color: var(--color-text-secondary);
+
+}
+
+
+/* DESCRIPCIÓN */
+
+.torneos-descripcion {
+
+    flex: 1;
+
+    font-size: var(--font-size-sm);
+
+    line-height: var(--line-height-relaxed);
+
+    color: var(--color-text-secondary);
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+
+}
+
+
+/* METADATOS */
+
+.torneos-metadatos {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap:
+        var(--space-2)
+        var(--space-4);
+
+    font-size: var(--font-size-xs);
+
+    font-variant-numeric: tabular-nums;
+
+    color: var(--color-text-secondary);
+
+}
+
+
+.torneos-metadatos > span {
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: var(--space-2);
+
+}
+
+
+.torneos-metadatos svg {
+
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+
+    flex-shrink: 0;
+
+    color: var(--color-text-muted);
+
+}
+
+
+/* ACCIONES */
+
+.torneos-tarjeta-acciones {
+
+    margin-top: auto;
+
+}
+
+
+.torneos-tarjeta-acciones .as-button {
+
+    font-size: var(--font-size-xs);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+}
+
+
+.torneos-pagina .as-empty-icon.as-text-danger {
+
+    color: var(--color-danger-text);
+
+}
+
+
+/* ==================================================
+   ESCRITORIOS MEDIANOS
+   ================================================== */
+
+@media (max-width: 1250px) {
+
+    .torneos-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+
+/* ==================================================
+   TABLETS Y CELULARES
+   ================================================== */
+
+@media (max-width: 900px) {
+
+    .torneos-indicadores {
+
+        gap: var(--space-3);
+
+    }
+
+
+    .torneos-indicadores .as-stat-card {
+
+        padding: var(--space-4);
+
+    }
+
+
+    .torneos-herramientas {
+
+        flex-direction: column;
+        align-items: stretch;
+
+    }
+
+
+    .torneos-herramientas .as-search {
+
+        width: 100%;
+
+        min-width: 0;
+
+    }
+
+
+    .torneos-herramientas .as-filters {
+
+        width: 100%;
+
+    }
+
+
+    .torneos-herramientas .as-filter {
+
+        flex: 1;
+
+    }
+
+}
+
+
+/* ==================================================
+   CELULARES PEQUEÑOS
+   ================================================== */
+
+@media (max-width: 480px) {
+
+    .torneos-cabecera-acciones {
+
+        width: 100%;
+
+    }
+
+
+    .torneos-cabecera-acciones
+    .as-button-primary {
+
+        flex: 1;
+
+    }
+
+
+    .torneos-indicadores {
+
+        gap: var(--space-2);
+
+    }
+
+
+    .torneos-indicadores .as-stat-card {
+
+        padding: var(--space-3);
+
+        gap: var(--space-2);
+
+    }
+
+
+    .torneos-indicadores .as-stat-label {
+
+        font-size: 10px;
+
+        letter-spacing: 0.02em;
+
+    }
+
+
+    .torneos-indicadores .as-stat-card svg {
+
+        width: var(--icon-size-md);
+        height: var(--icon-size-md);
+
+    }
+
+
+    .torneos-identidad {
+
+        flex-basis: 100%;
+
+    }
+
+
+    .torneos-identidad h2 {
+
+        font-size: 22px;
+
+    }
+
+
+    .torneos-icono {
+
+        width: 40px;
+        height: 40px;
+
+    }
+
+
+    .torneos-metadatos {
+
+        flex-direction: column;
+
+    }
+
+
+    .torneos-tarjeta-acciones {
+
+        flex-direction: row;
+
+        gap: var(--space-2);
+
+    }
+
+
+    .torneos-tarjeta-acciones > .as-button {
+
+        flex: 1;
+
+        width: auto;
+
+        padding-inline: var(--space-2);
+
+    }
+
+
+    .torneos-tarjeta-acciones svg {
+
+        width: var(--icon-size-sm);
+        height: var(--icon-size-sm);
+
+    }
+
+
+    .torneos-formulario-panel {
+
+        gap: var(--space-4);
+
+    }
+
+}
+
+
+/* ==================================================
+   MOVIMIENTO REDUCIDO
+   ================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .torneos-tarjeta {
+
+        transition: none;
+
+    }
+
+}

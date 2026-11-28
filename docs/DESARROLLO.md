@@ -1,441 +1,1691 @@
+
 # ALTO-SISTEMA — Normas de desarrollo
 
-Version de referencia: 0.1.3
+Versión de referencia: 0.2.0
 
-## 1. Objetivo
+---
 
-Garantizar que ALTO-SISTEMA evolucione de manera
-ordenada, mantenible, escalable y segura.
+## 1. OBJETIVO
 
-Estas normas deberan respetarse durante todo
-el ciclo de vida del proyecto.
+Establecer una metodología de desarrollo que permita
+evolucionar ALTO-SISTEMA de manera organizada,
+segura, mantenible y escalable.
 
-## 2. Metodologia de trabajo
+Las presentes normas serán aplicables durante
+todo el ciclo de vida del proyecto.
 
-El desarrollo se organizara mediante:
+La calidad técnica deberá mantenerse desde
+las primeras etapas de implementación.
 
-- Etapas.
-- Historias de usuario.
-- Criterios de aceptacion.
-- Incrementos funcionales.
-- Pruebas automatizadas.
+---
+
+## 2. METODOLOGÍA DE TRABAJO
+
+El proyecto se desarrollará mediante incrementos
+funcionales organizados en etapas e historias
+de usuario.
+
+Cada historia de usuario deberá contar con:
+
+- Identificador.
+- Objetivo funcional.
+- Alcance definido.
+- Requisitos.
+- Criterios de aceptación.
+- Diseño técnico.
+- Implementación.
+- Pruebas.
+- Documentación.
 - CHECK integral.
-- Control de versiones.
 
-Cada historia de usuario debera completarse
-y aprobarse antes de comenzar la siguiente.
+Las historias de usuario deberán desarrollarse
+de manera secuencial.
 
-No se considerara terminada una funcionalidad
-unicamente porque su codigo haya sido escrito.
+No se comenzará una nueva historia de usuario
+hasta aprobar y consolidar la anterior.
 
-## 3. Puerta de control
+### 2.1. Unidad de trabajo
 
-Cada incremento debera atravesar las siguientes fases:
+La unidad funcional de desarrollo será
+la historia de usuario completa.
 
-1. Definicion de requisitos.
-2. Diseño tecnico.
-3. Implementacion.
-4. Pruebas automatizadas.
-5. Pruebas funcionales.
-6. CHECK integral.
-7. Aprobacion.
-8. Commit en Git.
+Los pasos técnicos permitirán organizar
+su implementación, pero no constituirán
+historias de usuario independientes.
 
-Si una prueba falla, debera corregirse el problema
-antes de aprobar el incremento.
+Se evitará fragmentar innecesariamente
+el proceso de validación.
 
-No se avanzara hacia una nueva historia de usuario
-con errores pendientes que afecten los criterios
-de aceptacion de la historia actual.
+### 2.2. Alcance
 
-## 4. Entrega de codigo
+Las funcionalidades deberán corresponder
+al alcance previamente aprobado.
 
-Cada archivo creado o modificado debera entregarse
-con su contenido completo.
+Las modificaciones que amplíen dicho alcance
+deberán evaluarse antes de implementarse.
 
-Se debera indicar:
+Los cambios complementarios deberán quedar
+identificados y documentados.
 
-- Ruta exacta del archivo.
+### 2.3. Ampliaciones durante la validación
+
+Una historia de usuario podrá incorporar
+funcionalidades adicionales antes de su
+aprobación definitiva.
+
+Toda ampliación deberá contemplar:
+
+- Aprobación funcional.
+- Evaluación del impacto técnico.
+- Nuevos criterios de aceptación.
+- Actualización de pruebas.
+- Regresión de funcionalidades existentes.
+- Actualización de documentación.
+
+La ampliación no deberá considerarse aprobada
+hasta completar el CHECK integral correspondiente.
+
+Durante HU-004 se incorporó la eliminación
+definitiva de torneos mediante este procedimiento.
+
+---
+
+## 3. PUERTA DE CONTROL
+
+Cada incremento atravesará las siguientes fases:
+
+1. Definición funcional.
+2. Aprobación del alcance.
+3. Diseño técnico.
+4. Implementación.
+5. Pruebas automatizadas.
+6. Verificación funcional.
+7. Actualización de documentación.
+8. CHECK integral.
+9. Aprobación.
+10. Consolidación mediante Git.
+
+### 3.1. CHECK integral
+
+Cada historia de usuario dispondrá de un
+CHECK integral que abarque todos sus
+criterios de aceptación.
+
+Los controles técnicos intermedios no
+sustituyen esta instancia.
+
+El CHECK deberá contemplar:
+
+- Requisitos funcionales.
+- Validaciones.
+- Persistencia.
+- Integridad de datos.
+- Seguridad.
+- Interfaz.
+- Adaptación responsive.
+- Pruebas automatizadas.
+- Regresión de funcionalidades anteriores.
+- Documentación.
+
+### 3.2. Gestión de errores
+
+Cuando se detecte un error bloqueante:
+
+- Se interrumpirá el avance.
+- Se identificará su origen.
+- Se determinará su alcance.
+- Se implementará la corrección.
+- Se repetirán las pruebas afectadas.
+
+No se aprobará una historia de usuario
+mientras existan errores que impidan
+satisfacer sus criterios de aceptación.
+
+Los posibles errores deberán comprobarse
+antes de modificar el código fuente.
+
+### 3.3. Estados de implementación
+
+| Estado | Significado |
+|---|---|
+| Pendiente | Sin implementación |
+| En desarrollo | Implementación en curso |
+| Implementado | Código incorporado |
+| Verificado | Pruebas correspondientes realizadas |
+| Aprobado | CHECK integral satisfactorio |
+| Consolidado | Cambios registrados en Git |
+
+La existencia de código no implica
+automáticamente su aprobación.
+
+---
+
+## 4. ENTREGA DE ARCHIVOS E INSTRUCCIONES
+
+### 4.1. Archivos completos
+
+Los archivos nuevos o modificados deberán
+entregarse con su contenido completo.
+
+No se utilizarán fragmentos aislados que
+puedan provocar errores de integración.
+
+Cada entrega deberá indicar:
+
+- Ruta exacta.
 - Nombre del archivo.
-- Responsabilidad del componente.
+- Responsabilidad.
 - Cambios incorporados.
-- Dependencias necesarias.
-- Procedimiento de verificacion.
+- Dependencias, cuando corresponda.
+- Procedimiento de implementación.
 
-No se utilizaran fragmentos aislados que puedan
-generar errores de integracion.
+### 4.2. Editor de código
 
-Las instrucciones deberan distinguir claramente
-entre operaciones del editor y de la terminal.
+Las operaciones de creación y modificación
+de código fuente se realizarán mediante
+el editor de VS Code.
 
-## 5. Principios de programacion
+Esto comprende:
 
-Se adoptan los siguientes principios:
+- Archivos JavaScript.
+- Componentes JSX.
+- Estilos CSS.
+- Configuraciones.
+- Migraciones SQL.
+- Archivos Markdown.
+
+La documentación deberá actualizarse
+directamente desde el editor.
+
+No se utilizarán scripts de terminal para
+reescribir documentos Markdown cuando
+puedan editarse directamente.
+
+### 4.3. Terminal
+
+La terminal se utilizará principalmente para:
+
+- Instalación de dependencias.
+- Ejecución de servidores.
+- Compilación.
+- Análisis estático.
+- Pruebas automatizadas.
+- Ejecución de migraciones.
+- Operaciones de base de datos.
+- Respaldos y restauraciones.
+- Actualización de versiones de paquetes.
+- Control de versiones mediante Git.
+
+Las instrucciones deberán identificar
+la terminal y el directorio de trabajo.
+
+### 4.4. Operaciones controladas
+
+Las operaciones que puedan modificar
+información persistente deberán indicar
+su alcance y sus posibles consecuencias.
+
+Se evitarán instrucciones innecesariamente
+complejas cuando exista una alternativa
+directa, comprensible y segura.
+
+### 4.5. Actualizaciones mediante paquetes ZIP
+
+Cuando una modificación involucre varios
+archivos relacionados, podrá utilizarse
+un paquete ZIP con sus reemplazos completos.
+
+El paquete deberá:
+
+- Respetar la estructura del proyecto.
+- Contener únicamente los archivos necesarios.
+- Identificar los cambios incorporados.
+- Excluir credenciales y configuraciones privadas.
+- Excluir dependencias instaladas.
+- Excluir respaldos de bases de datos.
+
+La instalación podrá realizarse desde
+el Explorador de Windows.
+
+Se deberán detener los servidores antes
+de reemplazar archivos utilizados por
+procesos en ejecución.
+
+No deberán eliminarse las carpetas originales
+completas para instalar una actualización parcial.
+
+Toda actualización deberá superar las pruebas
+correspondientes en el entorno local.
+
+---
+
+## 5. PRINCIPIOS DE PROGRAMACIÓN
+
+El desarrollo adoptará:
 
 - SOLID.
 - DRY.
 - KISS.
-- Separacion de responsabilidades.
+- Alta cohesión.
 - Bajo acoplamiento.
-- Alta cohesion.
-- Reutilizacion de componentes.
-- Validacion de datos.
-- Manejo controlado de errores.
+- Responsabilidades delimitadas.
+- Reutilización.
+- Validación de entradas.
+- Tratamiento explícito de errores.
 
-Se evitara incorporar complejidad innecesaria.
+Las soluciones deberán responder
+a necesidades concretas del sistema.
 
-Las abstracciones deberan responder a necesidades
-reales del sistema.
+No se incorporarán abstracciones,
+dependencias o mecanismos complejos
+sin una justificación técnica.
 
-## 6. Convenciones de nombres
+---
 
-### Backend
+## 6. CONVENCIONES DE NOMBRES
 
-Archivos:
+### 6.1. Backend
 
-- torneo.routes.js
-- torneo.controller.js
-- torneo.service.js
-- torneo.repository.js
+Los archivos se identificarán según
+su entidad y responsabilidad.
+
+Ejemplos:
+
+- `torneo.routes.js`
+- `torneo.controller.js`
+- `torneo.service.js`
+- `torneo.repository.js`
 
 Funciones y variables:
 
-- camelCase.
+`camelCase`
+
+Ejemplos:
+
+- `crearTorneo`
+- `buscarPorId`
+- `actualizarEstado`
+- `eliminarTorneo`
 
 Clases:
 
-- PascalCase.
+`PascalCase`
+
+Ejemplos:
+
+- `TorneoError`
+- `AuthError`
 
 Constantes:
 
-- MAYUSCULAS_CON_GUIONES_BAJOS.
-
-### Frontend
-
-Componentes React:
-
-- PascalCase.
+`MAYUSCULAS_CON_GUIONES_BAJOS`
 
 Ejemplos:
 
-- Torneos.jsx
-- Torneos.css
-- AppLayout.jsx
+- `APP_CONFIG`
+- `ESTADOS_TORNEO`
+
+### 6.2. Frontend
+
+Componentes React y sus estilos particulares:
+
+`PascalCase`
+
+Ejemplos:
+
+- `Torneos.jsx`
+- `Torneos.css`
+- `Dashboard.jsx`
+- `AppLayout.jsx`
 
 Funciones y variables:
 
-- camelCase.
+`camelCase`
 
-Archivos de configuracion:
+Archivos de configuración:
 
-- app.config.js
-- modulos.config.js
+- `app.config.js`
+- `modulos.config.js`
+- `iconos.config.js`
 
-### Base de datos
+### 6.3. Estilos CSS
 
-Tablas y columnas:
-
-- snake_case.
-- Minusculas.
-- Sin espacios.
-- Sin caracteres especiales.
+Las clases específicas deberán identificar
+el módulo al que pertenecen.
 
 Ejemplos:
 
-- torneos
-- ediciones
-- equipos_inscritos
-- fecha_creacion
-- torneo_id
+- `torneos-pagina`
+- `torneos-indicadores`
+- `dashboard-bienvenida`
+- `app-sidebar`
 
-## 7. Idioma
+Las clases reutilizables del Sistema de Diseño
+utilizarán el prefijo `as-`.
 
-El idioma principal del proyecto sera español.
+Ejemplos:
 
-Las entidades deportivas, funciones de negocio
-y mensajes de interfaz utilizaran terminologia
-coherente con el dominio del futbol amateur.
+- `as-button`
+- `as-card`
+- `as-input`
+- `as-alert`
 
-Se conservaran los nombres originales de las
-tecnologias, librerias y convenciones tecnicas.
+Las variables CSS deberán utilizar nombres
+descriptivos y consistentes.
 
-Los archivos de codigo deberan utilizar UTF-8.
+Ejemplos:
 
-## 8. Normas del frontend
+- `--color-primary`
+- `--font-heading`
+- `--space-4`
+- `--radius-md`
 
-- Utilizar componentes reutilizables.
-- Centralizar la configuracion.
+### 6.4. Base de datos
+
+Las tablas y columnas utilizarán:
+
+- `snake_case`.
+- Letras minúsculas.
+- Nombres sin espacios.
+- Nombres sin caracteres especiales.
+
+Ejemplos:
+
+- `torneos`
+- `fecha_creacion`
+- `fecha_actualizacion`
+- `torneo_id`
+- `equipos_inscritos`
+
+### 6.5. Pruebas
+
+Los archivos de pruebas deberán identificar
+el componente y el tipo de verificación.
+
+Ejemplos:
+
+- `torneo.service.test.js`
+- `torneo.integration.test.js`
+
+---
+
+## 7. IDIOMA Y CONFIGURACIÓN REGIONAL
+
+El idioma principal de ALTO-SISTEMA
+será español.
+
+La terminología deberá corresponder
+al dominio del fútbol amateur.
+
+Se conservarán las denominaciones técnicas
+originales cuando corresponda.
+
+La configuración regional inicial será:
+
+| Propiedad | Valor |
+|---|---|
+| Idioma | es-AR |
+| Zona horaria | America/Argentina/Cordoba |
+| Codificación de archivos | UTF-8 |
+
+La presentación de fechas y valores
+numéricos deberá respetar la configuración
+regional de la aplicación.
+
+---
+
+## 8. NORMAS DEL FRONTEND
+
+### 8.1. Organización
+
+El frontend utilizará componentes React
+con responsabilidades identificables.
+
+Se deberá:
+
+- Reutilizar componentes.
 - Centralizar las comunicaciones HTTP.
-- Evitar definiciones duplicadas de navegacion.
-- Mantener una interfaz responsive.
+- Centralizar la configuración.
+- Evitar catálogos de navegación duplicados.
 - Gestionar estados de carga y error.
 - Mostrar mensajes comprensibles.
-- Evitar estadisticas ficticias.
-- Mantener visible el contexto deportivo.
-- Solicitar confirmacion para acciones destructivas.
+- Mantener la adaptación responsive.
+- Evitar datos estadísticos ficticios.
 
-Las validaciones del frontend mejoran la experiencia
-de uso, pero no sustituyen las del backend.
+### 8.2. Sistema de Diseño
 
-## 9. Normas del backend
+Todos los módulos deberán respetar
+el Sistema de Diseño v1.0.
 
-Las responsabilidades deberan separarse entre:
+Archivos compartidos:
 
-- Rutas.
-- Controladores.
-- Servicios.
-- Repositorios.
-- Middlewares.
+- `styles/tokens.css`
+- `styles/typography.css`
+- `styles/components.css`
 
-Las reglas deportivas deberan implementarse
-en los servicios correspondientes.
+Se priorizará el uso de variables CSS
+y componentes visuales reutilizables.
 
-Las consultas SQL deberan implementarse
-en repositorios.
+No deberán duplicarse estilos globales
+dentro de módulos particulares.
 
-Las rutas privadas deberan verificar
-la autenticacion del usuario.
+### 8.3. Tipografía e iconografía
 
-Los datos recibidos deberan validarse
-antes de realizar operaciones de escritura.
+Tipografías oficiales:
 
-Los errores internos no deberan exponer
-informacion sensible al cliente.
+- Barlow Condensed.
+- Inter.
 
-## 10. Normas de la API REST
+Biblioteca de iconos:
 
-Se utilizaran los metodos HTTP segun corresponda:
+- Lucide React.
 
-- GET: consultar recursos.
-- POST: crear recursos o ejecutar acciones.
-- PUT: reemplazar recursos.
-- PATCH: actualizar parcialmente recursos.
-- DELETE: eliminar recursos cuando corresponda.
+Los módulos deberán utilizar
+la iconografía centralizada cuando
+representen funcionalidades del sistema.
 
-Codigos HTTP de referencia:
+No se utilizarán emojis como sustitutos
+de los iconos estructurales.
 
-- 200: operacion correcta.
-- 201: recurso creado.
-- 204: operacion correcta sin contenido.
-- 400: solicitud invalida.
-- 401: autenticacion requerida.
-- 403: operacion no autorizada.
-- 404: recurso inexistente.
-- 409: conflicto de datos.
-- 500: error interno.
-- 503: servicio no disponible.
+### 8.4. Formularios
 
-Los endpoints deberan mantener respuestas
-consistentes y documentadas.
+Los formularios deberán contemplar:
 
-Los cambios incompatibles deberan planificarse
-para evitar romper funcionalidades existentes.
+- Identificación de campos obligatorios.
+- Validación de entradas.
+- Mensajes de error.
+- Estados de guardado.
+- Acciones de confirmación y cancelación.
 
-## 11. Normas de persistencia
+Deberán evitarse envíos duplicados
+mientras una operación esté en curso.
 
-- Utilizar MySQL como fuente de verdad.
+Las validaciones de interfaz no reemplazan
+las validaciones del servidor.
+
+### 8.5. Estados de pantalla
+
+Las pantallas deberán contemplar,
+cuando corresponda:
+
+- Carga inicial.
+- Ausencia de registros.
+- Búsquedas sin coincidencias.
+- Errores de conexión.
+- Confirmaciones.
+- Reintentos.
+- Datos disponibles.
+
+Un error de consulta no deberá
+representarse como una cantidad cero.
+
+### 8.6. Accesibilidad
+
+La interfaz deberá incorporar:
+
+- Navegación por teclado.
+- Indicadores de foco.
+- Etiquetas accesibles.
+- Controles táctiles adecuados.
+- Mensajes de estado.
+- Contraste suficiente.
+- Compatibilidad con movimiento reducido.
+
+La incorporación de estos mecanismos
+no reemplaza una auditoría formal
+de accesibilidad.
+
+### 8.7. Contexto deportivo
+
+Las funcionalidades deportivas deberán
+identificar claramente el contexto
+seleccionado.
+
+El cambio de contexto deberá evitar
+el uso accidental de información
+perteneciente a otra competición.
+
+Esta funcionalidad se incorporará
+mediante las historias correspondientes.
+
+### 8.8. Identidad visual
+
+La identidad institucional deberá
+permanecer separada de las identidades
+personalizadas de las competiciones.
+
+Consultar:
+
+[SISTEMA_DE_DISENO.md](SISTEMA_DE_DISENO.md)
+
+### 8.9. Operaciones destructivas
+
+Las acciones de eliminación definitiva
+deberán diferenciarse visualmente de
+las operaciones convencionales.
+
+Se utilizará la variante semántica:
+
+`as-button-danger`
+
+La interfaz deberá:
+
+- Identificar el registro afectado.
+- Solicitar confirmación explícita.
+- Advertir cuando la operación sea irreversible.
+- Permitir cancelar sin modificar datos.
+- Bloquear acciones incompatibles durante
+  la ejecución.
+- Mostrar el resultado de la operación.
+- Actualizar los indicadores correspondientes.
+
+La eliminación no deberá reflejarse
+como exitosa antes de recibir la
+confirmación del backend.
+
+### 8.10. Confirmaciones
+
+La versión 0.2.0 utiliza confirmaciones
+nativas del navegador para las acciones
+de archivado, reactivación y eliminación.
+
+Este mecanismo podrá sustituirse en el futuro
+por un componente de diálogo reutilizable.
+
+La modificación no deberá reducir
+las garantías de confirmación existentes.
+
+---
+
+## 9. NORMAS DEL BACKEND
+
+### 9.1. Distribución de responsabilidades
+
+| Capa | Función |
+|---|---|
+| Routes | Definición de endpoints |
+| Controllers | Tratamiento HTTP |
+| Services | Reglas y validaciones de negocio |
+| Repositories | Persistencia |
+| Middlewares | Controles transversales |
+| Config | Configuración e infraestructura |
+
+### 9.2. Validaciones
+
+Los servicios deberán validar:
+
+- Identificadores.
+- Campos obligatorios.
+- Tipos de datos.
+- Longitudes.
+- Estados.
+- Relaciones.
+- Restricciones de negocio.
+
+Las escrituras deberán realizarse
+únicamente después de validar
+la operación correspondiente.
+
+### 9.3. Acceso a datos
+
+Las consultas SQL deberán concentrarse
+en los repositorios.
+
+Los controladores no deberán implementar
+directamente operaciones SQL.
+
+### 9.4. Tratamiento de errores
+
+Los errores previstos deberán contar
+con mensajes comprensibles y códigos
+HTTP adecuados.
+
+Los errores inesperados deberán evitar
+la exposición de información interna,
+credenciales o detalles sensibles.
+
+### 9.5. Autenticación
+
+Los endpoints administrativos y
+deportivos privados deberán exigir
+una sesión autenticada.
+
+La navegación privada del frontend
+no sustituye este control.
+
+### 9.6. Eliminación de registros
+
+Las operaciones de eliminación deberán:
+
+- Validar el identificador recibido.
 - Utilizar consultas parametrizadas.
-- Definir claves primarias y foraneas.
-- Establecer restricciones de unicidad.
-- Incorporar indices segun necesidades reales.
-- Utilizar transacciones para operaciones relacionadas.
-- Aplicar migraciones versionadas.
-- Preservar la integridad referencial.
-- Conservar el historial deportivo.
+- Limitar la operación al registro solicitado.
+- Interpretar la cantidad de filas afectadas.
+- Gestionar registros inexistentes.
+- Gestionar restricciones de integridad.
+- Preservar los registros independientes.
 
-No se deberan modificar manualmente las estructuras
-de una base de datos operativa sin registrar
-el cambio mediante una migracion.
+Los errores de dependencias deberán
+traducirse en respuestas comprensibles.
 
-## 12. Arquitectura multitorneo
+La eliminación no deberá utilizarse
+como mecanismo para evitar validaciones
+o resolver inconsistencias de datos.
 
-Toda funcionalidad deportiva debera respetar
-el contexto de torneo, edicion y categoria.
+---
 
-Las relaciones entre entidades deberan validarse
-antes de consultar o modificar informacion.
+## 10. NORMAS DE LA API REST
 
-No se permitira mezclar resultados, equipos
-o estadisticas de diferentes competiciones.
+### 10.1. Métodos HTTP
 
-No se utilizaran nombres de torneos o categorias
-como condiciones fijas de la logica de negocio.
+| Método | Responsabilidad |
+|---|---|
+| GET | Consulta de recursos |
+| POST | Creación o ejecución de acciones |
+| PUT | Actualización completa |
+| PATCH | Actualización parcial |
+| DELETE | Eliminación autorizada por el dominio |
 
-Las excepciones reglamentarias deberan estar
-expresamente definidas y documentadas.
+La existencia de un método HTTP no
+implica que todos los módulos deban
+implementarlo.
 
-## 13. Seguridad
+### 10.2. Códigos de respuesta
 
-- No almacenar contraseñas en texto plano.
-- No versionar archivos .env.
-- No versionar respaldos con datos sensibles.
-- No exponer hashes de contraseñas.
-- No registrar contraseñas en logs.
-- Validar las solicitudes del cliente.
-- Utilizar consultas SQL parametrizadas.
-- Mantener las dependencias actualizadas.
-- Revisar vulnerabilidades.
-- Aplicar el principio de minimo privilegio.
+| Código | Significado |
+|---|---|
+| 200 | Operación exitosa |
+| 201 | Recurso creado |
+| 204 | Operación sin contenido |
+| 400 | Solicitud inválida |
+| 401 | Autenticación requerida |
+| 403 | Operación no permitida |
+| 404 | Recurso inexistente |
+| 409 | Conflicto de datos o dependencias |
+| 500 | Error interno |
+| 503 | Servicio no disponible |
 
-Los datos personales de las listas de buena fe
-no deberan incluirse en publicaciones deportivas.
+### 10.3. Contratos
 
-Las credenciales utilizadas durante el desarrollo
-deberan rotarse antes del despliegue en produccion.
+Las solicitudes y respuestas deberán
+mantener estructuras comprensibles
+y documentadas.
 
-## 14. Dependencias
+Los cambios incompatibles deberán
+evaluarse para evitar regresiones
+en los consumidores existentes.
 
-Antes de incorporar una dependencia se evaluara:
+### 10.4. Archivado y eliminación
 
-- Necesidad real.
-- Seguridad.
+La eliminación definitiva de una entidad
+deberá responder a una regla de negocio
+expresamente definida.
+
+El archivado y la eliminación deberán
+considerarse operaciones diferentes.
+
+El archivado conserva la información
+y permite una reactivación posterior.
+
+La eliminación física retira el registro
+definitivamente de la base de datos.
+
+### 10.5. Contrato de eliminación de torneos
+
+Endpoint:
+
+`DELETE /api/torneos/:id`
+
+Respuesta exitosa:
+
+HTTP 200.
+
+```json
+{
+    "mensaje": "Torneo eliminado correctamente."
+}
+```
+
+Respuestas de error previstas:
+
+| Código | Causa |
+|---|---|
+| 400 | Identificador inválido |
+| 401 | Autenticación requerida |
+| 403 | Solicitud no permitida |
+| 404 | Torneo inexistente |
+| 409 | Dependencias que impiden eliminar |
+| 500 | Error inesperado |
+
+El endpoint deberá respetar los controles
+de autenticación y origen.
+
+La eliminación de un torneo permite
+reutilizar su nombre posteriormente.
+
+---
+
+## 11. NORMAS DE PERSISTENCIA
+
+### 11.1. Integridad
+
+MySQL constituye la fuente de verdad
+de los datos persistentes.
+
+El modelo deberá utilizar:
+
+- Claves primarias.
+- Claves foráneas cuando corresponda.
+- Restricciones de unicidad.
+- Índices justificados.
+- Consultas parametrizadas.
+- Transacciones para operaciones relacionadas.
+- Validaciones de integridad referencial.
+
+### 11.2. Migraciones
+
+Las modificaciones estructurales deberán
+incorporarse mediante archivos SQL
+versionados.
+
+Convención:
+
+`NNN_descripcion.sql`
+
+Migraciones implementadas:
+
+| Versión | Archivo |
+|---|---|
+| 001 | `001_usuarios.sql` |
+| 002 | `002_torneos.sql` |
+
+Una migración aplicada deberá permanecer
+sin modificaciones posteriores.
+
+Los cambios estructurales adicionales
+requerirán una nueva migración.
+
+### 11.3. Integridad de migraciones
+
+El migrador deberá controlar:
+
+- Orden de ejecución.
+- Historial.
+- Checksums.
+- Ejecuciones concurrentes.
+- Verificación estructural.
+- Migraciones incompletas.
+
+No deberán alterarse los checksums
+registrados para ocultar modificaciones
+accidentales de archivos SQL.
+
+### 11.4. Verificación
+
+Las migraciones deberán comprobarse
+en entornos controlados.
+
+Se verificará, cuando corresponda:
+
+- Ejecución sobre una base existente.
+- Ejecución sobre una base nueva.
+- Idempotencia.
+- Restricciones.
+- Integridad estructural.
+- Conservación de los datos existentes.
+
+### 11.5. Respaldos
+
+Antes de realizar modificaciones
+estructurales relevantes deberá existir
+un respaldo de la base correspondiente.
+
+Los procedimientos deberán contemplar
+la posibilidad de restauración.
+
+### 11.6. Dialecto SQL
+
+Los archivos SQL deberán interpretarse
+utilizando el dialecto de MySQL.
+
+Las advertencias del editor deberán
+analizarse antes de modificar una
+migración aplicada.
+
+No deberá alterarse una instrucción
+válida de MySQL únicamente para
+satisfacer un analizador de otro
+motor de base de datos.
+
+### 11.7. Protección de entidades dependientes
+
+Las futuras relaciones entre entidades
+deportivas deberán impedir eliminaciones
+que comprometan la integridad de los datos.
+
+La relación entre torneo y edición deberá
+utilizar restricciones referenciales
+que impidan eliminar un torneo
+con ediciones asociadas.
+
+No deberán utilizarse eliminaciones en cascada
+que destruyan información deportiva histórica.
+
+La protección deberá verificarse mediante
+pruebas de integración con MySQL real.
+
+La implementación de estas relaciones
+corresponderá a las futuras historias
+de usuario.
+
+### 11.8. Verificación de la versión 0.2.0
+
+La ejecución final del migrador registró:
+
+| Control | Resultado |
+|---|---|
+| Base de datos | alto_sistema |
+| Migraciones registradas | 2 |
+| Migraciones pendientes | 0 |
+| Errores | 0 |
+| Estado | Actualizada |
+
+La incorporación de la eliminación definitiva
+de torneos no requirió modificaciones
+en las migraciones existentes.
+
+---
+
+## 12. ARQUITECTURA MULTITORNEO
+
+Las funcionalidades deportivas deberán
+respetar los niveles de contexto:
+
+- Torneo.
+- Edición.
+- Categoría.
+
+Las relaciones deberán verificarse
+antes de consultar o modificar
+información deportiva.
+
+Los resultados, equipos, estadísticas
+y demás registros deberán mantenerse
+dentro de su contexto correspondiente.
+
+No se utilizarán nombres de torneos
+o categorías como condiciones fijas
+de la lógica de negocio.
+
+Las excepciones reglamentarias deberán
+estar previamente definidas.
+
+Las sanciones disciplinarias de alcance
+transversal deberán contar con reglas
+y pruebas específicas.
+
+La eliminación de entidades no deberá
+comprometer la independencia ni
+la conservación del historial deportivo.
+
+Consultar:
+
+[MODELO_MULTITORNEO.md](MODELO_MULTITORNEO.md)
+
+---
+
+## 13. SEGURIDAD Y PRIVACIDAD
+
+### 13.1. Credenciales
+
+No deberán incorporarse al repositorio:
+
+- Contraseñas.
+- Secretos de sesión.
+- Credenciales de MySQL.
+- Archivos de entorno privados.
+- Respaldos con información sensible.
+
+Las contraseñas deberán almacenarse
+mediante mecanismos de hash adecuados.
+
+No deberán registrarse contraseñas
+en logs ni exponerse sus hashes
+mediante la API.
+
+### 13.2. Solicitudes
+
+El backend deberá mantener:
+
+- Validación de datos.
+- Autenticación.
+- Controles de origen.
+- Consultas parametrizadas.
+- Gestión segura de sesiones.
+
+Las operaciones DELETE deberán respetar
+los mismos controles de seguridad
+que las restantes escrituras.
+
+### 13.3. Dependencias
+
+Las dependencias deberán revisarse
+periódicamente para detectar posibles
+vulnerabilidades.
+
+No deberán aplicarse actualizaciones
+forzadas sin evaluar su impacto.
+
+### 13.4. Privilegios
+
+Las cuentas utilizadas por la aplicación
+deberán disponer únicamente de los
+permisos necesarios.
+
+### 13.5. Datos personales
+
+Los datos personales registrados en
+las futuras listas de buena fe deberán
+mantenerse dentro del entorno privado.
+
+No deberán incluirse automáticamente
+en publicaciones deportivas.
+
+### 13.6. Producción
+
+Antes del despliegue se deberá evaluar:
+
+- Rotación de credenciales de desarrollo.
+- Configuración de producción.
+- Protección de sesiones.
+- HTTPS.
+- Permisos.
+- Respaldos.
+- Exposición de información.
+
+---
+
+## 14. DEPENDENCIAS
+
+Cada nueva dependencia deberá evaluarse
+considerando:
+
+- Necesidad funcional.
 - Compatibilidad.
+- Seguridad.
 - Mantenimiento.
-- Rendimiento.
 - Licencia.
-- Costos asociados.
+- Rendimiento.
+- Costo.
 
-Se priorizaran las capacidades nativas de las
-tecnologias existentes cuando sean suficientes.
+Se priorizarán las funcionalidades
+nativas cuando resulten suficientes.
 
-Los archivos package-lock.json deberan
-mantenerse versionados mediante Git.
+Los archivos `package-lock.json`
+deberán mantenerse versionados.
 
-No se actualizaran dependencias de forma masiva
-sin evaluar posibles regresiones.
+### 14.1. Instalación reproducible
 
-## 15. Pruebas
+Para instalar las dependencias existentes
+se utilizará preferentemente:
 
-Cada nueva funcionalidad debera incorporar
-pruebas acordes a su complejidad.
+```bash
+npm ci
+```
+
+La incorporación de nuevas dependencias
+se realizará mediante npm.
+
+### 14.2. Dependencias visuales
+
+La versión 0.2.0 incorpora:
+
+- `@fontsource/inter`
+- `@fontsource/barlow-condensed`
+- `lucide-react`
+
+Estas dependencias forman parte del
+Sistema de Diseño v1.0.
+
+La ampliación de eliminación de torneos
+no requirió dependencias adicionales.
+
+### 14.3. Auditorías
+
+Las auditorías de dependencias deberán
+interpretarse según el momento de
+su ejecución.
+
+La ausencia de vulnerabilidades detectadas
+no constituye una garantía permanente
+de seguridad.
+
+---
+
+## 15. PRUEBAS
+
+### 15.1. Estrategia
+
+Cada historia de usuario deberá incluir
+las pruebas necesarias para verificar
+su comportamiento.
 
 Tipos de pruebas:
 
 - Unitarias.
-- Integracion.
+- Integración.
 - Funcionales.
-- Regresion.
+- Regresión.
 - Integridad de datos.
+- Revisión visual.
+- Adaptación responsive.
 - Rendimiento, cuando corresponda.
 
-Las pruebas automatizadas deberan utilizar
-datos ficticios o entornos controlados.
+### 15.2. Pruebas unitarias
 
-Las pruebas de integracion sobre el entorno local
-deberan evitar modificaciones destructivas.
+Las pruebas unitarias deberán comprobar
+las reglas de negocio y validaciones
+de los servicios correspondientes.
 
-Se deberan incorporar pruebas especificas
-para detectar contaminacion de datos entre torneos.
+Se contemplarán casos válidos,
+inválidos y condiciones límite.
 
-## 16. Control de versiones
+Los componentes dependientes deberán
+aislarse cuando resulte necesario.
 
-Git sera el sistema de control de versiones.
+### 15.3. Pruebas de integración
 
-Cada incremento aprobado debera generar
-un commit identificable.
+Las pruebas de integración deberán
+verificar la comunicación entre
+componentes reales del sistema.
 
-Ejemplos:
+Podrán involucrar:
 
+- API REST.
+- Autenticación.
+- Sesiones.
+- MySQL.
+- Persistencia.
+- Restricciones de integridad.
+
+Las pruebas deberán evitar modificaciones
+destructivas sobre los datos reales.
+
+### 15.4. Aislamiento de datos
+
+Las pruebas de integración que realicen
+escrituras deportivas deberán utilizar
+entornos controlados.
+
+HU-004 utiliza:
+
+| Propiedad | Valor |
+|---|---|
+| Base de pruebas | altosistemahu004test |
+| Puerto de backend de pruebas | 3001 |
+
+La integración de torneos no deberá
+ejecutarse contra la base principal.
+
+Los registros temporales deberán
+identificarse y limpiarse de forma
+controlada.
+
+La separación entre entornos deberá
+comprobarse antes de realizar escrituras.
+
+### 15.5. Pruebas del frontend
+
+Las verificaciones técnicas incluirán:
+
+```bash
+npm run lint
+npm run build
+```
+
+Los errores de análisis estático
+deberán corregirse sin deshabilitar
+reglas únicamente para ocultarlos.
+
+La compilación exitosa no reemplaza
+las pruebas funcionales.
+
+### 15.6. Revisión visual
+
+La incorporación de nuevas pantallas
+deberá verificar:
+
+- Coherencia con el Sistema de Diseño.
+- Jerarquía tipográfica.
+- Iconografía.
+- Alineaciones.
+- Formularios.
+- Estados.
+- Distribución de contenido.
+- Adaptación a pantallas pequeñas.
+
+La simulación móvil mediante el navegador
+deberá distinguirse de una prueba realizada
+en un dispositivo físico.
+
+### 15.7. Regresión
+
+Cada incremento deberá comprobar que
+las funcionalidades anteriores continúan
+operativas.
+
+Se deberá verificar especialmente:
+
+- Autenticación.
+- Sesiones.
+- Navegación.
+- Conexión con MySQL.
+- Persistencia.
+- Integridad de migraciones.
+- Independencia entre competiciones.
+
+### 15.8. Registro de resultados
+
+Los resultados deberán distinguir:
+
+- Pruebas aprobadas.
+- Pruebas fallidas.
+- Pruebas omitidas.
+- Pruebas pendientes.
+- Controles internos.
+
+Una prueba de integración que incluya
+varias verificaciones internas deberá
+contabilizarse como una única prueba
+automatizada, sin duplicar sus resultados.
+
+Los resultados obtenidos mediante ejecuciones
+separadas podrán consolidarse siempre que
+correspondan a la misma implementación.
+
+### 15.9. Resultados definitivos de HU-004
+
+| Control | Resultado |
+|---|---|
+| Pruebas unitarias de autenticación | 13/13 |
+| Pruebas unitarias de torneos | 30/30 |
+| Total de pruebas unitarias | 43/43 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Total de pruebas automatizadas | 45/45 |
+| Controles internos de integración | 20/20 |
+| Pruebas fallidas | 0 |
+| ESLint: errores | 0 |
+| ESLint: advertencias | 0 |
+| Compilación de producción | Exitosa |
+| Tiempo de compilación final | 3,49 segundos |
+| Revisión visual inicial | 8/8 |
+| Validación funcional | Satisfactoria |
+| Migraciones pendientes | 0 |
+| Limpieza de registros temporales | Completada |
+
+La totalidad de las pruebas fue verificada
+mediante ejecuciones separadas.
+
+Los 20 controles internos corresponden
+a una única prueba de integración.
+
+### 15.10. Ejecuciones de regresión
+
+| Ejecución | Totales | Aprobadas | Omitidas | Fallidas |
+|---|---:|---:|---:|---:|
+| Pruebas unitarias | 45 | 43 | 2 | 0 |
+| Regresión con integración de autenticación | 45 | 44 | 1 | 0 |
+| Integración aislada de torneos | 1 | 1 | 0 | 0 |
+
+Los tiempos registrados fueron:
+
+| Ejecución | Duración |
+|---|---:|
+| Pruebas unitarias | 523,10 ms |
+| Regresión con integración de autenticación | 716,46 ms |
+| Integración aislada de torneos | 1414,30 ms |
+| Compilación del frontend | 3,49 s |
+
+Los tiempos corresponden al entorno local
+y no constituyen mediciones de rendimiento
+en producción.
+
+### 15.11. Pruebas de eliminación
+
+Las operaciones destructivas deberán
+contemplar verificaciones específicas.
+
+En HU-004 se incorporaron seis pruebas
+unitarias adicionales para comprobar:
+
+- Eliminación de torneos activos.
+- Eliminación de torneos archivados.
+- Identificadores inválidos.
+- Registros inexistentes.
+- Errores de dependencia.
+- Errores inesperados de persistencia.
+
+Las pruebas de integración verifican
+la eliminación física, la independencia
+entre torneos y la reutilización de nombres.
+
+La cancelación de eliminación fue comprobada
+mediante la interfaz administrativa.
+
+El tratamiento de errores de dependencia
+se encuentra verificado mediante simulación.
+
+La restricción referencial real deberá
+comprobarse cuando se incorporen ediciones.
+
+### 15.12. Criterios de aceptación de HU-004
+
+| Grupo | Resultado |
+|---|---|
+| CA-01 a CA-14 | Verificados |
+| CA-15: eliminación definitiva | Verificado |
+| CA-16: cancelación de eliminación | Verificado |
+| CA-17: independencia tras eliminación | Verificado |
+| CA-18: reutilización del nombre | Verificado |
+
+Los 18 criterios funcionales fueron
+verificados durante el desarrollo.
+
+La aprobación formal se registrará
+al finalizar el cierre documental.
+
+### 15.13. Verificaciones futuras
+
+Permanecen pendientes:
+
+- Pruebas automatizadas del frontend.
+- Pruebas visuales automatizadas.
+- Auditoría formal de accesibilidad.
+- Validación en dispositivos móviles físicos.
+- Pruebas de rendimiento y carga.
+- Restauración de respaldo con la tabla torneos.
+- Verificación real de futuras claves foráneas.
+- Evaluación de seguridad de producción.
+
+Estas verificaciones deberán incorporarse
+en las etapas correspondientes.
+
+---
+
+## 16. CONTROL DE VERSIONES
+
+### 16.1. Git
+
+Git constituye el mecanismo de
+control de versiones del proyecto.
+
+Cada incremento aprobado deberá
+registrarse mediante un commit
+identificable.
+
+### 16.2. Convenciones de commits
+
+Ejemplos históricos:
+
+```text
 HU-001 - Infraestructura funcional v0.1.0
-
 HU-002 - Autenticacion y acceso privado v0.1.1
-
 HU-003 - Interfaz base y navegacion v0.1.2
+```
 
-No se deberan incorporar:
+Mensaje previsto para HU-004:
 
-- node_modules.
+```text
+HU-004 - Gestion integral de torneos y Sistema de Diseno v0.2.0
+```
+
+El mensaje definitivo deberá corresponder
+a los cambios efectivamente incorporados.
+
+### 16.3. Archivos excluidos
+
+No deberán versionarse:
+
+- `node_modules`.
+- Archivos `.env` privados.
 - Credenciales.
-- Archivos .env.
+- Secretos.
 - Respaldos sensibles.
+- Directorios de compilación generados.
 - Archivos temporales.
-- Registros innecesarios.
+- Logs innecesarios.
 
-Antes de cada commit se debera revisar git status
-y comprobar los archivos preparados.
+### 16.4. Verificación previa
 
-## 17. Versionado
+Antes de registrar un commit deberán
+revisarse los archivos modificados
+y preparados mediante Git.
 
-Se utilizara una numeracion con formato:
+Se deberá comprobar:
 
-MAYOR.MENOR.PARCHE
+- Correspondencia con el incremento.
+- Ausencia de archivos sensibles.
+- Documentación actualizada.
+- Versiones consistentes.
+- Resultado del CHECK integral.
 
-MAYOR:
-Cambios incompatibles o transformaciones
-estructurales de gran alcance.
+### 16.5. Publicación
 
-MENOR:
-Incorporacion de nuevas funcionalidades
-compatibles.
+Los incrementos aprobados deberán
+consolidarse en el repositorio remoto.
 
-PARCHE:
-Correcciones y mejoras compatibles.
+La publicación en GitHub deberá
+realizarse después de comprobar
+el contenido del commit.
 
-Durante la fase 0.x.x, la numeracion tambien
-identificara los incrementos de desarrollo.
+No se publicarán incrementos como
+aprobados sin completar su validación.
 
-La version 1.0.0 representara la primera version
-estable destinada a la operacion real, una vez
-cumplidos sus criterios de aceptacion.
+---
 
-## 18. Documentacion
+## 17. VERSIONADO
 
-Las decisiones tecnicas relevantes deberan
-documentarse dentro del repositorio.
+### 17.1. Formato
 
-La documentacion debera actualizarse cuando cambien:
+Se utilizará la estructura:
+
+`MAYOR.MENOR.PARCHE`
+
+| Componente | Significado |
+|---|---|
+| MAYOR | Transformaciones incompatibles o de gran alcance |
+| MENOR | Incorporación de funcionalidades |
+| PARCHE | Correcciones y mejoras compatibles |
+
+Durante la fase 0.x.x, la numeración
+también identificará los incrementos
+del desarrollo inicial.
+
+### 17.2. Sincronización
+
+La versión de la aplicación deberá
+mantenerse consistente entre:
+
+- Configuración del backend.
+- Configuración del frontend.
+- `backend/package.json`.
+- `backend/package-lock.json`.
+- `frontend/package.json`.
+- `frontend/package-lock.json`.
+- Documentación vigente.
+- Identificación visual de versión.
+
+### 17.3. Actualización de paquetes
+
+La actualización de la versión npm
+podrá realizarse mediante:
+
+```bash
+npm version 0.2.0 --no-git-tag-version --ignore-scripts
+```
+
+La versión utilizada deberá corresponder
+al incremento que se esté preparando.
+
+El comando no sustituye la actualización
+de las configuraciones propias
+de la aplicación.
+
+### 17.4. Versionado del Sistema de Diseño
+
+El Sistema de Diseño dispone de su
+propia identificación interna.
+
+Su versión inicial es 1.0.
+
+Esta numeración no constituye una
+versión independiente de ALTO-SISTEMA.
+
+El Sistema de Diseño v1.0 forma parte
+de la versión 0.2.0 y de HU-004.
+
+### 17.5. Versión estable
+
+La versión 1.0.0 identificará la primera
+versión estable destinada a la operación
+real del sistema.
+
+Su aprobación dependerá del cumplimiento
+de los requisitos establecidos.
+
+### 17.6. Ampliaciones antes de consolidar
+
+Las funcionalidades adicionales incorporadas
+a una historia de usuario todavía abierta
+podrán conservar la versión prevista
+para ese incremento.
+
+La eliminación definitiva incorporada
+durante HU-004 conserva la versión 0.2.0,
+debido a que el incremento todavía no
+había sido consolidado.
+
+---
+
+## 18. DOCUMENTACIÓN
+
+### 18.1. Documentos oficiales
+
+| Archivo | Responsabilidad |
+|---|---|
+| README.md | Presentación y estado del proyecto |
+| ARQUITECTURA.md | Organización técnica |
+| MODELO_MULTITORNEO.md | Modelo y reglas deportivas |
+| DESARROLLO.md | Metodología de desarrollo |
+| MANTENIMIENTO.md | Procedimientos operativos |
+| SISTEMA_DE_DISENO.md | Estándares visuales |
+
+### 18.2. Actualización
+
+La documentación deberá actualizarse
+cuando existan cambios relevantes en:
 
 - Arquitectura.
 - Modelo de datos.
 - Reglas deportivas.
-- Endpoints.
+- API REST.
 - Dependencias.
-- Procedimientos de mantenimiento.
+- Sistema de Diseño.
+- Procedimientos operativos.
+- Seguridad.
+- Resultados de pruebas.
 - Requisitos de despliegue.
 
-Se debera distinguir entre funcionalidades
-implementadas, verificadas y planificadas.
+### 18.3. Edición
 
-## 19. Rendimiento
+Los documentos Markdown deberán
+editarse directamente desde VS Code.
 
-Las optimizaciones deberan basarse en mediciones.
+Las actualizaciones deberán conservar
+las decisiones previamente aprobadas.
 
-Se evitara:
+No deberán introducirse nuevas reglas
+de negocio mediante cambios de
+documentación no autorizados.
 
-- Consultas SQL innecesarias.
+### 18.4. Estado de las funcionalidades
+
+La documentación deberá distinguir
+entre elementos:
+
+- Planificados.
+- Implementados.
+- Verificados.
+- Aprobados.
+
+Las funcionalidades futuras no deberán
+presentarse como operativas.
+
+### 18.5. Capturas de pantalla
+
+Las capturas deberán corresponder
+a la versión indicada.
+
+No deberán exponer:
+
+- Contraseñas.
+- Secretos.
+- Datos personales sensibles.
+- Información privada innecesaria.
+
+Las capturas de versiones anteriores
+podrán conservarse como registro
+histórico si están identificadas.
+
+### 18.6. Consolidación documental
+
+Antes de finalizar una historia de usuario
+deberán revisarse los documentos afectados
+por las funcionalidades incorporadas.
+
+Las ampliaciones realizadas durante
+la validación deberán reflejarse
+en la documentación definitiva.
+
+Los resultados provisionales deberán
+reemplazarse por los resultados
+efectivamente obtenidos.
+
+---
+
+## 19. RENDIMIENTO
+
+Las optimizaciones deberán justificarse
+mediante observaciones o mediciones.
+
+Se evitarán:
+
+- Consultas innecesarias.
 - Consultas repetidas dentro de bucles.
-- Carga indiscriminada de registros.
-- Recalculos deportivos innecesarios.
-- Renderizados redundantes.
+- Recálculos deportivos redundantes.
+- Carga injustificada de información.
+- Renderizados innecesarios.
 - Dependencias sobredimensionadas.
+- Duplicación de estilos.
 
-La paginacion, los indices y otras estrategias
-de optimizacion se incorporaran cuando corresponda.
+Se evaluará, cuando corresponda:
 
-## 20. Sostenibilidad economica
+- Paginación.
+- Índices adicionales.
+- Optimización de consultas.
+- Carga diferida.
+- División de código.
+- Optimización de recursos visuales.
+- Cancelación de solicitudes innecesarias.
 
-Se priorizara una infraestructura de bajo costo
-adecuada al volumen operativo del sistema.
+La incorporación de una optimización
+deberá mantener la corrección funcional
+y la integridad de los datos.
 
-No se incorporaran servicios pagos sin evaluar
-su necesidad y contar con autorizacion.
+La optimización de variantes tipográficas
+innecesarias permanece pendiente.
 
-Los limites y condiciones de los servicios
-gratuitos deberan verificarse antes del despliegue.
+---
 
-## 21. Criterio de finalizacion
+## 20. SOSTENIBILIDAD ECONÓMICA
 
-Una historia de usuario se considerara finalizada
-cuando:
+ALTO-SISTEMA deberá priorizar soluciones
+económicamente sostenibles y adecuadas
+a sus necesidades operativas.
 
-- Cumpla sus requisitos funcionales.
-- Respete la arquitectura.
-- Supere sus criterios de aceptacion.
-- Supere las pruebas correspondientes.
-- No presente regresiones conocidas bloqueantes.
-- Disponga de documentacion actualizada.
-- Reciba la aprobacion del CHECK integral.
-- Quede versionada mediante Git.
+Se evaluará:
 
-La calidad del sistema constituye un requisito
-permanente y no una etapa opcional.
+- Costo de infraestructura.
+- Límites de almacenamiento.
+- Disponibilidad.
+- Mantenimiento.
+- Consumo de recursos.
+- Posibilidad de crecimiento.
+
+No se contratarán servicios pagos
+sin evaluar su necesidad y contar
+con autorización.
+
+Las condiciones de los servicios
+gratuitos deberán comprobarse antes
+de su utilización en producción.
+
+---
+
+## 21. CRITERIO DE FINALIZACIÓN
+
+Una historia de usuario estará finalizada
+cuando cumpla todos los requisitos
+correspondientes.
+
+### 21.1. Lista de control general
+
+- [ ] Alcance funcional implementado.
+- [ ] Arquitectura respetada.
+- [ ] Reglas de negocio satisfechas.
+- [ ] Validaciones incorporadas.
+- [ ] Persistencia verificada.
+- [ ] Seguridad comprobada.
+- [ ] Sistema de Diseño respetado.
+- [ ] Pruebas automatizadas aprobadas.
+- [ ] Pruebas funcionales aprobadas.
+- [ ] Regresión verificada.
+- [ ] Documentación actualizada.
+- [ ] Registros temporales limpiados.
+- [ ] CHECK integral aprobado.
+- [ ] Versionado consistente.
+- [ ] Commit registrado.
+- [ ] Repositorio remoto actualizado.
+
+Los controles que no correspondan
+al alcance de una historia deberán
+identificarse como no aplicables.
+
+### 21.2. Aprobación
+
+La aprobación deberá realizarse de
+manera expresa después de verificar
+los criterios de aceptación.
+
+No se avanzará hacia una nueva
+historia de usuario antes de completar
+la consolidación del incremento anterior.
+
+### 21.3. Calidad permanente
+
+La calidad técnica y funcional constituye
+una responsabilidad permanente durante
+todo el desarrollo de ALTO-SISTEMA.
+
+### 21.4. Estado de cierre de HU-004
+
+- [x] Implementación de gestión integral de torneos.
+- [x] Sistema de Diseño v1.0.
+- [x] Eliminación definitiva incorporada.
+- [x] Validación funcional.
+- [x] Pruebas automatizadas: 45/45.
+- [x] Controles internos de integración: 20/20.
+- [x] ESLint sin errores ni advertencias.
+- [x] Compilación exitosa.
+- [x] Integridad de migraciones.
+- [x] Limpieza de registros temporales.
+- [x] Actualización de versión a 0.2.0.
+- [ ] Consolidación documental definitiva.
+- [ ] Capturas oficiales de la versión.
+- [ ] Aprobación formal del CHECK integral.
+- [ ] Commit.
+- [ ] Publicación en GitHub.
+
+La HU-004 se encuentra técnicamente
+y funcionalmente verificada.
+
+Su consolidación definitiva permanece
+pendiente del cierre documental y
+del control de versiones.
+
+---
+
+**ALTO-SISTEMA**
+
+Sistema integral de gestión deportiva.

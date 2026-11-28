@@ -1,64 +1,89 @@
+
 # ALTO-SISTEMA — Modelo multitorneo
 
-Version de referencia: 0.1.3
-Estado: Diseño funcional y arquitectonico.
+Versión de referencia: 0.2.0
 
-## 1. Objetivo
+Estado: implementación parcial.
+HU-004 verificada, pendiente de consolidación.
 
-Administrar multiples torneos de futbol amateur
-simultaneamente desde una unica aplicacion y una
-unica base de datos.
+---
 
-Los torneos deben conservar su independencia
-deportiva, administrativa y estadistica.
+## 1. OBJETIVO
 
-La independencia disciplinaria tendra como
-excepcion las sanciones DEFINITIVAS, segun
-el reglamento establecido.
+Administrar múltiples torneos de fútbol amateur
+simultáneamente desde una única aplicación y una
+única base de datos.
 
-## 2. Principios generales
+Cada torneo deberá conservar su independencia
+deportiva, administrativa y estadística.
 
-- Una unica aplicacion.
-- Una unica base de datos.
+La independencia disciplinaria tendrá como
+excepción las sanciones DEFINITIVAS, conforme
+al reglamento establecido.
+
+---
+
+## 2. PRINCIPIOS GENERALES
+
+- Una única aplicación.
+- Una única base de datos.
 - Un administrador inicial.
-- Multiples torneos simultaneos.
-- Multiples ediciones por torneo.
-- Multiples categorias por edicion.
+- Múltiples torneos simultáneos.
+- Múltiples ediciones por torneo.
+- Múltiples categorías por edición.
 - Reglamentos configurables.
 - Identidad visual configurable.
-- Conservacion del historial.
+- Conservación del historial.
 - Independencia de los datos deportivos.
 
-No deben establecerse cantidades maximas de torneos,
-ediciones, categorias, zonas o equipos mediante
-constantes arbitrarias en el codigo.
+No deberán establecerse cantidades máximas de
+torneos, ediciones, categorías, zonas o equipos
+mediante constantes arbitrarias en el código.
 
-## 3. Jerarquia deportiva
+Las competiciones deberán poder administrarse
+sin requerir modificaciones del código fuente.
 
+---
+
+## 3. JERARQUÍA DEPORTIVA
+
+```text
 ALTO-SISTEMA
-    Torneo
-        Edicion
-            Categoria de la edicion
-                Reglamento
-                Configuracion visual
-                Equipos inscritos
-                Listas de buena fe
-                Fases
-                Zonas
-                Jornadas
-                Partidos
-                Copas
-                Estadisticas
-                Disciplina
-                Publicaciones
+└── Torneo
+    └── Edición
+        └── Categoría de la edición
+            ├── Reglamento
+            ├── Configuración visual
+            ├── Equipos inscritos
+            ├── Listas de buena fe
+            ├── Fases
+            ├── Zonas
+            ├── Jornadas
+            ├── Partidos
+            ├── Copas
+            ├── Estadísticas
+            ├── Disciplina
+            └── Publicaciones
+```
 
-Esta jerarquia representa el modelo conceptual.
-Las tablas y relaciones definitivas se diseñaran
+Esta jerarquía representa el modelo conceptual
+del sistema.
+
+Las tablas y relaciones definitivas se diseñarán
 durante las historias de usuario correspondientes.
 
-## 4. Torneos
+En la versión 0.2.0 se encuentra implementado
+y verificado el primer nivel de esta jerarquía:
+TORNEO.
 
-Un torneo representa una competicion institucional
+Las restantes entidades deportivas permanecen
+pendientes de implementación.
+
+---
+
+## 4. TORNEOS
+
+Un torneo representa una competición institucional
 con identidad propia y continuidad en el tiempo.
 
 Ejemplos:
@@ -66,22 +91,235 @@ Ejemplos:
 - NOCTURNO.
 - DIURNO.
 
-Cada torneo podra disponer de:
+Cada torneo podrá disponer de:
 
-- Identificador unico.
+- Identificador único.
 - Nombre.
-- Descripcion.
-- Estado.
+- Descripción.
+- Estado administrativo.
 - Identidad visual.
 - Ediciones.
 - Configuraciones particulares.
 
-Los nombres de los torneos no deben formar parte
-de las reglas de negocio escritas en el codigo.
+Los nombres de los torneos no deberán formar
+parte de las condiciones fijas del código.
 
-## 5. Ediciones
+### 4.1. Implementación inicial
 
-Una edicion representa una realizacion determinada
+| Propiedad | Valor |
+|---|---|
+| Historia de usuario | HU-004 |
+| Versión | 0.2.0 |
+| Entidad | Torneo |
+| Tabla | `torneos` |
+| Migración | `002_torneos.sql` |
+| Estado | Implementado y verificado |
+
+La HU-004 establece la identidad administrativa
+básica de cada competición y su ciclo de vida.
+
+### 4.2. Modelo de persistencia
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | INT | Clave primaria autoincremental |
+| nombre | VARCHAR(100) | Obligatorio y único |
+| descripcion | VARCHAR(500) | Opcional |
+| estado | ENUM | ACTIVO o ARCHIVADO |
+| fecha_creacion | TIMESTAMP | Creación automática |
+| fecha_actualizacion | TIMESTAMP | Actualización automática |
+
+El nombre dispone de una restricción de unicidad.
+
+El estado administrativo dispone de un índice
+para facilitar las consultas correspondientes.
+
+### 4.3. Funcionalidades implementadas
+
+- Creación de torneos.
+- Consulta individual.
+- Listado general.
+- Edición de nombre y descripción.
+- Búsqueda.
+- Filtrado por estado.
+- Archivado reversible.
+- Reactivación.
+- Eliminación definitiva.
+- Confirmación de operaciones destructivas.
+- Indicadores administrativos.
+- Persistencia en MySQL.
+- Protección mediante autenticación.
+
+### 4.4. Estados administrativos
+
+Los estados disponibles son:
+
+- ACTIVO.
+- ARCHIVADO.
+
+Todo torneo nuevo se registra como ACTIVO.
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVO: Creación
+    ACTIVO --> ARCHIVADO: Archivar
+    ARCHIVADO --> ACTIVO: Reactivar
+    ACTIVO --> [*]: Eliminar
+    ARCHIVADO --> [*]: Eliminar
+```
+
+El archivado permite conservar una competición
+sin mantenerla administrativamente activa.
+
+El archivado no implica la eliminación de datos
+ni equivale a la finalización de una edición.
+
+Los torneos archivados conservan:
+
+- Identificador.
+- Nombre.
+- Descripción.
+- Fechas registradas.
+- Información histórica que se incorpore
+  en futuras historias de usuario.
+
+La edición de sus datos básicos permanece
+disponible.
+
+Las futuras operaciones deportivas deberán
+comprobar el estado del torneo correspondiente.
+
+### 4.5. Eliminación definitiva
+
+La eliminación definitiva de torneos se encuentra
+disponible desde la interfaz y la API.
+
+Puede utilizarse sobre torneos activos y archivados.
+
+La operación elimina físicamente el registro
+correspondiente de MySQL.
+
+No existe un estado administrativo ELIMINADO
+ni una papelera de recuperación.
+
+La interfaz deberá solicitar confirmación expresa,
+identificando el nombre del torneo y advirtiendo
+que la operación no puede deshacerse.
+
+Si el administrador cancela la confirmación,
+el registro deberá permanecer intacto.
+
+Una eliminación exitosa deberá:
+
+- Retirar el torneo del listado.
+- Actualizar los indicadores administrativos.
+- Liberar el nombre anteriormente reservado.
+- Preservar los restantes torneos.
+
+La creación posterior de un torneo con el mismo
+nombre generará una nueva identidad persistente.
+
+No constituirá una restauración del torneo anterior.
+
+### 4.6. Validaciones
+
+El nombre del torneo deberá:
+
+- Ser obligatorio.
+- Tener hasta 100 caracteres.
+- Ser único dentro del sistema.
+- Utilizar normalización Unicode NFC.
+- Eliminar espacios externos.
+- Reducir espacios consecutivos.
+
+No se permitirán nombres duplicados que
+solamente difieran en mayúsculas, minúsculas
+o espacios normalizados.
+
+La descripción es opcional y admite hasta
+500 caracteres.
+
+Los nombres de torneos archivados continúan
+reservados.
+
+Los nombres de torneos eliminados podrán
+utilizarse nuevamente.
+
+### 4.7. Independencia administrativa
+
+Cada torneo posee un identificador persistente.
+
+La creación, edición, archivado, reactivación
+o eliminación de una competición no deberá
+alterar los datos de otra competición.
+
+NOCTURNO y DIURNO son ejemplos de torneos
+administrables.
+
+No constituyen registros obligatorios ni
+deberán crearse automáticamente durante
+la instalación del sistema.
+
+### 4.8. Alcance de HU-004
+
+La versión 0.2.0 implementa exclusivamente
+la gestión administrativa básica de torneos.
+
+Permanecen pendientes:
+
+- Ediciones.
+- Categorías.
+- Identidad visual de competiciones.
+- Reglamentos deportivos.
+- Selección del contexto deportivo.
+- Relaciones con otras entidades deportivas.
+
+### 4.9. Protección de registros dependientes
+
+Las futuras relaciones entre torneos y otras
+entidades deportivas deberán preservar
+la integridad referencial.
+
+La eliminación de un torneo que posea ediciones
+u otros registros dependientes deberá impedirse
+cuando resulte incompatible con la conservación
+de los datos.
+
+En esos casos deberá utilizarse el archivado
+como alternativa administrativa.
+
+El backend contempla la respuesta HTTP 409
+ante errores de dependencia producidos por
+restricciones de claves foráneas.
+
+No deberán utilizarse eliminaciones en cascada
+que destruyan información deportiva histórica.
+
+La incorporación y verificación real de estas
+restricciones corresponderá a las historias
+de usuario que implementen las entidades
+dependientes.
+
+Actualmente no existen ediciones asociadas
+a los torneos.
+
+### 4.10. Comparación de operaciones
+
+| Característica | Archivar | Eliminar |
+|---|---|---|
+| Conserva el registro | Sí | No |
+| Es reversible desde la aplicación | Sí | No |
+| Conserva el nombre reservado | Sí | No |
+| Retira el torneo de los activos | Sí | Sí |
+| Requiere confirmación en la interfaz | Sí | Sí |
+| Permite recuperar el mismo registro | Sí | No |
+| Preserva los demás torneos | Sí | Sí |
+
+---
+
+## 5. EDICIONES
+
+Una edición representa una realización determinada
 de un torneo.
 
 Ejemplos ilustrativos:
@@ -91,20 +329,36 @@ Ejemplos ilustrativos:
 - NOCTURNO 2028.
 - DIURNO 2028.
 
-Cada edicion pertenece a un unico torneo.
+Cada edición pertenece a un único torneo.
 
-Podran existir ediciones simultaneas.
+Podrán existir ediciones simultáneas.
 
-La finalizacion de una edicion no debera eliminar
+La finalización de una edición no deberá eliminar
 sus datos ni afectar otras ediciones.
 
-Una edicion no debe identificarse exclusivamente
-mediante el año, ya que un torneo podria tener
-mas de una edicion durante un mismo año.
+Una edición no deberá identificarse exclusivamente
+mediante el año, ya que un torneo podría disponer
+de más de una edición durante un mismo año.
 
-## 6. Categorias
+### 5.1. Estado de implementación
 
-Las categorias deben ser configurables.
+| Propiedad | Valor |
+|---|---|
+| Historia de usuario | HU-005 |
+| Estado | Pendiente |
+
+El modelo de persistencia y las funcionalidades
+administrativas se definirán durante HU-005.
+
+La relación entre torneo y edición deberá
+impedir la eliminación de un torneo que
+posea ediciones dependientes.
+
+---
+
+## 6. CATEGORÍAS
+
+Las categorías deberán ser configurables.
 
 Ejemplos:
 
@@ -113,321 +367,566 @@ Ejemplos:
 - FEMENINO.
 - MAYORES DE 40.
 
-Cada torneo y edicion podra disponer de diferentes
-categorias, sin estar obligado a utilizar todas
+Cada torneo y edición podrá disponer de diferentes
+categorías, sin estar obligado a utilizar todas
 las existentes.
 
-Cada categoria dentro de una edicion podra tener:
+Cada categoría dentro de una edición podrá tener:
 
 - Reglamento de edad.
 - Equipos participantes.
-- Formato de competicion.
+- Formato de competición.
 - Zonas.
 - Calendario.
 - Copas.
 - Identidad visual.
-- Estadisticas independientes.
+- Estadísticas independientes.
 
-## 7. Contexto deportivo
+### 6.1. Estado de implementación
 
-El contexto deportivo se determina mediante:
+| Propiedad | Valor |
+|---|---|
+| Historia de usuario | HU-006 |
+| Estado | Pendiente |
+
+No deberán incorporarse categorías obligatorias
+mediante condiciones fijas del código.
+
+---
+
+## 7. CONTEXTO DEPORTIVO
+
+El contexto deportivo se determinará mediante:
 
 - Identificador del torneo.
-- Identificador de la edicion.
-- Identificador de la categoria dentro de la edicion.
+- Identificador de la edición.
+- Identificador de la categoría de la edición.
 
-El frontend debera ofrecer un selector de contexto
-deportivo que permita cambiar de competicion
-sin cerrar la sesion del administrador.
+### 7.1. Selector de contexto
 
-El contexto seleccionado debera permanecer visible
-durante las operaciones deportivas.
+El frontend deberá ofrecer un selector que permita
+cambiar de competición sin cerrar la sesión
+del administrador.
 
-El backend debera verificar que los identificadores
-recibidos correspondan a relaciones validas.
+El contexto seleccionado deberá permanecer
+visible durante las operaciones deportivas.
 
-No se debe confiar exclusivamente en los filtros
+### 7.2. Validación del contexto
+
+El backend deberá verificar que los identificadores
+recibidos correspondan a relaciones válidas.
+
+No se deberá confiar exclusivamente en los filtros
 aplicados por el frontend.
 
-El cambio de contexto debera impedir que datos
+El cambio de contexto deberá impedir que datos
 cargados anteriormente se utilicen accidentalmente
-en operaciones de otro torneo.
+en operaciones de otra competición.
 
-## 8. Equipos e inscripciones
+### 7.3. Estado de implementación
 
-La participacion de un equipo debera vincularse
-a una edicion y categoria determinadas.
+| Propiedad | Valor |
+|---|---|
+| Historia de usuario | HU-008 |
+| Estado | Pendiente |
 
-Un mismo nombre de equipo podra existir en
-diferentes competiciones.
+La gestión administrativa de torneos incorporada
+en HU-004 no constituye todavía un selector
+de contexto deportivo.
 
-El nombre no constituye un identificador unico
-global del sistema.
+---
 
-Las inscripciones deberan mantener su identidad
-historica para preservar los resultados y las
-estadisticas de cada competicion.
+## 8. EQUIPOS E INSCRIPCIONES
 
-## 9. Jugadores y listas de buena fe
+La participación de un equipo deberá vincularse
+a una edición y categoría determinadas.
+
+Un mismo nombre de equipo podrá existir
+en diferentes competiciones.
+
+El nombre de un equipo no constituye un
+identificador único global del sistema.
+
+Las inscripciones deberán mantener su identidad
+histórica para preservar resultados y estadísticas
+de cada competición.
+
+### 8.1. Estado de implementación
+
+Pendiente de la ETAPA 03.
+
+---
+
+## 9. JUGADORES Y LISTAS DE BUENA FE
 
 Las listas de buena fe constituyen registros
-administrativos independientes de las estadisticas
+administrativos independientes de las estadísticas
 de goleadores.
 
-Un jugador podra participar en distintas
-categorias conforme al reglamento aplicable.
+Un jugador podrá participar en distintas categorías
+conforme al reglamento aplicable.
 
-No podra representar a diferentes equipos
-dentro de una misma edicion y categoria.
+No podrá representar a diferentes equipos dentro
+de una misma edición y categoría.
 
-Los datos personales deberan protegerse y no
+Los datos personales deberán protegerse y no
 formar parte de las publicaciones deportivas.
 
-Las reglas de identidad y habilitacion deberan
+Las reglas de identidad y habilitación deberán
 permitir el control disciplinario transversal.
 
-La identidad disciplinaria del jugador debera
+La identidad disciplinaria del jugador deberá
 permitir reconocerlo aunque participe en diferentes
-torneos, categorias, ediciones o equipos.
+torneos, categorías, ediciones o equipos.
 
-## 10. Formatos de competicion
+### 9.1. Estado de implementación
 
-Cada categoria podra disponer de formatos propios.
+Pendiente de la ETAPA 04.
 
-El modelo debera permitir:
+---
+
+## 10. FORMATOS DE COMPETICIÓN
+
+Cada categoría podrá disponer de formatos propios.
+
+El modelo deberá permitir:
 
 - Fases clasificatorias.
 - Zonas.
 - Partidos interzonales.
-- Jornadas distribuidas en diferentes dias.
+- Jornadas distribuidas en diferentes días.
 - Copas.
-- Eliminatorias a partido unico.
+- Eliminatorias a partido único.
 - Eliminatorias de ida y vuelta.
 - Definiciones mediante penales.
 
-La programacion de los partidos sera manual.
+La programación de los partidos será manual.
 
-No deben establecerse dias de juego obligatorios
-mediante constantes en el codigo.
+No deberán establecerse días de juego obligatorios
+mediante constantes en el código.
 
-## 11. Estadisticas
+La implementación de los formatos deberá respetar
+las reglas particulares de cada competición.
 
-Las estadisticas deberan calcularse utilizando
+### 10.1. Estado de implementación
+
+Pendiente de las etapas deportivas correspondientes.
+
+---
+
+## 11. ESTADÍSTICAS
+
+Las estadísticas deberán calcularse utilizando
 exclusivamente los partidos correspondientes
 al contexto deportivo consultado.
 
-Las tablas de posiciones, goleadores y valla
-menos vencida no deberan mezclar informacion
-de diferentes torneos, ediciones o categorias.
+Las tablas de posiciones, goleadores y valla menos
+vencida no deberán mezclar información de
+diferentes torneos, ediciones o categorías.
 
-Los partidos interzonales deberan computarse
-segun las reglas deportivas aprobadas.
+### 11.1. Partidos interzonales
 
-Las estadisticas acumuladas entre fases y copas
-deberan respetar el reglamento de la competicion.
+Los partidos interzonales deberán computarse
+según las reglas deportivas aprobadas.
 
-Los resultados y eventos registrados constituiran
-la fuente de verdad para los calculos deportivos.
+### 11.2. Acumulación estadística
 
-Las correcciones deberan evitar duplicaciones
-y permitir recalcular las estadisticas afectadas.
+Las estadísticas acumuladas entre fases y copas
+deberán respetar el reglamento de la competición.
 
-## 12. Disciplina
+### 11.3. Fuente de verdad
+
+Los resultados y eventos registrados constituirán
+la fuente de verdad para los cálculos deportivos.
+
+Las correcciones deberán evitar duplicaciones
+y permitir recalcular las estadísticas afectadas.
+
+### 11.4. Indicadores administrativos
+
+La versión 0.2.0 incorpora los siguientes
+indicadores administrativos de torneos:
+
+- Total de torneos registrados.
+- Total de torneos activos.
+- Total de torneos archivados.
+
+El Dashboard incorpora un contador de torneos
+activos obtenido mediante la API.
+
+Las creaciones, cambios de estado y eliminaciones
+deberán reflejarse en los indicadores correspondientes.
+
+Estos indicadores no constituyen estadísticas
+de rendimiento deportivo.
+
+### 11.5. Estado de implementación
+
+Las estadísticas deportivas permanecen pendientes.
+
+---
+
+## 12. DISCIPLINA
 
 ### 12.1. Independencia disciplinaria
 
-El NOCTURNO y el DIURNO dispondran de sistemas
+El NOCTURNO y el DIURNO dispondrán de sistemas
 disciplinarios paralelos e independientes.
 
 Las sanciones temporales aplicadas en un torneo
-no afectaran la habilitacion del jugador en el otro.
+no afectarán la habilitación del jugador en el otro.
 
-La unica excepcion sera la sancion DEFINITIVA.
+La única excepción será la sanción DEFINITIVA.
 
 ### 12.2. Tipos de sanciones
 
-El sistema contemplara:
+El sistema contemplará:
 
 - Sanciones por cantidad de fechas.
 - Sanciones FIN DE TORNEO.
 - Sanciones DEFINITIVAS.
 
-Cada sancion debera conservar su contexto
+Cada sanción deberá conservar su contexto
 deportivo de origen.
 
 ### 12.3. Sanciones por fechas
 
-Una sancion por cantidad de fechas afectara
+Una sanción por cantidad de fechas afectará
 exclusivamente al torneo donde fue aplicada.
 
-Dentro de ese torneo, el jugador quedara
-inhabilitado en todas sus categorias mientras
-la sancion permanezca vigente.
+Dentro de ese torneo, el jugador quedará
+inhabilitado en todas sus categorías mientras
+la sanción permanezca vigente.
 
-El cumplimiento se computara exclusivamente
-en la categoria de origen.
+El cumplimiento se computará exclusivamente
+en la categoría de origen.
 
-Los partidos disputados en otras categorias
-o en otro torneo no descontaran fechas.
+Los partidos disputados en otras categorías
+o en otro torneo no descontarán fechas.
 
 Cada partido posterior finalizado del equipo
-correspondiente en la categoria de origen
-descontara una fecha, incluyendo partidos
+correspondiente en la categoría de origen
+descontará una fecha, incluyendo partidos
 resueltos por incomparecencia.
 
-No descontaran fechas:
+No descontarán fechas:
 
-- El partido donde se produjo la expulsion.
+- El partido donde se produjo la expulsión.
 - Las jornadas libres.
 - Los partidos pendientes.
-- Los partidos de otras categorias.
+- Los partidos de otras categorías.
 - Los partidos de otros torneos.
 
 ### 12.4. Sanciones FIN DE TORNEO
 
-El jugador quedara inhabilitado en todas las
-categorias del torneo donde recibio la sancion
-hasta la finalizacion de la edicion correspondiente.
+El jugador quedará inhabilitado en todas las
+categorías del torneo donde recibió la sanción
+hasta la finalización de la edición correspondiente.
 
-Esta sancion no afectara su habilitacion
+Esta sanción no afectará su habilitación
 en el otro torneo.
 
 ### 12.5. Sanciones DEFINITIVAS
 
-Una sancion DEFINITIVA aplicada en el NOCTURNO
-o en el DIURNO producira la inhabilitacion
+Una sanción DEFINITIVA aplicada en el NOCTURNO
+o en el DIURNO producirá la inhabilitación
 permanente del jugador en ambos torneos.
 
-La inhabilitacion comprendera:
+La inhabilitación comprenderá:
 
-- Todas las categorias.
+- Todas las categorías.
 - Todas las ediciones presentes y futuras.
 - Todos los equipos.
 
-La sancion no expirara por el transcurso del tiempo,
-la finalizacion de una edicion o el cambio de equipo.
+La sanción no expirará por:
+
+- El transcurso del tiempo.
+- La finalización de una edición.
+- El cambio de categoría.
+- El cambio de equipo.
 
 ### 12.6. Identidad disciplinaria
 
-Las sanciones deberan vincularse a la identidad
-del jugador y no exclusivamente a su inscripcion
+Las sanciones deberán vincularse a la identidad
+del jugador y no exclusivamente a su inscripción
 en un equipo determinado.
 
-El sistema debera evitar que un cambio de equipo,
-categoria o edicion permita eludir una sancion
+El sistema deberá evitar que un cambio de equipo,
+categoría o edición permita eludir una sanción
 vigente dentro de su alcance reglamentario.
 
-La identificacion disciplinaria debera contemplar
+La identificación disciplinaria deberá contemplar
 el DNI como identificador personal, protegiendo
 su confidencialidad.
 
 ### 12.7. Ejemplos reglamentarios
 
-Sancion de 3 fechas en NOCTURNO LIBRE:
+#### Ejemplo A — Sanción de tres fechas
 
-- NOCTURNO LIBRE: suspendido.
-- NOCTURNO SENIOR: suspendido.
-- DIURNO: no afectado por esta sancion.
+Origen: NOCTURNO LIBRE.
 
-Sancion FIN DE TORNEO en NOCTURNO LIBRE:
+| Competición | Situación |
+|---|---|
+| NOCTURNO LIBRE | Suspendido |
+| NOCTURNO SENIOR | Suspendido |
+| DIURNO | No afectado por esta sanción |
 
-- NOCTURNO LIBRE: suspendido.
-- NOCTURNO SENIOR: suspendido.
-- DIURNO: no afectado por esta sancion.
+Las fechas se descontarán exclusivamente
+mediante los partidos correspondientes a
+la categoría de origen.
 
-Sancion DEFINITIVA en NOCTURNO LIBRE:
+#### Ejemplo B — FIN DE TORNEO
 
-- NOCTURNO LIBRE: inhabilitado.
-- NOCTURNO SENIOR: inhabilitado.
-- DIURNO: inhabilitado.
+Origen: NOCTURNO LIBRE.
 
-Las mismas reglas se aplicaran de manera
-reciproca cuando la sancion se origine
+| Competición | Situación |
+|---|---|
+| NOCTURNO LIBRE | Suspendido |
+| NOCTURNO SENIOR | Suspendido |
+| DIURNO | No afectado por esta sanción |
+
+La sanción expirará al finalizar la edición
+correspondiente.
+
+#### Ejemplo C — DEFINITIVA
+
+Origen: NOCTURNO LIBRE.
+
+| Competición | Situación |
+|---|---|
+| NOCTURNO LIBRE | Inhabilitado permanentemente |
+| NOCTURNO SENIOR | Inhabilitado permanentemente |
+| DIURNO | Inhabilitado permanentemente |
+
+Las mismas reglas se aplicarán de manera
+recíproca cuando la sanción se origine
 en el DIURNO.
 
-La habilitacion efectiva del jugador dependera
-tambien de otras sanciones vigentes y de los
+La habilitación efectiva del jugador dependerá
+también de otras sanciones vigentes y de los
 requisitos reglamentarios correspondientes.
 
-### 12.8. Escalabilidad disciplinaria
+### 12.8. Resumen del alcance disciplinario
 
-El alcance de las sanciones debera formar parte
-del modelo de configuracion reglamentaria.
+| Sanción | Categoría de origen | Otras categorías del torneo | Otro torneo |
+|---|---|---|---|
+| Por fechas | Afectada | Afectadas | No afectado |
+| FIN DE TORNEO | Afectada | Afectadas | No afectado |
+| DEFINITIVA | Afectada | Afectadas | Afectado |
 
-No se deberan utilizar los nombres NOCTURNO
-y DIURNO como condiciones fijas del codigo.
+El resumen representa las reglas aprobadas
+para NOCTURNO y DIURNO.
 
-La incorporacion de futuros torneos requerira
-definir expresamente su vinculacion con los
-regimenes disciplinarios existentes.
+### 12.9. Escalabilidad disciplinaria
 
-### 12.9. Pruebas disciplinarias obligatorias
+El alcance de las sanciones deberá formar parte
+del modelo de configuración reglamentaria.
 
-La futura implementacion debera comprobar:
+No se deberán utilizar los nombres NOCTURNO
+y DIURNO como condiciones fijas del código.
+
+La incorporación de futuros torneos requerirá
+definir expresamente su vinculación con los
+regímenes disciplinarios existentes.
+
+No se extenderá automáticamente el alcance
+de las sanciones DEFINITIVAS a nuevos torneos
+sin una definición reglamentaria aprobada.
+
+### 12.10. Pruebas disciplinarias obligatorias
+
+La futura implementación deberá comprobar:
 
 - Independencia de sanciones temporales entre torneos.
-- Bloqueo transversal entre categorias del mismo torneo.
-- Cumplimiento de fechas en la categoria de origen.
+- Bloqueo transversal entre categorías del mismo torneo.
+- Cumplimiento de fechas en la categoría de origen.
 - Ausencia de descuentos por partidos de otro torneo.
-- Expiracion correcta de sanciones FIN DE TORNEO.
-- Inhabilitacion DEFINITIVA en ambos torneos.
-- Persistencia de la inhabilitacion DEFINITIVA.
+- Expiración correcta de sanciones FIN DE TORNEO.
+- Inhabilitación DEFINITIVA en ambos torneos.
+- Persistencia de la inhabilitación DEFINITIVA.
 - Control de identidad ante cambios de equipo.
-- Conservacion del historial disciplinario.
+- Conservación del historial disciplinario.
 
-No se deberan implementar excepciones
-disciplinarias sin una regla aprobada.
+No deberán implementarse excepciones disciplinarias
+sin una regla previamente aprobada.
 
-## 13. Identidad visual
+### 12.11. Estado de implementación
 
-La identidad visual no debe estar fijada
-directamente en el codigo.
+Pendiente de la ETAPA 09.
 
-El sistema debera permitir configurar:
+Las reglas de esta sección constituyen una
+definición reglamentaria para su futura
+implementación.
 
-- Logos.
+---
+
+## 13. IDENTIDAD VISUAL
+
+### 13.1. Identidad de las competiciones
+
+La identidad visual de las competiciones no deberá
+estar fijada directamente en el código.
+
+El sistema deberá permitir configurar:
+
+- Logotipos.
 - Colores mediante valores HEX.
 - Identidad del torneo.
-- Identidad de la edicion.
-- Identidad de las categorias.
+- Identidad de la edición.
+- Identidad de las categorías.
 - Identidad de las copas.
 
-Las publicaciones deberan utilizar la identidad
+Las publicaciones deberán utilizar la identidad
 visual del contexto deportivo correspondiente.
 
-La exportacion de placas debera realizarse
+### 13.2. Sistema de Diseño institucional
+
+La versión 0.2.0 incorpora el Sistema de Diseño
+v1.0 de ALTO-SISTEMA.
+
+Sus características principales son:
+
+- Azul institucional `#3333FF`.
+- Fondo general `#080808`.
+- Tipografía Barlow Condensed.
+- Tipografía Inter.
+- Iconografía Lucide React.
+- Design Tokens.
+- Componentes reutilizables.
+- Diseño responsive.
+- Estados visuales semánticos.
+
+La definición completa se encuentra en:
+
+[SISTEMA_DE_DISENO.md](SISTEMA_DE_DISENO.md)
+
+### 13.3. Independencia de identidades visuales
+
+Se distinguen dos sistemas visuales:
+
+1. Identidad institucional de ALTO-SISTEMA.
+2. Identidad personalizable de las competiciones.
+
+La identidad institucional define la apariencia
+general de la aplicación administrativa.
+
+La identidad de las competiciones determinará
+sus propios logotipos, colores y publicaciones.
+
+Los colores y logotipos de las competiciones
+no deberán modificar accidentalmente la identidad
+institucional de ALTO-SISTEMA.
+
+### 13.4. Publicaciones deportivas
+
+La exportación de placas deberá realizarse
 en formato PNG, con ancho uniforme y altura
 adaptable al contenido.
 
-## 14. Integridad de los datos
+Los estándares específicos de las publicaciones
+se definirán durante la etapa correspondiente.
 
-El diseño de la base de datos debera utilizar:
+### 13.5. Estado de implementación
+
+| Funcionalidad | Estado |
+|---|---|
+| Sistema de Diseño institucional | Implementado y verificado |
+| Identidad visual de torneos | Pendiente |
+| Identidad visual de ediciones | Pendiente |
+| Identidad visual de categorías | Pendiente |
+| Identidad visual de copas | Pendiente |
+| Publicaciones deportivas PNG | Pendiente |
+
+La identidad visual de competiciones corresponde
+a HU-007.
+
+La generación de publicaciones corresponde
+a la ETAPA 10.
+
+---
+
+## 14. INTEGRIDAD DE LOS DATOS
+
+El diseño de la base de datos deberá utilizar:
 
 - Claves primarias.
-- Claves foraneas.
+- Claves foráneas.
 - Restricciones de unicidad contextual.
-- Indices apropiados.
+- Índices apropiados.
 - Transacciones cuando corresponda.
 - Validaciones de relaciones.
 - Migraciones versionadas.
 
-Las operaciones de escritura deberan verificar
+### 14.1. Independencia de operaciones
+
+Las operaciones de escritura deberán verificar
 el contexto deportivo de todos los registros
 involucrados.
 
-Una operacion sobre un torneo no debera modificar
+Una operación sobre un torneo no deberá modificar
 accidentalmente los datos de otro torneo.
 
 Las excepciones disciplinarias expresamente
-aprobadas deberan aplicarse mediante operaciones
+aprobadas deberán aplicarse mediante operaciones
 controladas, verificables y documentadas.
 
-## 15. Historial
+### 14.2. Migraciones implementadas
 
-La finalizacion de un torneo o edicion no debera
-implicar la eliminacion automatica de sus datos.
+| Migración | Responsabilidad |
+|---|---|
+| `001_usuarios.sql` | Usuarios administrativos |
+| `002_torneos.sql` | Gestión de torneos |
 
-El sistema debera permitir consultar:
+Las migraciones aplicadas deberán conservarse
+sin modificaciones posteriores.
+
+Toda evolución estructural deberá incorporarse
+mediante una nueva migración versionada.
+
+La eliminación definitiva de torneos no requirió
+modificar la estructura existente.
+
+### 14.3. Fuente de verdad
+
+MySQL constituye la fuente de verdad
+de los datos persistentes.
+
+Las validaciones del frontend deberán
+complementarse con validaciones del backend
+y restricciones de integridad de la base de datos.
+
+### 14.4. Integridad referencial futura
+
+Las entidades dependientes deberán disponer
+de restricciones que impidan operaciones
+incompatibles con la conservación de los datos.
+
+La incorporación de ediciones deberá incluir
+pruebas que verifiquen el rechazo de la
+eliminación de su torneo asociado.
+
+No deberán existir registros deportivos
+huérfanos como consecuencia de operaciones
+administrativas.
+
+### 14.5. Verificación final de migraciones
+
+| Control | Resultado |
+|---|---|
+| Base de datos | alto_sistema |
+| Migraciones registradas | 2 |
+| Migraciones pendientes | 0 |
+| Errores | 0 |
+| Estado | Actualizada |
+
+---
+
+## 15. HISTORIAL
+
+La finalización de un torneo o edición no deberá
+implicar la eliminación automática de sus datos.
+
+El sistema deberá permitir consultar:
 
 - Ediciones anteriores.
 - Equipos participantes.
@@ -436,69 +935,279 @@ El sistema debera permitir consultar:
 - Goleadores.
 - Campeones.
 - Sanciones.
-- Publicaciones historicas.
+- Publicaciones históricas.
 
-La politica de archivo y conservacion se definira
-en las historias de usuario correspondientes.
+### 15.1. Conservación disciplinaria
 
-Las sanciones DEFINITIVAS deberan conservarse
-independientemente del estado de la edicion
+Las sanciones DEFINITIVAS deberán conservarse
+independientemente del estado de la edición
 donde fueron aplicadas.
 
-## 16. Escalabilidad funcional
+### 15.2. Archivado administrativo
 
-La incorporacion de un nuevo torneo, edicion
-o categoria debera realizarse mediante operaciones
-administrativas de la aplicacion.
+El archivado de torneos implementado en HU-004
+constituye el primer mecanismo administrativo
+de conservación.
 
-No debera requerir:
+Los torneos archivados podrán consultarse
+y reactivarse.
+
+La política definitiva de archivo y conservación
+de las restantes entidades se definirá durante
+las historias de usuario correspondientes.
+
+### 15.3. Eliminación y conservación histórica
+
+La eliminación definitiva deberá utilizarse
+para retirar registros que puedan eliminarse
+sin comprometer información deportiva asociada.
+
+El archivado será la alternativa correspondiente
+cuando existan dependencias que deban conservarse.
+
+Una competición eliminada y posteriormente
+creada con el mismo nombre constituirá
+un registro diferente.
+
+Las futuras relaciones deberán utilizar
+identificadores persistentes, no nombres
+como referencias de identidad.
+
+### 15.4. Estado de implementación
+
+El archivado y la eliminación administrativa
+de torneos se encuentran implementados
+y verificados.
+
+El historial deportivo integral permanece
+pendiente de la ETAPA 12.
+
+---
+
+## 16. ESCALABILIDAD FUNCIONAL
+
+La incorporación de un nuevo torneo, edición
+o categoría deberá realizarse mediante operaciones
+administrativas de la aplicación.
+
+No deberá requerir:
 
 - Duplicar el proyecto.
 - Crear otra base de datos.
-- Modificar el codigo fuente.
-- Crear una nueva instalacion.
+- Modificar el código fuente.
+- Crear una nueva instalación.
 - Reiniciar el sistema por cada torneo creado.
 
-La arquitectura debera permitir nuevas modalidades
-de competicion mediante ampliaciones controladas.
+La arquitectura deberá permitir nuevas modalidades
+de competición mediante ampliaciones controladas.
 
-## 17. Criterios de aceptacion arquitectonica
+### 16.1. Capacidad incorporada en HU-004
 
-Las futuras implementaciones deberan demostrar:
+La versión 0.2.0 permite administrar múltiples
+torneos desde la interfaz administrativa
+sin modificar el código fuente.
 
-- Creacion de multiples torneos.
-- Gestion simultanea del Nocturno y el Diurno.
+Cada torneo dispone de una identidad persistente
+y un estado administrativo independiente.
+
+Su ciclo de vida comprende:
+
+- Creación.
+- Edición.
+- Archivado.
+- Reactivación.
+- Eliminación definitiva.
+
+### 16.2. Evolución prevista
+
+Las siguientes historias de usuario incorporarán
+las entidades dependientes de cada competición.
+
+El desarrollo deberá conservar la independencia
+de los datos y evitar límites arbitrarios.
+
+---
+
+## 17. CRITERIOS DE ACEPTACIÓN ARQUITECTÓNICA
+
+Las futuras implementaciones deberán demostrar:
+
+- Creación de múltiples torneos.
+- Gestión simultánea del Nocturno y el Diurno.
 - Independencia de sus ediciones.
-- Independencia de sus categorias.
-- Separacion de equipos inscritos.
-- Separacion de resultados y estadisticas.
-- Seleccion segura del contexto deportivo.
-- Conservacion del historial.
+- Independencia de sus categorías.
+- Separación de equipos inscritos.
+- Separación de resultados y estadísticas.
+- Selección segura del contexto deportivo.
+- Conservación del historial.
 - Rechazo de relaciones deportivas incompatibles.
 - Independencia disciplinaria temporal.
-- Aplicacion transversal de sanciones DEFINITIVAS.
+- Aplicación transversal de sanciones DEFINITIVAS.
 
-Deberan incorporarse pruebas automatizadas que
+Deberán incorporarse pruebas automatizadas que
 comprueben expresamente que las operaciones
 sobre un torneo no alteran indebidamente otro.
 
-Las sanciones DEFINITIVAS constituiran una
-excepcion reglamentaria controlada y deberan
-contar con pruebas especificas.
+Las sanciones DEFINITIVAS constituirán una
+excepción reglamentaria controlada y deberán
+contar con pruebas específicas.
 
-## 18. Estado de implementacion
+### 17.1. Criterios específicos de HU-004
 
-En la version 0.1.3 se dispone de la infraestructura
-tecnica necesaria para comenzar el modelo deportivo.
+| ID | Criterio | Verificación |
+|---|---|---|
+| CA-01 | Creación de torneos | Satisfactoria |
+| CA-02 | Validación de campos obligatorios | Satisfactoria |
+| CA-03 | Prevención de nombres duplicados | Satisfactoria |
+| CA-04 | Listado de torneos | Satisfactoria |
+| CA-05 | Búsqueda y filtros | Satisfactoria |
+| CA-06 | Edición de nombre y descripción | Satisfactoria |
+| CA-07 | Archivado con confirmación | Satisfactoria |
+| CA-08 | Reactivación | Satisfactoria |
+| CA-09 | Persistencia después del reinicio | Satisfactoria |
+| CA-10 | Independencia entre torneos | Satisfactoria |
+| CA-11 | Protección mediante autenticación | Satisfactoria |
+| CA-12 | Adaptación responsive | Satisfactoria |
+| CA-13 | Pruebas automatizadas | Satisfactoria |
+| CA-14 | Regresión de funcionalidades anteriores | Satisfactoria |
+| CA-15 | Eliminación definitiva | Satisfactoria |
+| CA-16 | Cancelación de eliminación | Satisfactoria |
+| CA-17 | Independencia tras eliminación | Satisfactoria |
+| CA-18 | Reutilización de nombres eliminados | Satisfactoria |
 
-Las entidades, relaciones, selectores de contexto
-y funcionalidades multitorneo todavia no estan
-implementadas.
+Los resultados corresponden a las comprobaciones
+técnicas y funcionales realizadas durante HU-004.
 
-Su desarrollo comenzara en la ETAPA 02.
+La adaptación responsive se verificó mediante
+el navegador.
 
-El reglamento disciplinario documentado sera
-implementado en la etapa correspondiente.
+La aprobación formal deberá registrarse
+durante el cierre del CHECK integral.
 
-Este documento constituye una referencia obligatoria
-para las futuras historias de usuario.
+### 17.2. Controles complementarios
+
+| Control | Resultado |
+|---|---|
+| Sistema de Diseño v1.0 | Verificado |
+| Integridad de migraciones | Verificada |
+| Consistencia de versión | Verificada |
+| Limpieza de torneos temporales | Completada |
+| Documentación definitiva | En consolidación |
+
+---
+
+## 18. ESTADO DE IMPLEMENTACIÓN
+
+### 18.1. Evolución del modelo
+
+| Versión | Incorporación |
+|---|---|
+| 0.1.0 | Infraestructura inicial |
+| 0.1.1 | Autenticación |
+| 0.1.2 | Interfaz administrativa |
+| 0.1.3 | Consolidación arquitectónica |
+| 0.2.0 | Gestión integral de torneos y Sistema de Diseño v1.0 |
+
+### 18.2. Entidades y funcionalidades
+
+| Entidad o funcionalidad | Estado |
+|---|---|
+| Torneos | Implementado y verificado |
+| Ediciones | Pendiente |
+| Categorías | Pendiente |
+| Reglamentos deportivos | Pendiente |
+| Identidad visual de competiciones | Pendiente |
+| Selector de contexto deportivo | Pendiente |
+| Equipos e inscripciones | Pendiente |
+| Listas de buena fe | Pendiente |
+| Fases y zonas | Pendiente |
+| Jornadas y partidos | Pendiente |
+| Tablas de posiciones | Pendiente |
+| Goleadores | Pendiente |
+| Valla menos vencida | Pendiente |
+| Copas y playoffs | Pendiente |
+| Disciplina | Pendiente |
+| Publicaciones deportivas | Pendiente |
+| Historial deportivo | Pendiente |
+
+### 18.3. Verificación definitiva de torneos
+
+| Control | Resultado |
+|---|---|
+| Pruebas unitarias de autenticación | 13/13 |
+| Pruebas unitarias de torneos | 30/30 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Total de pruebas automatizadas | 45/45 |
+| Controles internos de integración de torneos | 20/20 |
+| Pruebas fallidas | 0 |
+| Migración de torneos | Ejecutada |
+| Idempotencia del migrador | Verificada |
+| Migraciones sobre una base nueva | Verificadas |
+| Migraciones pendientes | 0 |
+| ESLint | 0 errores y 0 advertencias |
+| Compilación de producción | Exitosa |
+| Tiempo de compilación final | 3,49 segundos |
+| Revisión visual inicial | 8/8 |
+| Validación funcional | Satisfactoria |
+| Eliminación de torneos temporales | Completada |
+| CHECK integral HU-004 | Pendiente de cierre formal |
+
+Los controles internos de integración forman
+parte de una única prueba automatizada.
+
+Las 45 pruebas corresponden a 43 pruebas
+unitarias y dos pruebas de integración,
+verificadas mediante ejecuciones separadas.
+
+Las pruebas de integración de torneos utilizan
+una base de datos independiente de la base principal.
+
+La revisión responsive se realizó mediante
+simulación desde el navegador.
+
+La validación en dispositivos móviles físicos
+permanece pendiente.
+
+La protección de eliminación frente a futuras
+claves foráneas deberá verificarse cuando
+se incorporen las entidades dependientes.
+
+### 18.4. Evolución de la ETAPA 02
+
+| Historia | Responsabilidad | Estado |
+|---|---|---|
+| HU-004 | Gestión integral de torneos | Verificada, pendiente de consolidación |
+| HU-005 | Gestión de ediciones | Pendiente |
+| HU-006 | Gestión de categorías | Pendiente |
+| HU-007 | Identidad visual | Pendiente |
+| HU-008 | Selección del contexto deportivo | Pendiente |
+
+La ETAPA 02 permanecerá abierta hasta completar
+todas sus historias de usuario.
+
+### 18.5. Conservación de las reglas deportivas
+
+La implementación de la gestión integral
+de torneos no modifica las reglas previamente
+establecidas sobre:
+
+- Independencia deportiva.
+- Independencia estadística.
+- Identidad de jugadores.
+- Habilitaciones.
+- Formatos de competición.
+- Disciplina.
+- Conservación del historial.
+
+El reglamento disciplinario será implementado
+durante la etapa correspondiente.
+
+Este documento constituye una referencia
+obligatoria para las futuras historias de usuario.
+
+---
+
+**ALTO-SISTEMA**
+
+Sistema integral de gestión deportiva.

@@ -1,0 +1,409 @@
+/* ==================================================
+   ALTO-SISTEMA
+   SISTEMA DE DISEÑO v1.0
+   TIPOGRAFÍA GLOBAL
+   ================================================== */
+
+
+/* TIPOGRAFÍA PRINCIPAL */
+
+body {
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+
+    color: var(--color-text);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+}
+
+
+/* ENCABEZADOS */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+
+    font-family: var(--font-heading);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+    color: var(--color-text);
+
+    margin: 0;
+
+}
+
+
+/* TÍTULO PRINCIPAL DE PANTALLA */
+
+h1,
+.as-heading-1 {
+
+    font-family: var(--font-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-extrabold);
+    line-height: var(--line-height-tight);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+}
+
+
+/* TÍTULO DE SECCIÓN */
+
+h2,
+.as-heading-2 {
+
+    font-family: var(--font-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+
+}
+
+
+/* SUBTÍTULO */
+
+h3,
+.as-heading-3 {
+
+    font-family: var(--font-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+
+}
+
+
+h4,
+h5,
+h6 {
+
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+
+}
+
+
+/* TEXTO GENERAL */
+
+p {
+
+    margin: 0;
+
+    line-height: var(--line-height-normal);
+
+}
+
+
+strong,
+b {
+
+    font-weight: var(--font-weight-bold);
+
+}
+
+
+small {
+
+    font-size: var(--font-size-xs);
+
+}
+
+
+/* ELEMENTOS INTERACTIVOS */
+
+button,
+input,
+textarea,
+select {
+
+    font-family: var(--font-body);
+    font-size: inherit;
+    line-height: var(--line-height-normal);
+
+}
+
+
+button {
+
+    font-weight: var(--font-weight-semibold);
+
+}
+
+
+label {
+
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+
+}
+
+
+/* TEXTO SECUNDARIO */
+
+.as-text-secondary {
+
+    color: var(--color-text-secondary);
+
+}
+
+
+.as-text-muted {
+
+    color: var(--color-text-muted);
+
+}
+
+
+.as-text-small {
+
+    font-size: var(--font-size-xs);
+
+}
+
+
+.as-text-description {
+
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+
+    color: var(--color-text-secondary);
+
+}
+
+
+/* ETIQUETAS Y ENCABEZADOS MENORES */
+
+.as-text-label {
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+
+    letter-spacing: var(--letter-spacing-label);
+
+    text-transform: uppercase;
+
+    color: var(--color-text-secondary);
+
+}
+
+
+/* ESTADOS SEMÁNTICOS */
+
+.as-text-success {
+
+    color: var(--color-success);
+
+}
+
+
+.as-text-warning {
+
+    color: var(--color-warning);
+
+}
+
+
+.as-text-danger {
+
+    color: var(--color-danger-text);
+
+}
+
+
+.as-text-info {
+
+    color: var(--color-info);
+
+}
+
+
+/* TEXTO NUMÉRICO */
+
+.as-number {
+
+    font-family: var(--font-numeric);
+
+    font-variant-numeric: tabular-nums lining-nums;
+
+    font-weight: var(--font-weight-semibold);
+
+}
+
+
+/* INDICADORES ESTADÍSTICOS */
+
+.as-stat-value {
+
+    font-family: var(--font-numeric);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+
+    font-variant-numeric: tabular-nums lining-nums;
+
+    line-height: var(--line-height-tight);
+
+    letter-spacing: -0.02em;
+
+}
+
+
+/* MARCADORES DEPORTIVOS */
+
+.as-score {
+
+    font-family: var(--font-heading);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-extrabold);
+
+    font-variant-numeric: tabular-nums lining-nums;
+
+    line-height: var(--line-height-tight);
+
+}
+
+
+/* TABLAS */
+
+table {
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+
+}
+
+
+th {
+
+    font-weight: var(--font-weight-bold);
+
+}
+
+
+td.as-number,
+th.as-number {
+
+    font-variant-numeric: tabular-nums lining-nums;
+
+    text-align: right;
+
+}
+
+
+/* UTILIDADES TIPOGRÁFICAS */
+
+.as-uppercase {
+
+    text-transform: uppercase;
+
+}
+
+
+.as-text-center {
+
+    text-align: center;
+
+}
+
+
+.as-text-right {
+
+    text-align: right;
+
+}
+
+
+.as-text-left {
+
+    text-align: left;
+
+}
+
+
+.as-text-wrap {
+
+    overflow-wrap: anywhere;
+
+}
+
+
+/* ADAPTACIÓN MÓVIL */
+
+@media (max-width: 900px) {
+
+    h1,
+    .as-heading-1 {
+
+        font-size: 28px;
+
+    }
+
+
+    h2,
+    .as-heading-2 {
+
+        font-size: 22px;
+
+    }
+
+
+    .as-stat-value {
+
+        font-size: 28px;
+
+    }
+
+
+    .as-score {
+
+        font-size: 40px;
+
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    h1,
+    .as-heading-1 {
+
+        font-size: 26px;
+
+    }
+
+
+    h2,
+    .as-heading-2 {
+
+        font-size: 20px;
+
+    }
+
+
+    .as-stat-value {
+
+        font-size: 24px;
+
+    }
+
+
+    .as-score {
+
+        font-size: 36px;
+
+    }
+
+}

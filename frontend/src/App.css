@@ -1,151 +1,103 @@
-.contenedor {
-  min-height: 100vh;
-  min-height: 100dvh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background-color: #000000;
-  color: #ffffff;
-  text-align: center;
-  font-family: Arial, Helvetica, sans-serif;
+/* ==================================================
+   ALTO-SISTEMA
+   SISTEMA DE DISEÑO v1.0
+   APLICACIÓN PRINCIPAL
+   ================================================== */
+
+
+/* ==================================================
+   PANTALLA DE CARGA INICIAL
+   ================================================== */
+
+.app-carga-inicial {
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: var(--space-6);
+
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    padding: var(--space-6);
+
+    background-color: var(--color-background);
+
+    color: var(--color-text);
+
+    text-align: center;
+
 }
 
-.contenedor h1 {
-  margin: 0;
-  font-size: clamp(30px, 7vw, 64px);
-  font-weight: 900;
-  color: #3333ff;
-  letter-spacing: 2px;
+
+.app-carga-inicial h1 {
+
+    font-family: var(--font-heading);
+
+    font-size: clamp(32px, 9vw, 56px);
+
+    font-weight: var(--font-weight-extrabold);
+
+    line-height: var(--line-height-tight);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+    color: var(--color-primary-light);
+
 }
 
-.contenedor h2 {
-  margin: 16px 0;
-  font-size: 22px;
-  font-weight: 500;
+
+/* ==================================================
+   ESTADO DE VERIFICACIÓN
+   ================================================== */
+
+.app-carga-estado {
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: var(--space-3);
+
 }
 
-.contenedor > p {
-  color: #aaaaaa;
-  font-size: 14px;
+
+.app-carga-estado .as-spinner {
+
+    width: 28px;
+    height: 28px;
+
 }
 
-/* Panel del administrador */
 
-.usuario-panel {
-  width: 100%;
-  max-width: 420px;
-  margin-top: 24px;
-  padding: 24px;
-  background-color: #121212;
-  border: 1px solid #3333ff;
-  border-radius: 12px;
+.app-carga-estado p {
+
+    font-size: var(--font-size-sm);
+
+    color: var(--color-text-secondary);
+
 }
 
-.usuario-panel h3 {
-  margin: 0 0 12px;
-  font-size: 20px;
-}
 
-.usuario-panel p {
-  color: #aaaaaa;
-  font-size: 14px;
-}
+/* ==================================================
+   ADAPTACIÓN MÓVIL
+   ================================================== */
 
-/* Boton de cierre de sesion */
+@media (max-width: 480px) {
 
-.boton-salir {
-  width: 100%;
-  min-height: 46px;
-  margin-top: 12px;
-  padding: 12px;
-  background-color: #8b2020;
-  color: #ffffff;
-  border: 1px solid #b33333;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  transition: background-color 0.2s;
-}
+    .app-carga-inicial {
 
-.boton-salir:hover:not(:disabled) {
-  background-color: #b33333;
-}
+        padding: var(--space-4);
 
-.boton-salir:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+        gap: var(--space-4);
 
-.boton-salir:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 3px;
-}
+    }
 
-/* Mensajes de error */
-
-.usuario-panel .mensaje-error {
-  padding: 12px;
-  background-color: #301414;
-  color: #ff7777;
-  border: 1px solid #993333;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Estado de la infraestructura */
-
-.estado {
-  width: 100%;
-  max-width: 420px;
-  margin-top: 20px;
-  padding: 24px;
-  background-color: #121212;
-  border: 1px solid #3333ff;
-  border-radius: 12px;
-}
-
-.estado h3 {
-  margin-top: 0;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #333333;
-  text-transform: uppercase;
-  font-size: 18px;
-}
-
-.estado p {
-  padding: 10px;
-  margin: 10px 0;
-  background-color: #1c1c1c;
-  border-radius: 6px;
-  color: #dddddd;
-  font-weight: bold;
-}
-
-.estado p:first-of-type {
-  color: #4ade80;
-}
-
-/* Adaptacion a dispositivos moviles */
-
-@media (max-width: 600px) {
-  .contenedor {
-    padding: 16px;
-  }
-
-  .contenedor h2 {
-    font-size: 18px;
-  }
-
-  .usuario-panel,
-  .estado {
-    padding: 16px;
-  }
-
-  .usuario-panel h3 {
-    font-size: 18px;
-  }
 }

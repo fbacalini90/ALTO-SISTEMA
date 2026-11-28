@@ -1,47 +1,130 @@
 import { Link } from 'react-router-dom';
+
+import {
+    ArrowLeft,
+    LayoutGrid
+} from 'lucide-react';
+
+import {
+    MODULOS
+} from '../config/modulos.config';
+
+import {
+    ICONOS_MODULOS
+} from '../config/iconos.config';
+
 import './ModuloPendiente.css';
 
-function ModuloPendiente({ titulo, descripcion, icono }) {
-  return (
-    <div className="modulo-pendiente">
+/* ==================================================
+   ICONOGRAFÍA ESTÁTICA
+   ================================================== */
 
-      <header className="modulo-cabecera">
-        <h2>{titulo.toUpperCase()}</h2>
-        <p>{descripcion}</p>
-      </header>
+const ICONOS_VISUALES = Object.freeze(
+    Object.fromEntries(
+        Object.entries(ICONOS_MODULOS).map(
+            ([id, Icono]) => [
+                id,
+                <Icono aria-hidden="true" />
+            ]
+        )
+    )
+);
 
-      <section className="modulo-panel">
+const ICONO_PREDETERMINADO = (
+    <LayoutGrid aria-hidden="true" />
+);
 
-        <span
-          className="modulo-icono"
-          aria-hidden="true"
-        >
-          {icono}
-        </span>
+/* ==================================================
+   PANTALLA DE MÓDULOS PENDIENTES
+   ================================================== */
 
-        <span className="modulo-etiqueta">
-          PENDIENTE DE IMPLEMENTACIÓN
-        </span>
+export default function ModuloPendiente({
+    id,
+    titulo,
+    descripcion
+}) {
 
-        <h3>{titulo}</h3>
+    /* IDENTIFICACIÓN DEL MÓDULO */
 
-        <p>
-          Las funcionalidades de este módulo serán
-          incorporadas en una próxima etapa del
-          desarrollo de ALTO-SISTEMA.
-        </p>
+    const idModulo = id ?? MODULOS.find(
+        (modulo) => modulo.titulo === titulo
+    )?.id;
 
-        <Link
-          to="/"
-          className="modulo-volver"
-        >
-          ← VOLVER AL INICIO
-        </Link>
+    const icono = Object.hasOwn(
+        ICONOS_VISUALES,
+        idModulo
+    )
+        ? ICONOS_VISUALES[idModulo]
+        : ICONO_PREDETERMINADO;
 
-      </section>
+    /* INTERFAZ */
 
-    </div>
-  );
+    return (
+
+        <div className="as-page modulo-pendiente">
+
+            {/* CABECERA DEL MÓDULO */}
+
+            <header className="as-page-header">
+
+                <div>
+
+                    <h1>{titulo.toUpperCase()}</h1>
+
+                    <p>{descripcion}</p>
+
+                </div>
+
+            </header>
+
+            {/* PANEL PROVISIONAL */}
+
+            <section
+                className="as-panel modulo-panel"
+                aria-labelledby="modulo-pendiente-titulo"
+            >
+
+                <div className="modulo-icono">
+
+                    {icono}
+
+                </div>
+
+                <span className="as-status as-status-pending">
+
+                    PENDIENTE DE IMPLEMENTACIÓN
+
+                </span>
+
+                <h2 id="modulo-pendiente-titulo">
+
+                    {titulo}
+
+                </h2>
+
+                <p className="as-text-description">
+
+                    Las funcionalidades de este módulo serán
+                    incorporadas en una próxima etapa del
+                    desarrollo de ALTO-SISTEMA.
+
+                </p>
+
+                <Link
+                    to="/"
+                    className="as-button as-button-primary modulo-volver"
+                >
+
+                    <ArrowLeft aria-hidden="true" />
+
+                    VOLVER AL INICIO
+
+                </Link>
+
+            </section>
+
+        </div>
+
+    );
+
 }
-
-export default ModuloPendiente;

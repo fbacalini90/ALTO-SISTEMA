@@ -1,177 +1,315 @@
+/* ==================================================
+   ALTO-SISTEMA
+   SISTEMA DE DISEÑO v1.0
+   ACCESO PRIVADO
+   ================================================== */
+
+
+/* CONTENEDOR GENERAL */
+
 .login-contenedor {
-  min-height: 100vh;
-  min-height: 100dvh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background-color: #000000;
-  color: #ffffff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    padding: var(--space-6);
+
+    background-color: var(--color-background);
+
+    color: var(--color-text);
+
 }
+
+
+/* PANEL PRINCIPAL */
 
 .login-panel {
-  width: 100%;
-  max-width: 440px;
+
+    width: 100%;
+    max-width: 440px;
+
+    min-width: 0;
+
 }
+
+
+/* IDENTIDAD INSTITUCIONAL */
 
 .login-cabecera {
-  text-align: center;
-  margin-bottom: 32px;
+
+    margin-bottom: var(--space-8);
+
+    text-align: center;
+
 }
+
 
 .login-cabecera h1 {
-  margin: 0;
-  color: #3333ff;
-  font-size: clamp(30px, 7vw, 48px);
-  font-weight: 900;
-  letter-spacing: 1px;
+
+    font-family: var(--font-heading);
+
+    font-size: clamp(32px, 9vw, 48px);
+
+    font-weight: var(--font-weight-extrabold);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+    line-height: var(--line-height-tight);
+
+    color: var(--color-primary-light);
+
 }
+
 
 .login-cabecera p {
-  margin: 12px 0 0;
-  color: #cccccc;
-  font-size: 16px;
+
+    margin-top: var(--space-2);
+
+    font-size: var(--font-size-base);
+
+    color: var(--color-text-secondary);
+
 }
+
+
+/* FORMULARIO */
 
 .login-formulario {
-  padding: 32px;
-  background-color: #121212;
-  border: 1px solid #3333ff;
-  border-radius: 12px;
+
+    padding: var(--space-8);
+
+    gap: var(--space-5);
+
+    box-shadow: var(--shadow-lg);
+
 }
 
-.login-formulario h2 {
-  margin: 0 0 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #333333;
-  font-size: 20px;
-  text-align: center;
-  font-weight: 800;
+
+/* CABECERA DEL FORMULARIO */
+
+.login-formulario-cabecera {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: var(--space-2);
+
+    text-align: center;
+
 }
 
-.login-campo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 22px;
+
+.login-formulario-cabecera h2 {
+
+    font-size: var(--font-size-xl);
+
+    font-weight: var(--font-weight-bold);
+
 }
 
-.login-campo label {
-  font-size: 14px;
-  font-weight: bold;
-  color: #dddddd;
+
+/* ICONO PRINCIPAL */
+
+.login-icono-principal {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 52px;
+
+    margin-bottom: var(--space-2);
+
+    background-color: var(--color-primary-muted);
+
+    color: var(--color-primary-light);
+
+    border: var(--border-width) solid
+        var(--color-primary-muted);
+
+    border-radius: var(--radius-lg);
+
 }
 
-.login-campo input {
-  width: 100%;
-  min-width: 0;
-  min-height: 48px;
-  padding: 12px;
-  background-color: #1c1c1c;
-  color: #ffffff;
-  border: 1px solid #444444;
-  border-radius: 6px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.2s;
+
+.login-icono-principal svg {
+
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+
 }
 
-.login-campo input:focus {
-  border-color: #6666ff;
+
+/* CAMPOS CON ICONOS */
+
+.login-control {
+
+    position: relative;
+
+    width: 100%;
+
+    min-width: 0;
+
 }
 
-.login-campo input::placeholder {
-  color: #888888;
+
+.login-control > .as-input {
+
+    min-height: 48px;
+
+    padding-left: var(--space-10);
+
+    font-size: var(--font-size-md);
+
 }
 
-.login-password {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
+
+.login-control-icono {
+
+    position: absolute;
+
+    top: 50%;
+    left: var(--space-3);
+
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+
+    transform: translateY(-50%);
+
+    color: var(--color-text-secondary);
+
+    pointer-events: none;
+
 }
 
-.login-password input {
-  flex: 1;
+
+.login-control:focus-within
+.login-control-icono {
+
+    color: var(--color-primary-light);
+
 }
+
+
+/* CONTRASEÑA */
+
+.login-password > .as-input {
+
+    padding-right: 52px;
+
+}
+
 
 .login-mostrar {
-  padding: 0 12px;
-  min-height: 48px;
-  background-color: #222222;
-  color: #cccccc;
-  border: 1px solid #444444;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: bold;
+
+    position: absolute;
+
+    top: 50%;
+    right: 2px;
+
+    transform: translateY(-50%);
+
+    border-radius: var(--radius-sm);
+
 }
 
-.login-mostrar:hover {
-  background-color: #333333;
-}
+
+/* BOTÓN DE INGRESO */
 
 .login-ingresar {
-  width: 100%;
-  min-height: 50px;
-  margin-top: 8px;
-  padding: 14px;
-  background-color: #3333ff;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  transition: background-color 0.2s;
+
+    min-height: 48px;
+
+    margin-top: var(--space-1);
+
+    letter-spacing: var(--letter-spacing-heading);
+
 }
 
-.login-ingresar:hover:not(:disabled) {
-  background-color: #4444ff;
+
+.login-ingresar .as-spinner {
+
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+
+    border-color: rgba(255, 255, 255, 0.25);
+
+    border-top-color: var(--color-on-primary);
+
 }
 
-.login-ingresar:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
-.login-error {
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #301414;
-  color: #ff7777;
-  border: 1px solid #993333;
-  border-radius: 6px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.login-formulario button:focus-visible {
-  outline: 2px solid #9999ff;
-  outline-offset: 3px;
-}
+/* PIE DE PÁGINA */
 
 .login-pie {
-  margin-top: 24px;
-  text-align: center;
-  color: #888888;
-  font-size: 12px;
-  letter-spacing: 1px;
+
+    margin-top: var(--space-6);
+
+    text-align: center;
+
+    font-size: var(--font-size-xs);
+
+    color: var(--color-text-secondary);
+
+    letter-spacing: var(--letter-spacing-heading);
+
 }
 
+
+/* ADAPTACIÓN MÓVIL */
+
 @media (max-width: 480px) {
-  .login-contenedor {
-    padding: 16px;
-  }
 
-  .login-formulario {
-    padding: 24px 18px;
-  }
+    .login-contenedor {
 
-  .login-cabecera {
-    margin-bottom: 24px;
-  }
+        padding: var(--space-4);
 
-  .login-cabecera p {
-    font-size: 14px;
-  }
+    }
+
+
+    .login-cabecera {
+
+        margin-bottom: var(--space-6);
+
+    }
+
+
+    .login-cabecera p {
+
+        font-size: var(--font-size-sm);
+
+    }
+
+
+    .login-formulario {
+
+        padding: var(--space-5);
+
+        gap: var(--space-4);
+
+    }
+
+
+    .login-formulario-cabecera h2 {
+
+        font-size: 22px;
+
+    }
+
+
+    .login-icono-principal {
+
+        width: 44px;
+        height: 44px;
+
+    }
+
 }

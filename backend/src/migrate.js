@@ -223,7 +223,6 @@ async function verificarTablaUsuarios(conexion) {
     if (
         primaria.length !== 1 ||
         primaria[0].Column_name !== 'id' ||
-
         indiceUsuario.length !== 1 ||
         indiceUsuario[0].Column_name !== 'usuario' ||
         Number(indiceUsuario[0].Non_unique) !== 0 ||
@@ -235,22 +234,169 @@ async function verificarTablaUsuarios(conexion) {
     }
 }
 
+/* VERIFICACION ESTRUCTURAL DE TORNEOS */
+
+async function verificarTablaTorneos(conexion) {
+    const [tablas] = await conexion.query(`
+        SELECT
+            ENGINE AS motor,
+            TABLE_COLLATION AS collation
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'torneos'
+    `);
+
+    if (
+        tablas.length !== 1 ||
+        tablas[0].motor !== 'InnoDB' ||
+        tablas[0].collation !== 'utf8mb4_unicode_ci'
+    ) {
+        throw new Error(
+            'La configuración de la tabla torneos es incompatible.'
+        );
+    }
+
+    const [columnas] = await conexion.query(
+        'SHOW FULL COLUMNS FROM torneos'
+    );
+
+    const campos = new Map(
+        columnas.map(
+            (columna) => [columna.Field, columna]
+        )
+    );
+
+    const id = campos.get('id');
+    const nombre = campos.get('nombre');
+    const descripcion = campos.get('descripcion');
+    const estado = campos.get('estado');
+    const fechaCreacion = campos.get('fecha_creacion');
+    const fechaActualizacion =
+        campos.get('fecha_actualizacion');
+
+    const estructuraCorrecta =
+        columnas.length === 6 &&
+
+        id?.Type === 'int' &&
+        id?.Null === 'NO' &&
+        id?.Extra.includes('auto_increment') &&
+
+        nombre?.Type === 'varchar(100)' &&
+        nombre?.Null === 'NO' &&
+        nombre?.Collation === 'utf8mb4_unicode_ci' &&
+
+        descripcion?.Type === 'varchar(500)' &&
+        descripcion?.Null === 'YES' &&
+        descripcion?.Default === null &&
+        descripcion?.Collation === 'utf8mb4_unicode_ci' &&
+
+        estado?.Type === "enum('ACTIVO','ARCHIVADO')" &&
+        estado?.Null === 'NO' &&
+        estado?.Default === 'ACTIVO' &&
+        estado?.Collation === 'utf8mb4_unicode_ci' &&
+
+        fechaCreacion?.Type === 'timestamp' &&
+        fechaCreacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaCreacion?.Default)
+        ) &&
+        !/on update/i.test(
+            String(fechaCreacion?.Extra)
+        ) &&
+
+        fechaActualizacion?.Type === 'timestamp' &&
+        fechaActualizacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaActualizacion?.Default)
+        ) &&
+        /on update current_timestamp(?:\(\))?/i.test(
+            String(fechaActualizacion?.Extra)
+        );
+
+    if (!estructuraCorrecta) {
+        throw new Error(
+            'La estructura de la tabla torneos no coincide con la migración 002.'
+        );
+    }
+
+    const [indices] = await conexion.query(
+        'SHOW INDEX FROM torneos'
+    );
+
+    const primaria = indices.filter(
+        (indice) => indice.Key_name === 'PRIMARY'
+    );
+
+    const indiceNombre = indices.filter(
+        (indice) =>
+            indice.Key_name === 'uq_torneos_nombre'
+    );
+
+    const indiceEstado = indices.filter(
+        (indice) =>
+            indice.Key_name === 'idx_torneos_estado'
+    );
+
+    const indicesCorrectos =
+        primaria.length === 1 &&
+        primaria[0].Column_name === 'id' &&
+        Number(primaria[0].Non_unique) === 0 &&
+
+        indiceNombre.length === 1 &&
+        indiceNombre[0].Column_name === 'nombre' &&
+        Number(indiceNombre[0].Non_unique) === 0 &&
+        indiceNombre[0].Sub_part === null &&
+
+        indiceEstado.length === 1 &&
+        indiceEstado[0].Column_name === 'estado' &&
+        Number(indiceEstado[0].Non_unique) === 1 &&
+        indiceEstado[0].Sub_part === null;
+
+    if (!indicesCorrectos) {
+        throw new Error(
+            'Los índices de la tabla torneos son incompatibles.'
+        );
+    }
+}
+
+/* REGISTRO DE VERIFICADORES */
+
+const VERIFICADORES = new Map([
+    [1, verificarTablaUsuarios],
+    [2, verificarTablaTorneos]
+]);
+
+/* VERIFICACION PREVENTIVA */
+
+function verificarDisponibilidadDeVerificadores(
+    migraciones
+) {
+    for (const migracion of migraciones) {
+        if (!VERIFICADORES.has(migracion.version)) {
+            throw new Error(
+                `La migración ${migracion.archivo} no tiene una verificación estructural definida.`
+            );
+        }
+    }
+}
+
 /* VERIFICACIONES ESPECIFICAS */
 
 async function verificarMigracion(
     conexion,
     migracion
 ) {
-    switch (migracion.version) {
-        case 1:
-            await verificarTablaUsuarios(conexion);
-            break;
+    const verificar = VERIFICADORES.get(
+        migracion.version
+    );
 
-        default:
-            throw new Error(
-                `La migración ${migracion.version} no tiene una verificación estructural definida.`
-            );
+    if (!verificar) {
+        throw new Error(
+            `La migración ${migracion.version} no tiene una verificación estructural definida.`
+        );
     }
+
+    await verificar(conexion);
 }
 
 /* EJECUCION DE MIGRACIONES */
@@ -269,6 +415,10 @@ async function ejecutarMigraciones() {
         console.log('================================');
 
         const migraciones = await cargarMigraciones();
+
+        verificarDisponibilidadDeVerificadores(
+            migraciones
+        );
 
         conexion = await pool.getConnection();
 
