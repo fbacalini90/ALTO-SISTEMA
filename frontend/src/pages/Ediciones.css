@@ -1,23 +1,18 @@
-
 /* ==================================================
    ALTO-SISTEMA
    SISTEMA DE DISEÑO v1.0
    MÓDULO EDICIONES
+   HU-006 - v0.4.0
    ================================================== */
 
 
 /* CONTENEDOR PRINCIPAL */
 
 .ediciones-pagina {
-
     width: 100%;
-
     max-width: 1600px;
-
     min-width: 0;
-
     margin-inline: auto;
-
 }
 
 
@@ -26,53 +21,32 @@
    ================================================== */
 
 .ediciones-navegacion {
-
     display: flex;
     align-items: center;
-
     flex-wrap: wrap;
-
     gap: var(--space-3);
-
 }
-
 
 .ediciones-navegacion > .as-button {
-
     flex-shrink: 0;
-
     font-size: var(--font-size-xs);
-
 }
-
 
 .ediciones-torneo-actual {
-
     display: flex;
     align-items: center;
-
     gap: var(--space-2);
-
     min-width: 0;
-
     color: var(--color-text-secondary);
-
     font-size: var(--font-size-sm);
-
     overflow-wrap: anywhere;
-
 }
 
-
 .ediciones-torneo-actual svg {
-
     width: var(--icon-size-md);
     height: var(--icon-size-md);
-
     flex-shrink: 0;
-
     color: var(--color-primary-light);
-
 }
 
 
@@ -81,12 +55,9 @@
    ================================================== */
 
 .ediciones-cabecera-acciones {
-
     display: flex;
     align-items: center;
-
     gap: var(--space-2);
-
 }
 
 
@@ -95,61 +66,38 @@
    ================================================== */
 
 .ediciones-contexto {
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: var(--space-4);
-
     border-left:
         var(--border-width-accent)
         solid
         var(--color-primary);
-
 }
-
 
 .ediciones-contexto-identidad {
-
     display: flex;
     align-items: center;
-
     flex: 1 1 200px;
-
     gap: var(--space-3);
-
     min-width: 0;
-
 }
-
 
 .ediciones-contexto-identidad > div:last-child {
-
     min-width: 0;
-
 }
-
 
 .ediciones-contexto-identidad .as-stat-label {
-
     display: block;
-
     margin-bottom: var(--space-1);
-
 }
 
-
 .ediciones-contexto-identidad h2 {
-
     font-size: var(--font-size-2xl);
-
     line-height: var(--line-height-heading);
-
     overflow-wrap: anywhere;
-
 }
 
 
@@ -158,39 +106,24 @@
    ================================================== */
 
 .ediciones-indicadores {
-
     display: grid;
-
     grid-template-columns:
         repeat(4, minmax(0, 1fr));
-
     gap: var(--space-4);
-
 }
-
 
 .ediciones-indicadores .as-stat-card {
-
     min-width: 0;
-
     padding: var(--space-5);
-
     gap: var(--space-3);
-
 }
-
 
 .ediciones-indicadores .as-stat-label {
-
     overflow-wrap: anywhere;
-
 }
 
-
 .ediciones-texto-planificada {
-
     color: var(--color-info, #60a5fa);
-
 }
 
 
@@ -199,20 +132,13 @@
    ================================================== */
 
 .ediciones-alerta {
-
     align-items: center;
-
     padding-block: var(--space-2);
-
 }
 
-
 .ediciones-alerta > .as-button {
-
     flex-shrink: 0;
-
     color: inherit;
-
 }
 
 
@@ -221,122 +147,76 @@
    ================================================== */
 
 .ediciones-formulario-panel {
-
     display: flex;
     flex-direction: column;
-
     gap: var(--space-5);
-
     min-width: 0;
-
     border-left:
         var(--border-width-accent)
         solid
         var(--color-primary);
-
 }
 
-
 .ediciones-formulario-cabecera {
-
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
     gap: var(--space-3);
-
 }
-
 
 .ediciones-formulario-cabecera p {
-
     margin-top: var(--space-2);
-
 }
-
 
 .ediciones-formulario-cabecera > .as-button {
-
     flex-shrink: 0;
-
 }
-
 
 .ediciones-formulario-panel .as-textarea {
-
     min-height: 120px;
-
 }
-
 
 .ediciones-formulario-panel
 .as-field-counter.as-text-danger {
-
     color: var(--color-danger-text);
-
 }
 
 
 /* FECHAS OPCIONALES */
 
 .ediciones-formulario-fechas {
-
     display: grid;
-
     grid-template-columns:
         repeat(2, minmax(0, 1fr));
-
     align-items: start;
-
     gap: var(--space-4);
-
 }
-
 
 .ediciones-formulario-fechas .as-field {
-
     min-width: 0;
-
 }
-
 
 .ediciones-formulario-fechas input[type="date"] {
-
     width: 100%;
-
     min-width: 0;
-
     font-variant-numeric: tabular-nums;
-
     color-scheme: dark;
-
 }
-
 
 .ediciones-formulario-fechas
 input[type="date"]::-webkit-calendar-picker-indicator {
-
     cursor: pointer;
-
 }
-
 
 .ediciones-formulario-fechas
 input[type="date"]:disabled::-webkit-calendar-picker-indicator {
-
     cursor: not-allowed;
-
 }
 
-
 .ediciones-quitar-fecha {
-
     align-self: flex-start;
-
     font-size: var(--font-size-xs);
-
     color: var(--color-text-secondary);
-
 }
 
 
@@ -345,23 +225,15 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-herramientas {
-
     gap: var(--space-4);
-
 }
-
 
 .ediciones-herramientas .as-search {
-
     min-width: 200px;
-
 }
 
-
 .ediciones-herramientas .as-filters {
-
     flex-wrap: wrap;
-
 }
 
 
@@ -370,37 +242,23 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-listado {
-
     display: flex;
     flex-direction: column;
-
     gap: var(--space-3);
-
     min-width: 0;
-
 }
-
 
 .ediciones-resultados {
-
     font-size: var(--font-size-xs);
-
     font-weight: var(--font-weight-medium);
-
     color: var(--color-text-secondary);
-
 }
 
-
 .ediciones-grid {
-
     display: grid;
-
     grid-template-columns:
         repeat(2, minmax(0, 1fr));
-
     gap: var(--space-4);
-
 }
 
 
@@ -409,53 +267,37 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-tarjeta {
-
     min-width: 0;
-
     gap: var(--space-4);
-
     border-left:
         var(--border-width-accent)
         solid
         var(--color-text-muted);
-
     transition:
         border-color var(--transition-normal),
         background-color var(--transition-normal);
-
 }
 
-
 .ediciones-tarjeta:hover {
-
     background-color: var(--color-surface-hover);
-
 }
 
 
 /* COLOR SEGÚN ESTADO */
 
 .ediciones-tarjeta.ediciones-estado-planificada {
-
     border-left-color:
         var(--color-info, #60a5fa);
-
 }
-
 
 .ediciones-tarjeta.ediciones-estado-en-curso {
-
     border-left-color:
         var(--color-success);
-
 }
 
-
 .ediciones-tarjeta.ediciones-estado-finalizada {
-
     border-left-color:
         var(--color-text-muted);
-
 }
 
 
@@ -464,98 +306,60 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-tarjeta-cabecera {
-
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: var(--space-3);
-
 }
-
 
 .ediciones-identidad {
-
     display: flex;
     align-items: center;
-
     flex: 1 1 200px;
-
     gap: var(--space-3);
-
     min-width: 0;
-
 }
-
 
 .ediciones-identidad h2 {
-
     font-size: var(--font-size-xl);
-
     line-height: var(--line-height-heading);
-
     overflow-wrap: anywhere;
-
 }
 
-
 .ediciones-icono {
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 48px;
     height: 48px;
-
     flex-shrink: 0;
-
     background-color: var(--color-primary-muted);
-
     color: var(--color-primary-light);
-
     border-radius: var(--radius-md);
-
 }
-
 
 .ediciones-icono svg {
-
     width: var(--icon-size-lg);
     height: var(--icon-size-lg);
-
 }
-
 
 .ediciones-tarjeta.ediciones-estado-planificada
 .ediciones-icono {
-
     background-color: rgba(96, 165, 250, 0.12);
-
     color: var(--color-info, #60a5fa);
-
 }
-
 
 .ediciones-tarjeta.ediciones-estado-en-curso
 .ediciones-icono {
-
     background-color: rgba(34, 197, 94, 0.12);
-
     color: var(--color-success);
-
 }
-
 
 .ediciones-tarjeta.ediciones-estado-finalizada
 .ediciones-icono {
-
     background-color: var(--color-surface-active);
-
     color: var(--color-text-secondary);
-
 }
 
 
@@ -564,44 +368,26 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-estado {
-
     flex-shrink: 0;
-
     white-space: nowrap;
-
 }
-
 
 .ediciones-estado.ediciones-estado-planificada {
-
     color: var(--color-info, #60a5fa);
-
     background-color: rgba(96, 165, 250, 0.12);
-
     border-color: rgba(96, 165, 250, 0.30);
-
 }
-
 
 .ediciones-estado.ediciones-estado-en-curso {
-
     color: var(--color-success);
-
     background-color: rgba(34, 197, 94, 0.12);
-
     border-color: rgba(34, 197, 94, 0.30);
-
 }
 
-
 .ediciones-estado.ediciones-estado-finalizada {
-
     color: var(--color-text-secondary);
-
     background-color: var(--color-surface-active);
-
     border-color: var(--color-border);
-
 }
 
 
@@ -610,19 +396,12 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-descripcion {
-
     flex: 1;
-
     font-size: var(--font-size-sm);
-
     line-height: var(--line-height-relaxed);
-
     color: var(--color-text-secondary);
-
     white-space: pre-wrap;
-
     overflow-wrap: anywhere;
-
 }
 
 
@@ -631,80 +410,146 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-fechas {
-
     display: grid;
-
     grid-template-columns:
         repeat(2, minmax(0, 1fr));
-
     gap: var(--space-3);
-
 }
 
-
 .ediciones-fechas > div {
-
     display: flex;
     flex-direction: column;
-
     gap: var(--space-2);
-
     min-width: 0;
-
     padding: var(--space-3);
-
     background-color: var(--color-surface-active);
-
     border:
         1px
         solid
         var(--color-border);
-
     border-radius: var(--radius-md);
-
 }
-
 
 .ediciones-fecha-etiqueta {
-
     display: flex;
     align-items: center;
-
     gap: var(--space-2);
-
     font-size: var(--font-size-xs);
-
     font-weight: var(--font-weight-medium);
-
     color: var(--color-text-secondary);
-
 }
-
 
 .ediciones-fecha-etiqueta svg {
-
     width: var(--icon-size-sm);
     height: var(--icon-size-sm);
-
     flex-shrink: 0;
-
     color: var(--color-text-muted);
+}
 
+.ediciones-fechas strong {
+    font-size: var(--font-size-sm);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary, #f5f5f5);
+    overflow-wrap: anywhere;
 }
 
 
-.ediciones-fechas strong {
+/* ==================================================
+   CATEGORÍAS DE LA EDICIÓN
+   HU-006
+   ================================================== */
 
-    font-size: var(--font-size-sm);
+.ediciones-categorias {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+}
 
-    font-variant-numeric: tabular-nums;
 
+/* INDICADORES DE CATEGORÍAS */
+
+.ediciones-categorias-indicadores {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.ediciones-categorias-indicador {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 0;
+    min-height: 76px;
+    padding: var(--space-3);
+    background-color: var(--color-surface-active);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.ediciones-categorias-indicador .as-stat-label {
+    font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
-
-    color: var(--color-text-primary, #f5f5f5);
-
+    color: var(--color-text-secondary);
     overflow-wrap: anywhere;
+}
 
+.ediciones-categorias-indicador strong {
+    font-family: var(--font-numeric, 'Inter', sans-serif);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    color: var(--color-text-primary, #f5f5f5);
+    overflow-wrap: anywhere;
+}
+
+.ediciones-categorias-indicador
+strong.as-text-success {
+    color: var(--color-success);
+}
+
+
+/* ACCESO AL MÓDULO DE CATEGORÍAS */
+
+.ediciones-categorias .ediciones-categorias-acceso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: var(--space-3);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-heading);
+    line-height: 1.4;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ediciones-categorias-acceso svg {
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+    flex-shrink: 0;
+}
+
+.ediciones-categorias-acceso:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.ediciones-categorias-acceso:focus-visible {
+    outline: 2px solid var(--color-primary-light);
+    outline-offset: 3px;
 }
 
 
@@ -713,37 +558,23 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
    ================================================== */
 
 .ediciones-tarjeta-acciones {
-
     display: grid;
-
     grid-template-columns:
         repeat(3, minmax(0, 1fr));
-
     gap: var(--space-2);
-
     margin-top: auto;
-
 }
-
 
 .ediciones-tarjeta-acciones .as-button {
-
     min-width: 0;
-
     width: 100%;
-
     font-size: var(--font-size-xs);
-
     letter-spacing: var(--letter-spacing-heading);
-
 }
-
 
 .ediciones-pagina
 .as-empty-icon.as-text-danger {
-
     color: var(--color-danger-text);
-
 }
 
 
@@ -754,9 +585,7 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
 @media (max-width: 1250px) {
 
     .ediciones-grid {
-
         grid-template-columns: 1fr;
-
     }
 
 }
@@ -769,55 +598,34 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
 @media (max-width: 900px) {
 
     .ediciones-indicadores {
-
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
-
         gap: var(--space-3);
-
     }
-
 
     .ediciones-indicadores .as-stat-card {
-
         padding: var(--space-4);
-
     }
-
 
     .ediciones-herramientas {
-
         flex-direction: column;
         align-items: stretch;
-
     }
-
 
     .ediciones-herramientas .as-search {
-
         width: 100%;
-
         min-width: 0;
-
     }
-
 
     .ediciones-herramientas .as-filters {
-
         width: 100%;
-
         display: grid;
-
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
-
     }
 
-
     .ediciones-herramientas .as-filter {
-
         width: 100%;
-
     }
 
 }
@@ -830,148 +638,123 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
 @media (max-width: 480px) {
 
     .ediciones-cabecera-acciones {
-
         width: 100%;
-
     }
-
 
     .ediciones-cabecera-acciones
     .as-button-primary {
-
         flex: 1;
-
     }
-
 
     .ediciones-contexto {
-
         gap: var(--space-3);
-
     }
-
 
     .ediciones-contexto-identidad {
-
         flex-basis: 100%;
-
     }
-
 
     .ediciones-contexto-identidad h2 {
-
         font-size: var(--font-size-xl);
-
     }
-
 
     .ediciones-indicadores {
-
         gap: var(--space-2);
-
     }
-
 
     .ediciones-indicadores .as-stat-card {
-
         padding: var(--space-3);
-
         gap: var(--space-2);
-
     }
-
 
     .ediciones-indicadores .as-stat-label {
-
         font-size: 11px;
-
         letter-spacing: 0.02em;
-
     }
-
 
     .ediciones-indicadores .as-stat-card svg {
-
         width: var(--icon-size-md);
         height: var(--icon-size-md);
-
     }
-
 
     .ediciones-identidad {
-
         flex-basis: 100%;
-
     }
-
 
     .ediciones-identidad h2 {
-
         font-size: 22px;
-
     }
-
 
     .ediciones-icono {
-
         width: 40px;
         height: 40px;
-
     }
-
 
     .ediciones-formulario-panel {
-
         gap: var(--space-4);
-
     }
-
 
     .ediciones-formulario-fechas {
-
         grid-template-columns: 1fr;
-
         gap: var(--space-3);
-
     }
-
 
     .ediciones-fechas {
-
         gap: var(--space-2);
-
     }
-
 
     .ediciones-fechas > div {
-
         padding: var(--space-2);
-
     }
-
 
     .ediciones-fecha-etiqueta {
-
         font-size: 10px;
-
         gap: var(--space-1);
-
     }
 
+
+    /* CATEGORÍAS EN MÓVILES */
+
+    .ediciones-categorias {
+        gap: var(--space-2);
+        padding-top: var(--space-3);
+    }
+
+    .ediciones-categorias-indicadores {
+        gap: var(--space-2);
+    }
+
+    .ediciones-categorias-indicador {
+        min-height: 68px;
+        padding: var(--space-2);
+    }
+
+    .ediciones-categorias-indicador .as-stat-label {
+        font-size: 10px;
+        letter-spacing: 0.02em;
+    }
+
+    .ediciones-categorias-indicador strong {
+        font-size: 22px;
+    }
+
+    .ediciones-categorias
+    .ediciones-categorias-acceso {
+        padding-inline: var(--space-2);
+        font-size: 12px;
+    }
+
+
+    /* ACCIONES ADMINISTRATIVAS */
 
     .ediciones-tarjeta-acciones
     .as-button {
-
         padding-inline: var(--space-2);
-
     }
 
-
     .ediciones-tarjeta-acciones svg {
-
         width: var(--icon-size-sm);
         height: var(--icon-size-sm);
-
     }
 
 }
@@ -984,16 +767,20 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
 @media (max-width: 360px) {
 
     .ediciones-tarjeta-acciones {
-
         grid-template-columns: 1fr;
-
     }
 
-
     .ediciones-fechas {
-
         grid-template-columns: 1fr;
+    }
 
+    .ediciones-categorias-indicador strong {
+        font-size: 20px;
+    }
+
+    .ediciones-categorias
+    .ediciones-categorias-acceso {
+        font-size: 11px;
     }
 
 }
@@ -1006,9 +793,11 @@ input[type="date"]:disabled::-webkit-calendar-picker-indicator {
 @media (prefers-reduced-motion: reduce) {
 
     .ediciones-tarjeta {
-
         transition: none;
+    }
 
+    .ediciones-categorias-acceso {
+        transition: none;
     }
 
 }

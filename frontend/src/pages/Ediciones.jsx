@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 
 import {
@@ -11,6 +10,7 @@ import {
     CalendarDays,
     CalendarClock,
     Trophy,
+    Layers,
     Plus,
     Search,
     Pencil,
@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 
 import { APP_CONFIG } from '../config/app.config';
-
 import { api, ApiError } from '../services/api';
 
 import './Ediciones.css';
@@ -43,22 +42,10 @@ const ESTADOS = Object.freeze({
 });
 
 const FILTROS = [
-    {
-        valor: 'TODAS',
-        etiqueta: 'TODAS'
-    },
-    {
-        valor: ESTADOS.PLANIFICADA,
-        etiqueta: 'PLANIFICADAS'
-    },
-    {
-        valor: ESTADOS.EN_CURSO,
-        etiqueta: 'EN CURSO'
-    },
-    {
-        valor: ESTADOS.FINALIZADA,
-        etiqueta: 'FINALIZADAS'
-    }
+    { valor: 'TODAS', etiqueta: 'TODAS' },
+    { valor: ESTADOS.PLANIFICADA, etiqueta: 'PLANIFICADAS' },
+    { valor: ESTADOS.EN_CURSO, etiqueta: 'EN CURSO' },
+    { valor: ESTADOS.FINALIZADA, etiqueta: 'FINALIZADAS' }
 ];
 
 const ESTADOS_VISUALES = Object.freeze({
@@ -107,7 +94,6 @@ const ORDEN_ESTADOS = Object.freeze({
 });
 
 const LIMITE_NOMBRE = 100;
-
 const LIMITE_DESCRIPCION = 500;
 
 
@@ -116,45 +102,30 @@ const LIMITE_DESCRIPCION = 500;
    ================================================== */
 
 function normalizarNombre(valor) {
-
     return valor
         .normalize('NFC')
         .trim()
         .replace(/\s+/g, ' ');
-
 }
 
-
 function normalizarBusqueda(valor) {
-
     return String(valor ?? '')
         .normalize('NFD')
         .replace(/\p{M}/gu, '')
         .trim()
         .replace(/\s+/g, ' ')
         .toLocaleLowerCase('es-AR');
-
 }
-
 
 function contarCaracteres(valor) {
-
     return Array.from(valor).length;
-
 }
 
-
 function ordenarEdiciones(ediciones) {
-
     return [...ediciones].sort((a, b) => {
-
         if (a.estado !== b.estado) {
-
-            return (
-                ORDEN_ESTADOS[a.estado] -
-                ORDEN_ESTADOS[b.estado]
-            );
-
+            return ORDEN_ESTADOS[a.estado] -
+                ORDEN_ESTADOS[b.estado];
         }
 
         return b.nombre.localeCompare(
@@ -165,14 +136,10 @@ function ordenarEdiciones(ediciones) {
                 numeric: true
             }
         ) || b.id - a.id;
-
     });
-
 }
 
-
 function formatearFecha(valor) {
-
     if (!valor) {
         return 'Sin definir';
     }
@@ -188,19 +155,12 @@ function formatearFecha(valor) {
     const [, anio, mes, dia] = coincidencia;
 
     return `${dia}/${mes}/${anio}`;
-
 }
 
-
-function obtenerMensajeError(
-    error,
-    mensajeAlternativo
-) {
-
+function obtenerMensajeError(error, mensajeAlternativo) {
     return error instanceof ApiError
         ? error.message
         : mensajeAlternativo;
-
 }
 
 
@@ -209,18 +169,125 @@ function obtenerMensajeError(
    ================================================== */
 
 export default function Ediciones() {
-
     const { torneoId } = useParams();
 
     return (
-
         <GestionEdiciones
             key={torneoId}
             torneoId={torneoId}
         />
-
     );
+}
 
+
+/* ==================================================
+   INDICADORES Y ACCESO A CATEGORIAS
+   ================================================== */
+
+function CategoriasDeEdicion({
+    ruta,
+    nombre,
+    onGestionar,
+    bloqueado
+}) {
+    const [indicadores, setIndicadores] = useState(null);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        const controlador = new AbortController();
+
+        async function cargarIndicadores() {
+            try {
+                const datos = await api.get(ruta, {
+                    signal: controlador.signal
+                });
+
+                if (controlador.signal.aborted) {
+                    return;
+                }
+
+                const { total, activas } =
+                    datos.indicadores ?? {};
+
+                if (
+                    !Number.isSafeInteger(total) ||
+                    !Number.isSafeInteger(activas) ||
+                    total < 0 ||
+                    activas < 0 ||
+                    activas > total
+                ) {
+                    throw new Error(
+                        'Indicadores inválidos.'
+                    );
+                }
+
+                setIndicadores({
+                    total,
+                    activas
+                });
+
+                setError(false);
+
+            } catch {
+                if (!controlador.signal.aborted) {
+                    setIndicadores(null);
+                    setError(true);
+                }
+            }
+        }
+
+        cargarIndicadores();
+
+        return () => controlador.abort();
+
+    }, [ruta]);
+
+    return (
+        <div className="ediciones-categorias">
+
+            <div
+                className="ediciones-categorias-indicadores"
+                aria-live="polite"
+                title={
+                    error
+                        ? 'Indicadores no disponibles'
+                        : undefined
+                }
+            >
+                <div className="ediciones-categorias-indicador">
+                    <span className="as-stat-label">
+                        CATEGORÍAS
+                    </span>
+
+                    <strong>
+                        {indicadores?.total ?? '—'}
+                    </strong>
+                </div>
+
+                <div className="ediciones-categorias-indicador">
+                    <span className="as-stat-label">
+                        ACTIVAS
+                    </span>
+
+                    <strong className="as-text-success">
+                        {indicadores?.activas ?? '—'}
+                    </strong>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                className="as-button as-button-primary ediciones-categorias-acceso"
+                onClick={onGestionar}
+                disabled={bloqueado}
+                aria-label={`Gestionar categorías de ${nombre}`}
+            >
+                <Layers aria-hidden="true" />
+                GESTIONAR CATEGORÍAS
+            </button>
+
+        </div>
+    );
 }
 
 
@@ -229,39 +296,22 @@ export default function Ediciones() {
    ================================================== */
 
 function GestionEdiciones({ torneoId }) {
-
     const navigate = useNavigate();
 
     const rutaBase =
         `/torneos/${encodeURIComponent(torneoId)}/ediciones`;
 
     const [torneo, setTorneo] = useState(null);
-
     const [ediciones, setEdiciones] = useState([]);
-
     const [cargando, setCargando] = useState(true);
-
     const [guardando, setGuardando] = useState(false);
-
     const [busqueda, setBusqueda] = useState('');
-
-    const [filtroEstado, setFiltroEstado] =
-        useState('TODAS');
-
-    const [formulario, setFormulario] =
-        useState(null);
-
-    const [errorCarga, setErrorCarga] =
-        useState('');
-
-    const [errorOperacion, setErrorOperacion] =
-        useState('');
-
-    const [mensaje, setMensaje] =
-        useState('');
-
-    const [recarga, setRecarga] =
-        useState(0);
+    const [filtroEstado, setFiltroEstado] = useState('TODAS');
+    const [formulario, setFormulario] = useState(null);
+    const [errorCarga, setErrorCarga] = useState('');
+    const [errorOperacion, setErrorOperacion] = useState('');
+    const [mensaje, setMensaje] = useState('');
+    const [recarga, setRecarga] = useState(0);
 
     const ocupado = cargando || guardando;
 
@@ -274,18 +324,13 @@ function GestionEdiciones({ torneoId }) {
         Boolean(errorCarga);
 
 
-    /* ==================================================
-       CARGA INICIAL
-       ================================================== */
+    /* CARGA INICIAL */
 
     useEffect(() => {
-
         const controlador = new AbortController();
 
         async function cargarEdiciones() {
-
             try {
-
                 const datos = await api.get(
                     rutaBase,
                     {
@@ -294,7 +339,6 @@ function GestionEdiciones({ torneoId }) {
                 );
 
                 if (!controlador.signal.aborted) {
-
                     setTorneo(datos.torneo);
 
                     setEdiciones(
@@ -302,32 +346,23 @@ function GestionEdiciones({ torneoId }) {
                     );
 
                     setErrorCarga('');
-
                 }
 
             } catch (error) {
-
                 if (!controlador.signal.aborted) {
-
                     setErrorCarga(
                         obtenerMensajeError(
                             error,
                             'No se pudieron cargar las ediciones.'
                         )
                     );
-
                 }
 
             } finally {
-
                 if (!controlador.signal.aborted) {
-
                     setCargando(false);
-
                 }
-
             }
-
         }
 
         cargarEdiciones();
@@ -337,12 +372,9 @@ function GestionEdiciones({ torneoId }) {
     }, [rutaBase, recarga]);
 
 
-    /* ==================================================
-       NAVEGACION Y RECARGA
-       ================================================== */
+    /* NAVEGACION Y RECARGA */
 
     function volverATorneos() {
-
         if (guardando) {
             return;
         }
@@ -357,50 +389,36 @@ function GestionEdiciones({ torneoId }) {
         }
 
         navigate('/torneos');
-
     }
 
-
     function recargarEdiciones() {
-
         if (ocupado || formulario) {
             return;
         }
 
         setCargando(true);
-
         setErrorCarga('');
-
         setErrorOperacion('');
-
         setMensaje('');
 
-        setRecarga(
-            (anterior) => anterior + 1
-        );
-
+        setRecarga(anterior => anterior + 1);
     }
 
 
-    /* ==================================================
-       INDICADORES
-       ================================================== */
+    /* INDICADORES */
 
     const totalEdiciones = ediciones.length;
 
     const totalPlanificadas = ediciones.filter(
-        (edicion) =>
-            edicion.estado === ESTADOS.PLANIFICADA
+        edicion => edicion.estado === ESTADOS.PLANIFICADA
     ).length;
 
     const totalEnCurso = ediciones.filter(
-        (edicion) =>
-            edicion.estado === ESTADOS.EN_CURSO
+        edicion => edicion.estado === ESTADOS.EN_CURSO
     ).length;
 
     const totalFinalizadas = ediciones.filter(
-        (edicion) =>
-            edicion.estado === ESTADOS.FINALIZADA
+        edicion => edicion.estado === ESTADOS.FINALIZADA
     ).length;
 
     const indicadores = [
@@ -431,16 +449,13 @@ function GestionEdiciones({ torneoId }) {
     ];
 
 
-    /* ==================================================
-       BUSQUEDA Y FILTROS
-       ================================================== */
+    /* BUSQUEDA Y FILTROS */
 
     const textoBuscado =
         normalizarBusqueda(busqueda);
 
     const edicionesFiltradas = ediciones.filter(
-        (edicion) => {
-
+        edicion => {
             const coincideEstado =
                 filtroEstado === 'TODAS' ||
                 edicion.estado === filtroEstado;
@@ -452,30 +467,21 @@ function GestionEdiciones({ torneoId }) {
                     .includes(textoBuscado);
 
             return coincideEstado && coincideBusqueda;
-
         }
     );
 
-
     function limpiarFiltros() {
-
         setBusqueda('');
-
         setFiltroEstado('TODAS');
-
     }
 
 
-    /* ==================================================
-       ACTUALIZACION DEL LISTADO LOCAL
-       ================================================== */
+    /* ACTUALIZACION DEL LISTADO LOCAL */
 
     function actualizarListado(edicionActualizada) {
-
-        setEdiciones((anteriores) => {
-
+        setEdiciones(anteriores => {
             const restantes = anteriores.filter(
-                (edicion) =>
+                edicion =>
                     edicion.id !== edicionActualizada.id
             );
 
@@ -483,27 +489,18 @@ function GestionEdiciones({ torneoId }) {
                 ...restantes,
                 edicionActualizada
             ]);
-
         });
-
     }
 
 
-    /* ==================================================
-       NUEVA EDICION
-       ================================================== */
+    /* NUEVA EDICION */
 
     function abrirNuevaEdicion() {
-
-        if (
-            accionesBloqueadas ||
-            !torneoActivo
-        ) {
+        if (accionesBloqueadas || !torneoActivo) {
             return;
         }
 
         setMensaje('');
-
         setErrorOperacion('');
 
         setFormulario({
@@ -513,22 +510,17 @@ function GestionEdiciones({ torneoId }) {
             fecha_inicio: '',
             fecha_finalizacion: ''
         });
-
     }
 
 
-    /* ==================================================
-       EDITAR EDICION
-       ================================================== */
+    /* EDITAR EDICION */
 
     function abrirEdicion(edicion) {
-
         if (accionesBloqueadas) {
             return;
         }
 
         setMensaje('');
-
         setErrorOperacion('');
 
         setFormulario({
@@ -539,41 +531,30 @@ function GestionEdiciones({ torneoId }) {
             fecha_finalizacion:
                 edicion.fecha_finalizacion ?? ''
         });
-
     }
 
-
     function actualizarCampo(campo, valor) {
-
-        setFormulario((anterior) => ({
+        setFormulario(anterior => ({
             ...anterior,
             [campo]: valor
         }));
 
         setErrorOperacion('');
-
     }
 
-
     function cancelarFormulario() {
-
         if (guardando) {
             return;
         }
 
         setFormulario(null);
-
         setErrorOperacion('');
-
     }
 
 
-    /* ==================================================
-       GUARDAR EDICION
-       ================================================== */
+    /* GUARDAR EDICION */
 
     async function guardarEdicion(evento) {
-
         evento.preventDefault();
 
         if (!formulario || ocupado || errorCarga) {
@@ -601,46 +582,30 @@ function GestionEdiciones({ torneoId }) {
             formulario.fecha_finalizacion || null;
 
         setErrorOperacion('');
-
         setMensaje('');
 
-
-        /* VALIDACIONES */
-
         if (!nombre) {
-
             setErrorOperacion(
                 'El nombre de la edición es obligatorio.'
             );
-
             return;
-
         }
 
-        if (
-            contarCaracteres(nombre) >
-            LIMITE_NOMBRE
-        ) {
-
+        if (contarCaracteres(nombre) > LIMITE_NOMBRE) {
             setErrorOperacion(
                 'El nombre no puede superar los 100 caracteres.'
             );
-
             return;
-
         }
 
         if (
             contarCaracteres(descripcion) >
             LIMITE_DESCRIPCION
         ) {
-
             setErrorOperacion(
                 'La descripción no puede superar los 500 caracteres.'
             );
-
             return;
-
         }
 
         if (
@@ -648,13 +613,10 @@ function GestionEdiciones({ torneoId }) {
             fechaFinalizacion &&
             fechaFinalizacion < fechaInicio
         ) {
-
             setErrorOperacion(
                 'La fecha de finalización no puede ser anterior a la fecha de inicio.'
             );
-
             return;
-
         }
 
         const datos = {
@@ -667,23 +629,15 @@ function GestionEdiciones({ torneoId }) {
         setGuardando(true);
 
         try {
-
             const respuesta = esNueva
-
-                ? await api.post(
-                    rutaBase,
-                    datos
-                )
-
+                ? await api.post(rutaBase, datos)
                 : await api.put(
                     `${rutaBase}/${formulario.id}`,
                     datos
                 );
 
             actualizarListado(respuesta.edicion);
-
             limpiarFiltros();
-
             setFormulario(null);
 
             setMensaje(
@@ -696,7 +650,6 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } catch (error) {
-
             setErrorOperacion(
                 obtenerMensajeError(
                     error,
@@ -705,26 +658,19 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } finally {
-
             setGuardando(false);
-
         }
-
     }
 
 
-    /* ==================================================
-       CAMBIO DE ESTADO
-       ================================================== */
+    /* CAMBIO DE ESTADO */
 
     async function cambiarEstado(edicion) {
-
         if (accionesBloqueadas) {
             return;
         }
 
-        const accion =
-            ACCIONES_ESTADO[edicion.estado];
+        const accion = ACCIONES_ESTADO[edicion.estado];
 
         if (!accion) {
             return;
@@ -734,13 +680,10 @@ function GestionEdiciones({ torneoId }) {
             accion.siguiente === ESTADOS.EN_CURSO &&
             !torneoActivo
         ) {
-
             setErrorOperacion(
                 'El torneo debe estar activo para iniciar o reabrir una edición.'
             );
-
             return;
-
         }
 
         const confirmacion =
@@ -751,13 +694,10 @@ function GestionEdiciones({ torneoId }) {
         }
 
         setGuardando(true);
-
         setErrorOperacion('');
-
         setMensaje('');
 
         try {
-
             const respuesta = await api.patch(
                 `${rutaBase}/${edicion.id}/estado`,
                 {
@@ -766,7 +706,6 @@ function GestionEdiciones({ torneoId }) {
             );
 
             actualizarListado(respuesta.edicion);
-
             limpiarFiltros();
 
             setMensaje(
@@ -775,7 +714,6 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } catch (error) {
-
             setErrorOperacion(
                 obtenerMensajeError(
                     error,
@@ -784,20 +722,14 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } finally {
-
             setGuardando(false);
-
         }
-
     }
 
 
-    /* ==================================================
-       ELIMINAR EDICION
-       ================================================== */
+    /* ELIMINAR EDICION */
 
     async function eliminarEdicion(edicion) {
-
         if (accionesBloqueadas) {
             return;
         }
@@ -811,21 +743,17 @@ function GestionEdiciones({ torneoId }) {
         }
 
         setGuardando(true);
-
         setErrorOperacion('');
-
         setMensaje('');
 
         try {
-
             const respuesta = await api.delete(
                 `${rutaBase}/${edicion.id}`
             );
 
-            setEdiciones((anteriores) =>
+            setEdiciones(anteriores =>
                 anteriores.filter(
-                    (registro) =>
-                        registro.id !== edicion.id
+                    registro => registro.id !== edicion.id
                 )
             );
 
@@ -837,7 +765,6 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } catch (error) {
-
             setErrorOperacion(
                 obtenerMensajeError(
                     error,
@@ -846,11 +773,8 @@ function GestionEdiciones({ torneoId }) {
             );
 
         } finally {
-
             setGuardando(false);
-
         }
-
     }
 
 
@@ -859,7 +783,6 @@ function GestionEdiciones({ torneoId }) {
        ================================================== */
 
     return (
-
         <div className="as-page ediciones-pagina">
 
             {/* NAVEGACION */}
@@ -868,51 +791,37 @@ function GestionEdiciones({ torneoId }) {
                 className="ediciones-navegacion"
                 aria-label="Ubicación actual"
             >
-
                 <button
                     type="button"
                     className="as-button as-button-secondary"
                     onClick={volverATorneos}
                     disabled={guardando}
                 >
-
                     <ArrowLeft aria-hidden="true" />
-
                     TORNEOS
-
                 </button>
 
                 {torneo && (
-
                     <span className="ediciones-torneo-actual">
-
                         <Trophy aria-hidden="true" />
-
                         {torneo.nombre}
-
                     </span>
-
                 )}
-
             </nav>
 
 
             {/* CABECERA */}
 
             <header className="as-page-header">
-
                 <div>
-
                     <h1>EDICIONES</h1>
 
                     <p>
                         Administración de las ediciones del torneo
                     </p>
-
                 </div>
 
                 <div className="ediciones-cabecera-acciones">
-
                     <button
                         type="button"
                         className="as-button as-button-secondary as-button-icon"
@@ -921,14 +830,12 @@ function GestionEdiciones({ torneoId }) {
                         aria-label="Actualizar ediciones"
                         title="Actualizar ediciones"
                     >
-
                         {cargando
                             ? <span
                                 className="as-spinner"
                                 aria-hidden="true"
                             />
                             : <RefreshCw aria-hidden="true" />}
-
                     </button>
 
                     <button
@@ -940,47 +847,32 @@ function GestionEdiciones({ torneoId }) {
                             !torneoActivo
                         }
                     >
-
                         <Plus aria-hidden="true" />
-
                         NUEVA EDICIÓN
-
                     </button>
-
                 </div>
-
             </header>
 
 
             {/* IDENTIDAD DEL TORNEO */}
 
             {torneo && !errorCarga && (
-
                 <section
                     className="as-panel ediciones-contexto"
                     aria-label="Torneo seleccionado"
                 >
-
                     <div className="ediciones-contexto-identidad">
-
                         <div className="ediciones-icono">
-
                             <Trophy aria-hidden="true" />
-
                         </div>
 
                         <div>
-
                             <span className="as-stat-label">
-
                                 TORNEO SELECCIONADO
-
                             </span>
 
                             <h2>{torneo.nombre}</h2>
-
                         </div>
-
                     </div>
 
                     <span
@@ -990,38 +882,28 @@ function GestionEdiciones({ torneoId }) {
                                 : 'as-status as-status-archived'
                         }
                     >
-
                         {torneo.estado}
-
                     </span>
-
                 </section>
-
             )}
 
 
             {/* TORNEO ARCHIVADO */}
 
             {torneo && !torneoActivo && !errorCarga && (
-
                 <div
                     className="as-alert as-alert-warning"
                     role="status"
                 >
-
                     <CircleAlert aria-hidden="true" />
 
                     <span className="as-alert-content">
-
                         Este torneo está archivado.
                         Podés consultar, editar y finalizar
                         sus ediciones existentes, pero no
                         crear, iniciar ni reabrir ediciones.
-
                     </span>
-
                 </div>
-
             )}
 
 
@@ -1031,56 +913,42 @@ function GestionEdiciones({ torneoId }) {
                 className="ediciones-indicadores"
                 aria-label="Resumen de ediciones"
             >
-
                 {indicadores.map(
                     ({ etiqueta, valor, Icono, clase }) => (
-
                         <article
                             key={etiqueta}
                             className="as-stat-card"
                         >
-
                             <Icono aria-hidden="true" />
 
                             <span className="as-stat-label">
-
                                 {etiqueta}
-
                             </span>
 
                             <strong
                                 className={`as-stat-value ${clase}`}
                             >
-
                                 {cargando || errorCarga
                                     ? '—'
                                     : valor}
-
                             </strong>
-
                         </article>
-
                     )
                 )}
-
             </section>
 
 
             {/* MENSAJES */}
 
             {mensaje && (
-
                 <div
                     className="as-alert as-alert-success ediciones-alerta"
                     role="status"
                 >
-
                     <CircleCheck aria-hidden="true" />
 
                     <span className="as-alert-content">
-
                         {mensaje}
-
                     </span>
 
                     <button
@@ -1089,28 +957,20 @@ function GestionEdiciones({ torneoId }) {
                         onClick={() => setMensaje('')}
                         aria-label="Cerrar mensaje"
                     >
-
                         <X aria-hidden="true" />
-
                     </button>
-
                 </div>
-
             )}
 
             {errorOperacion && !formulario && (
-
                 <div
                     className="as-alert as-alert-danger ediciones-alerta"
                     role="alert"
                 >
-
                     <CircleAlert aria-hidden="true" />
 
                     <span className="as-alert-content">
-
                         {errorOperacion}
-
                     </span>
 
                     <button
@@ -1119,45 +979,32 @@ function GestionEdiciones({ torneoId }) {
                         onClick={() => setErrorOperacion('')}
                         aria-label="Cerrar mensaje de error"
                     >
-
                         <X aria-hidden="true" />
-
                     </button>
-
                 </div>
-
             )}
 
 
             {/* FORMULARIO */}
 
             {formulario && (
-
                 <section
                     className="as-panel ediciones-formulario-panel"
                     aria-labelledby="ediciones-formulario-titulo"
                 >
-
                     <div className="ediciones-formulario-cabecera">
-
                         <div>
-
                             <h2 id="ediciones-formulario-titulo">
-
                                 {formulario.id === null
                                     ? 'NUEVA EDICIÓN'
                                     : 'EDITAR EDICIÓN'}
-
                             </h2>
 
                             <p className="as-text-description">
-
                                 {formulario.id === null
                                     ? 'Registrá una nueva edición del torneo.'
                                     : 'Modificá los datos de la edición.'}
-
                             </p>
-
                         </div>
 
                         <button
@@ -1167,11 +1014,8 @@ function GestionEdiciones({ torneoId }) {
                             disabled={guardando}
                             aria-label="Cerrar formulario"
                         >
-
                             <X aria-hidden="true" />
-
                         </button>
-
                     </div>
 
                     <hr className="as-divider" />
@@ -1185,22 +1029,15 @@ function GestionEdiciones({ torneoId }) {
                         {/* NOMBRE */}
 
                         <div className="as-field">
-
                             <label
                                 className="as-label"
                                 htmlFor="edicion-nombre"
                             >
-
-                                Nombre de la edición
-
-                                {' '}
+                                Nombre de la edición{' '}
 
                                 <span className="as-field-required">
-
                                     *
-
                                 </span>
-
                             </label>
 
                             <input
@@ -1208,7 +1045,7 @@ function GestionEdiciones({ torneoId }) {
                                 type="text"
                                 className="as-input"
                                 value={formulario.nombre}
-                                onChange={(evento) =>
+                                onChange={evento =>
                                     actualizarCampo(
                                         'nombre',
                                         evento.target.value
@@ -1218,7 +1055,9 @@ function GestionEdiciones({ torneoId }) {
                                 aria-describedby="edicion-nombre-contador"
                                 aria-invalid={
                                     contarCaracteres(
-                                        normalizarNombre(formulario.nombre)
+                                        normalizarNombre(
+                                            formulario.nombre
+                                        )
                                     ) > LIMITE_NOMBRE
                                 }
                                 disabled={guardando}
@@ -1229,42 +1068,39 @@ function GestionEdiciones({ torneoId }) {
                                 id="edicion-nombre-contador"
                                 className={
                                     contarCaracteres(
-                                        normalizarNombre(formulario.nombre)
+                                        normalizarNombre(
+                                            formulario.nombre
+                                        )
                                     ) > LIMITE_NOMBRE
                                         ? 'as-field-counter as-text-danger'
                                         : 'as-field-counter'
                                 }
                             >
-
                                 {contarCaracteres(
-                                    normalizarNombre(formulario.nombre)
+                                    normalizarNombre(
+                                        formulario.nombre
+                                    )
                                 )}
-
                                 /{LIMITE_NOMBRE}
-
                             </span>
-
                         </div>
 
 
                         {/* DESCRIPCION */}
 
                         <div className="as-field">
-
                             <label
                                 className="as-label"
                                 htmlFor="edicion-descripcion"
                             >
-
                                 Descripción (opcional)
-
                             </label>
 
                             <textarea
                                 id="edicion-descripcion"
                                 className="as-textarea"
                                 value={formulario.descripcion}
-                                onChange={(evento) =>
+                                onChange={evento =>
                                     actualizarCampo(
                                         'descripcion',
                                         evento.target.value
@@ -1295,17 +1131,13 @@ function GestionEdiciones({ torneoId }) {
                                         : 'as-field-counter'
                                 }
                             >
-
                                 {contarCaracteres(
                                     formulario.descripcion
                                         .normalize('NFC')
                                         .trim()
                                 )}
-
                                 /{LIMITE_DESCRIPCION}
-
                             </span>
-
                         </div>
 
 
@@ -1314,14 +1146,11 @@ function GestionEdiciones({ torneoId }) {
                         <div className="ediciones-formulario-fechas">
 
                             <div className="as-field">
-
                                 <label
                                     className="as-label"
                                     htmlFor="edicion-fecha-inicio"
                                 >
-
                                     Fecha de inicio (opcional)
-
                                 </label>
 
                                 <input
@@ -1331,7 +1160,7 @@ function GestionEdiciones({ torneoId }) {
                                     min="1000-01-01"
                                     max="9999-12-31"
                                     value={formulario.fecha_inicio}
-                                    onChange={(evento) =>
+                                    onChange={evento =>
                                         actualizarCampo(
                                             'fecha_inicio',
                                             evento.target.value
@@ -1341,7 +1170,6 @@ function GestionEdiciones({ torneoId }) {
                                 />
 
                                 {formulario.fecha_inicio && (
-
                                     <button
                                         type="button"
                                         className="as-button as-button-ghost ediciones-quitar-fecha"
@@ -1353,26 +1181,18 @@ function GestionEdiciones({ torneoId }) {
                                         }
                                         disabled={guardando}
                                     >
-
                                         <X aria-hidden="true" />
-
                                         QUITAR FECHA
-
                                     </button>
-
                                 )}
-
                             </div>
 
                             <div className="as-field">
-
                                 <label
                                     className="as-label"
                                     htmlFor="edicion-fecha-finalizacion"
                                 >
-
                                     Fecha de finalización (opcional)
-
                                 </label>
 
                                 <input
@@ -1384,8 +1204,10 @@ function GestionEdiciones({ torneoId }) {
                                         '1000-01-01'
                                     }
                                     max="9999-12-31"
-                                    value={formulario.fecha_finalizacion}
-                                    onChange={(evento) =>
+                                    value={
+                                        formulario.fecha_finalizacion
+                                    }
+                                    onChange={evento =>
                                         actualizarCampo(
                                             'fecha_finalizacion',
                                             evento.target.value
@@ -1395,7 +1217,6 @@ function GestionEdiciones({ torneoId }) {
                                 />
 
                                 {formulario.fecha_finalizacion && (
-
                                     <button
                                         type="button"
                                         className="as-button as-button-ghost ediciones-quitar-fecha"
@@ -1407,65 +1228,48 @@ function GestionEdiciones({ torneoId }) {
                                         }
                                         disabled={guardando}
                                     >
-
                                         <X aria-hidden="true" />
-
                                         QUITAR FECHA
-
                                     </button>
-
                                 )}
-
                             </div>
 
                         </div>
 
                         <p className="as-text-description">
-
                             Las fechas son informativas y pueden
                             modificarse posteriormente. El estado
                             de la edición se administra manualmente.
-
                         </p>
 
 
                         {/* ERROR DEL FORMULARIO */}
 
                         {errorOperacion && (
-
                             <div
                                 className="as-alert as-alert-danger"
                                 role="alert"
                             >
-
                                 <CircleAlert aria-hidden="true" />
 
                                 <span className="as-alert-content">
-
                                     {errorOperacion}
-
                                 </span>
-
                             </div>
-
                         )}
 
 
                         {/* ACCIONES DEL FORMULARIO */}
 
                         <div className="as-form-actions">
-
                             <button
                                 type="button"
                                 className="as-button as-button-secondary"
                                 onClick={cancelarFormulario}
                                 disabled={guardando}
                             >
-
                                 <X aria-hidden="true" />
-
                                 CANCELAR
-
                             </button>
 
                             <button
@@ -1473,7 +1277,6 @@ function GestionEdiciones({ torneoId }) {
                                 className="as-button as-button-primary"
                                 disabled={guardando}
                             >
-
                                 {guardando
                                     ? <span
                                         className="as-spinner"
@@ -1486,15 +1289,11 @@ function GestionEdiciones({ torneoId }) {
                                     : formulario.id === null
                                         ? 'CREAR EDICIÓN'
                                         : 'GUARDAR CAMBIOS'}
-
                             </button>
-
                         </div>
 
                     </form>
-
                 </section>
-
             )}
 
 
@@ -1504,18 +1303,14 @@ function GestionEdiciones({ torneoId }) {
                 className="as-toolbar ediciones-herramientas"
                 aria-label="Búsqueda y filtros"
             >
-
                 <div className="as-search">
-
                     <Search aria-hidden="true" />
 
                     <label
                         htmlFor="ediciones-busqueda"
                         className="as-sr-only"
                     >
-
                         Buscar edición
-
                     </label>
 
                     <input
@@ -1524,12 +1319,13 @@ function GestionEdiciones({ torneoId }) {
                         className="as-input"
                         placeholder="Buscar edición..."
                         value={busqueda}
-                        onChange={(evento) =>
+                        onChange={evento =>
                             setBusqueda(evento.target.value)
                         }
-                        disabled={cargando || Boolean(errorCarga)}
+                        disabled={
+                            cargando || Boolean(errorCarga)
+                        }
                     />
-
                 </div>
 
                 <div
@@ -1537,9 +1333,7 @@ function GestionEdiciones({ torneoId }) {
                     role="group"
                     aria-label="Filtrar por estado"
                 >
-
-                    {FILTROS.map((filtro) => (
-
+                    {FILTROS.map(filtro => (
                         <button
                             key={filtro.valor}
                             type="button"
@@ -1555,27 +1349,20 @@ function GestionEdiciones({ torneoId }) {
                                 Boolean(errorCarga)
                             }
                         >
-
                             {filtro.etiqueta}
-
                         </button>
-
                     ))}
-
                 </div>
-
             </section>
 
 
             {/* ESTADO DE CARGA */}
 
             {cargando && (
-
                 <div
                     className="as-empty"
                     role="status"
                 >
-
                     <span
                         className="as-spinner"
                         aria-hidden="true"
@@ -1586,18 +1373,14 @@ function GestionEdiciones({ torneoId }) {
                     <p>
                         Consultando las ediciones registradas.
                     </p>
-
                 </div>
-
             )}
 
 
             {/* ERROR DE CARGA */}
 
             {!cargando && errorCarga && (
-
                 <section className="as-empty">
-
                     <CircleAlert
                         className="as-empty-icon as-text-danger"
                         aria-hidden="true"
@@ -1612,15 +1395,10 @@ function GestionEdiciones({ torneoId }) {
                         className="as-button as-button-secondary"
                         onClick={recargarEdiciones}
                     >
-
                         <RefreshCw aria-hidden="true" />
-
                         REINTENTAR
-
                     </button>
-
                 </section>
-
             )}
 
 
@@ -1631,7 +1409,6 @@ function GestionEdiciones({ torneoId }) {
                 totalEdiciones === 0 && (
 
                 <section className="as-empty">
-
                     <CalendarDays
                         className="as-empty-icon"
                         aria-hidden="true"
@@ -1640,32 +1417,23 @@ function GestionEdiciones({ torneoId }) {
                     <h2>TODAVÍA NO HAY EDICIONES</h2>
 
                     <p>
-
                         {torneoActivo
                             ? 'Creá la primera edición para comenzar a organizar la competición.'
                             : 'Este torneo está archivado y no tiene ediciones registradas.'}
-
                     </p>
 
                     {torneoActivo && !formulario && (
-
                         <button
                             type="button"
                             className="as-button as-button-primary"
                             onClick={abrirNuevaEdicion}
                             disabled={ocupado}
                         >
-
                             <Plus aria-hidden="true" />
-
                             CREAR PRIMERA EDICIÓN
-
                         </button>
-
                     )}
-
                 </section>
-
             )}
 
 
@@ -1677,7 +1445,6 @@ function GestionEdiciones({ torneoId }) {
                 edicionesFiltradas.length === 0 && (
 
                 <section className="as-empty">
-
                     <Search
                         className="as-empty-icon"
                         aria-hidden="true"
@@ -1686,10 +1453,8 @@ function GestionEdiciones({ torneoId }) {
                     <h2>SIN RESULTADOS</h2>
 
                     <p>
-
                         No hay ediciones que coincidan
                         con los filtros seleccionados.
-
                     </p>
 
                     <button
@@ -1697,15 +1462,10 @@ function GestionEdiciones({ torneoId }) {
                         className="as-button as-button-secondary"
                         onClick={limpiarFiltros}
                     >
-
                         <X aria-hidden="true" />
-
                         LIMPIAR FILTROS
-
                     </button>
-
                 </section>
-
             )}
 
 
@@ -1720,24 +1480,20 @@ function GestionEdiciones({ torneoId }) {
                     aria-label="Ediciones registradas"
                     aria-busy={guardando}
                 >
-
                     <p
                         className="ediciones-resultados"
                         aria-live="polite"
                     >
-
                         {edicionesFiltradas.length}
 
                         {edicionesFiltradas.length === 1
                             ? ' edición encontrada'
                             : ' ediciones encontradas'}
-
                     </p>
 
                     <div className="ediciones-grid">
 
-                        {edicionesFiltradas.map((edicion) => {
-
+                        {edicionesFiltradas.map(edicion => {
                             const estadoVisual =
                                 ESTADOS_VISUALES[edicion.estado];
 
@@ -1752,7 +1508,6 @@ function GestionEdiciones({ torneoId }) {
                                 accion?.siguiente === ESTADOS.EN_CURSO;
 
                             return (
-
                                 <article
                                     key={edicion.id}
                                     className={
@@ -1764,17 +1519,12 @@ function GestionEdiciones({ torneoId }) {
                                     {/* IDENTIDAD */}
 
                                     <div className="ediciones-tarjeta-cabecera">
-
                                         <div className="ediciones-identidad">
-
                                             <div className="ediciones-icono">
-
                                                 <CalendarDays aria-hidden="true" />
-
                                             </div>
 
                                             <h2>{edicion.nombre}</h2>
-
                                         </div>
 
                                         <span
@@ -1783,70 +1533,64 @@ function GestionEdiciones({ torneoId }) {
                                                 (estadoVisual?.clase || '')
                                             }
                                         >
-
                                             {estadoVisual?.etiqueta ||
                                                 edicion.estado}
-
                                         </span>
-
                                     </div>
 
 
                                     {/* DESCRIPCION */}
 
                                     <p className="ediciones-descripcion">
-
                                         {edicion.descripcion ||
                                             'Sin descripción.'}
-
                                     </p>
 
 
                                     {/* FECHAS */}
 
                                     <div className="ediciones-fechas">
-
                                         <div>
-
                                             <span className="ediciones-fecha-etiqueta">
-
                                                 <CalendarDays aria-hidden="true" />
-
                                                 INICIO
-
                                             </span>
 
                                             <strong>
-
                                                 {formatearFecha(
                                                     edicion.fecha_inicio
                                                 )}
-
                                             </strong>
-
                                         </div>
 
                                         <div>
-
                                             <span className="ediciones-fecha-etiqueta">
-
                                                 <Flag aria-hidden="true" />
-
                                                 FINALIZACIÓN
-
                                             </span>
 
                                             <strong>
-
                                                 {formatearFecha(
                                                     edicion.fecha_finalizacion
                                                 )}
-
                                             </strong>
-
                                         </div>
-
                                     </div>
+
+
+                                    {/* CATEGORIAS - HU-006 */}
+
+                                    <CategoriasDeEdicion
+                                        key={`${torneoId}:${edicion.id}`}
+                                        ruta={`${rutaBase}/${edicion.id}/categorias`}
+                                        nombre={edicion.nombre}
+                                        bloqueado={accionesBloqueadas}
+                                        onGestionar={() =>
+                                            navigate(
+                                                `${rutaBase}/${edicion.id}/categorias`
+                                            )
+                                        }
+                                    />
 
 
                                     {/* ACCIONES */}
@@ -1864,20 +1608,14 @@ function GestionEdiciones({ torneoId }) {
                                                 `Editar ${edicion.nombre}`
                                             }
                                         >
-
                                             <Pencil aria-hidden="true" />
-
                                             EDITAR
-
                                         </button>
 
                                         {accion && IconoAccion && (
-
                                             <button
                                                 type="button"
-                                                className={
-                                                    `as-button ${accion.clase}`
-                                                }
+                                                className={`as-button ${accion.clase}`}
                                                 onClick={() =>
                                                     cambiarEstado(edicion)
                                                 }
@@ -1894,13 +1632,9 @@ function GestionEdiciones({ torneoId }) {
                                                         : accion.etiqueta
                                                 }
                                             >
-
                                                 <IconoAccion aria-hidden="true" />
-
                                                 {accion.etiqueta}
-
                                             </button>
-
                                         )}
 
                                         <button
@@ -1914,29 +1648,19 @@ function GestionEdiciones({ torneoId }) {
                                                 `Eliminar ${edicion.nombre}`
                                             }
                                         >
-
                                             <Trash2 aria-hidden="true" />
-
                                             ELIMINAR
-
                                         </button>
 
                                     </footer>
-
                                 </article>
-
                             );
-
                         })}
 
                     </div>
-
                 </section>
-
             )}
 
         </div>
-
     );
-
 }

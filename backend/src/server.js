@@ -1,4 +1,3 @@
-
 const { APP_CONFIG } = require('./config/app.config');
 
 const express = require('express');
@@ -19,6 +18,7 @@ const { requireAuth } = require('./middlewares/auth');
 const authRoutes = require('./routes/auth.routes');
 const torneoRoutes = require('./routes/torneo.routes');
 const edicionRoutes = require('./routes/edicion.routes');
+const categoriaRoutes = require('./routes/categoria.routes');
 
 const app = express();
 
@@ -119,6 +119,14 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/auth', authRoutes);
 
 
+/* MODULO DE CATEGORIAS */
+
+app.use(
+    '/api/torneos/:torneoId/ediciones/:edicionId/categorias',
+    categoriaRoutes
+);
+
+
 /* MODULO DE EDICIONES */
 
 app.use(
@@ -190,6 +198,7 @@ async function startServer() {
                 console.log('Autenticacion: HABILITADA');
                 console.log('Modulo de torneos: HABILITADO');
                 console.log('Modulo de ediciones: HABILITADO');
+                console.log('Modulo de categorias: HABILITADO');
                 console.log('================================');
             }
         );

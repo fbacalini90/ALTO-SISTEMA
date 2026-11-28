@@ -1,9 +1,8 @@
-
 export const APP_CONFIG = Object.freeze({
 
     nombre: 'ALTO-SISTEMA',
 
-    version: '0.3.0',
+    version: '0.4.0',
 
     descripcion: 'Sistema integral de gestión deportiva',
 

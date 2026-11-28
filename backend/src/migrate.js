@@ -559,12 +559,170 @@ async function verificarTablaEdiciones(conexion) {
     }
 }
 
+/* VERIFICACION ESTRUCTURAL DE CATEGORIAS */
+
+async function verificarTablaCategorias(conexion) {
+    const [tablas] = await conexion.query(`
+        SELECT
+            ENGINE AS motor,
+            TABLE_COLLATION AS collation
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'categorias'
+    `);
+
+    if (
+        tablas.length !== 1 ||
+        tablas[0].motor !== 'InnoDB' ||
+        tablas[0].collation !== 'utf8mb4_unicode_ci'
+    ) {
+        throw new Error(
+            'La configuración de la tabla categorias es incompatible.'
+        );
+    }
+
+    const [columnas] = await conexion.query(
+        'SHOW FULL COLUMNS FROM categorias'
+    );
+
+    const campos = new Map(
+        columnas.map((columna) => [columna.Field, columna])
+    );
+
+    const id = campos.get('id');
+    const edicionId = campos.get('edicion_id');
+    const nombre = campos.get('nombre');
+    const descripcion = campos.get('descripcion');
+    const estado = campos.get('estado');
+    const fechaCreacion = campos.get('fecha_creacion');
+    const fechaActualizacion = campos.get('fecha_actualizacion');
+
+    const estructuraCorrecta =
+        columnas.length === 7 &&
+
+        id?.Type === 'int' &&
+        id?.Null === 'NO' &&
+        id?.Extra.includes('auto_increment') &&
+
+        edicionId?.Type === 'int' &&
+        edicionId?.Null === 'NO' &&
+        edicionId?.Default === null &&
+
+        nombre?.Type === 'varchar(100)' &&
+        nombre?.Null === 'NO' &&
+        nombre?.Collation === 'utf8mb4_unicode_ci' &&
+
+        descripcion?.Type === 'varchar(500)' &&
+        descripcion?.Null === 'YES' &&
+        descripcion?.Default === null &&
+        descripcion?.Collation === 'utf8mb4_unicode_ci' &&
+
+        estado?.Type === "enum('ACTIVA','ARCHIVADA')" &&
+        estado?.Null === 'NO' &&
+        estado?.Default === 'ACTIVA' &&
+        estado?.Collation === 'utf8mb4_unicode_ci' &&
+
+        fechaCreacion?.Type === 'timestamp' &&
+        fechaCreacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaCreacion?.Default)
+        ) &&
+        !/on update/i.test(String(fechaCreacion?.Extra)) &&
+
+        fechaActualizacion?.Type === 'timestamp' &&
+        fechaActualizacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaActualizacion?.Default)
+        ) &&
+        /on update current_timestamp(?:\(\))?/i.test(
+            String(fechaActualizacion?.Extra)
+        );
+
+    if (!estructuraCorrecta) {
+        throw new Error(
+            'La estructura de la tabla categorias no coincide con la migración 004.'
+        );
+    }
+
+    const [indices] = await conexion.query(
+        'SHOW INDEX FROM categorias'
+    );
+
+    function coincideIndice(clave, columnasEsperadas, noUnico) {
+        const filas = indices.filter(
+            (indice) => indice.Key_name === clave
+        ).sort(
+            (a, b) => Number(a.Seq_in_index) - Number(b.Seq_in_index)
+        );
+
+        return filas.length === columnasEsperadas.length &&
+            filas.every((fila, i) =>
+                fila.Column_name === columnasEsperadas[i] &&
+                Number(fila.Seq_in_index) === i + 1 &&
+                Number(fila.Non_unique) === noUnico &&
+                fila.Sub_part === null
+            );
+    }
+
+    if (
+        !coincideIndice('PRIMARY', ['id'], 0) ||
+        !coincideIndice(
+            'uq_categorias_edicion_nombre', ['edicion_id', 'nombre'], 0
+        ) ||
+        !coincideIndice(
+            'idx_categorias_edicion_estado', ['edicion_id', 'estado'], 1
+        )
+    ) {
+        throw new Error(
+            'Los índices de la tabla categorias son incompatibles.'
+        );
+    }
+
+    const [referencias] = await conexion.query(`
+        SELECT
+            k.COLUMN_NAME AS columna,
+            k.REFERENCED_TABLE_SCHEMA AS esquema_referenciado,
+            k.TABLE_SCHEMA AS esquema_local,
+            k.REFERENCED_TABLE_NAME AS tabla_referenciada,
+            k.REFERENCED_COLUMN_NAME AS columna_referenciada,
+            k.ORDINAL_POSITION AS posicion,
+            r.DELETE_RULE AS regla_eliminacion,
+            r.UPDATE_RULE AS regla_actualizacion
+        FROM information_schema.KEY_COLUMN_USAGE AS k
+        INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS r
+            ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA
+           AND r.TABLE_NAME = k.TABLE_NAME
+           AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+        WHERE k.TABLE_SCHEMA = DATABASE()
+          AND k.TABLE_NAME = 'categorias'
+          AND k.CONSTRAINT_NAME = 'fk_categorias_edicion'
+    `);
+
+    const referencia = referencias[0];
+
+    if (
+        referencias.length !== 1 ||
+        referencia.columna !== 'edicion_id' ||
+        referencia.esquema_referenciado !== referencia.esquema_local ||
+        referencia.tabla_referenciada !== 'ediciones' ||
+        referencia.columna_referenciada !== 'id' ||
+        Number(referencia.posicion) !== 1 ||
+        referencia.regla_eliminacion !== 'RESTRICT' ||
+        referencia.regla_actualizacion !== 'RESTRICT'
+    ) {
+        throw new Error(
+            'La clave foránea de categorias no coincide con la migración 004.'
+        );
+    }
+}
+
 /* REGISTRO DE VERIFICADORES */
 
 const VERIFICADORES = new Map([
     [1, verificarTablaUsuarios],
     [2, verificarTablaTorneos],
-    [3, verificarTablaEdiciones]
+    [3, verificarTablaEdiciones],
+    [4, verificarTablaCategorias]
 ]);
 
 /* VERIFICACION PREVENTIVA */

@@ -1,11 +1,13 @@
 # ALTO-SISTEMA — Manual de mantenimiento
 
-Versión de referencia: 0.3.0
+Versión de referencia: 0.4.0
 
 Entorno principal: Windows 11.
 
-Estado: implementación técnica y funcional verificada.
-HU-004 consolidada. HU-005 pendiente de CHECK integral, cierre documental y publicación.
+Estado: HU-004 y HU-005 aprobadas y consolidadas.
+HU-006 implementada y verificada.
+Pendiente de verificaciones finales, CHECK integral
+y publicación definitiva.
 
 ---
 
@@ -21,7 +23,9 @@ Este manual contempla:
 - Configuración.
 - Inicio y detención de servicios.
 - Administración de usuarios.
-- Administración de competiciones.
+- Administración de torneos.
+- Administración de ediciones.
+- Administración de categorías.
 - Migraciones.
 - Respaldos.
 - Restauración.
@@ -56,13 +60,14 @@ conforme evolucione el sistema.
 
 ### 2.2. Versiones del entorno local
 
-| Herramienta | Versión utilizada |
+| Herramienta | Versión de referencia |
 |---|---|
 | Node.js | 24.20.0 |
 | npm | 11.19.0 |
 | MySQL | 8.0.45 |
 | Git | 2.55.0 para Windows |
-| ALTO-SISTEMA | 0.3.0 |
+| Vite | 8.4.0 |
+| ALTO-SISTEMA | 0.4.0 |
 | Sistema de Diseño | 1.0 |
 
 Las versiones corresponden al entorno
@@ -101,7 +106,9 @@ según la instalación.
 ALTO-SISTEMA/
 ├── backend/
 ├── database/
+│   └── migrations/
 ├── docs/
+│   └── capturas/
 ├── frontend/
 ├── .gitignore
 └── README.md
@@ -113,7 +120,7 @@ ALTO-SISTEMA/
 |---|---|
 | backend | API REST y lógica de negocio |
 | database | Migraciones SQL |
-| docs | Documentación técnica |
+| docs | Documentación técnica y evidencias |
 | frontend | Interfaz administrativa |
 
 ### 3.3. Archivos privados
@@ -131,6 +138,20 @@ Especialmente:
 
 Los archivos generados por la instalación
 de dependencias tampoco deberán versionarse.
+
+### 3.4. Edición de archivos
+
+Los archivos de código y documentación
+deberán modificarse directamente desde
+el editor de VS Code.
+
+Cuando se necesite compartir un archivo
+existente, se utilizará preferentemente
+su ubicación dentro del árbol del proyecto.
+
+La terminal se reservará para operaciones
+de ejecución, instalación, diagnóstico,
+pruebas, mantenimiento y Git.
 
 ---
 
@@ -264,6 +285,20 @@ como cuenta habitual del backend.
 Las credenciales deberán conservarse
 en la configuración privada.
 
+### 5.5. Verificación de la base seleccionada
+
+Antes de realizar operaciones de mantenimiento:
+
+```sql
+SELECT DATABASE();
+```
+
+El resultado deberá corresponder
+a la base que se desea administrar.
+
+No deberán realizarse modificaciones
+si la base seleccionada no es la prevista.
+
 ---
 
 ## 6. CONFIGURACIÓN DEL ENTORNO
@@ -333,7 +368,10 @@ variables de entorno temporales.
 
 No deberá modificarse el archivo .env
 principal para ejecutar pruebas
-de integración de torneos y ediciones.
+de integración deportivas.
+
+Las pruebas de TORNEOS, EDICIONES y CATEGORÍAS
+deberán utilizar el entorno aislado correspondiente.
 
 ---
 
@@ -354,7 +392,8 @@ Archivos SQL:
 database/migrations/
 ├── 001_usuarios.sql
 ├── 002_torneos.sql
-└── 003_ediciones.sql
+├── 003_ediciones.sql
+└── 004_categorias.sql
 ```
 
 ### 7.2. Migraciones disponibles
@@ -364,6 +403,7 @@ database/migrations/
 | 001 | 001_usuarios.sql | Usuarios administrativos |
 | 002 | 002_torneos.sql | Registro de torneos |
 | 003 | 003_ediciones.sql | Ediciones de cada torneo |
+| 004 | 004_categorias.sql | Categorías de cada edición |
 
 ### 7.3. Ejecución
 
@@ -372,6 +412,11 @@ Desde el directorio backend:
 ```powershell
 npm run migrate
 ```
+
+Antes de realizar una migración estructural
+sobre una base existente, deberá generarse
+un respaldo preventivo y detenerse
+las escrituras correspondientes.
 
 ### 7.4. Controles del migrador
 
@@ -383,35 +428,48 @@ npm run migrate
 - Detección de migraciones incompletas.
 - Identificación de migraciones pendientes.
 
+Cada nueva migración deberá disponer
+de su verificador estructural.
+
 ### 7.5. Idempotencia
 
 La ejecución repetida del migrador
 no deberá duplicar migraciones
 previamente aplicadas.
 
-La versión 0.2.0 registraba dos migraciones aplicadas.
-La versión 0.3.0 registra tres migraciones aplicadas.
+| Versión | Migraciones |
+|---|---:|
+| 0.2.0 | 2 |
+| 0.3.0 | 3 |
+| 0.4.0 | 4 |
 
-### 7.6. Resultado esperado
+La instalación limpia y la idempotencia
+de las cuatro migraciones deberán
+verificarse durante el cierre de HU-006.
+
+### 7.6. Resultado esperado en v0.4.0
 
 ```text
 ================================
-ALTO-SISTEMA v0.3.0
+ALTO-SISTEMA v0.4.0
 MIGRACIONES DE BASE DE DATOS
 ================================
 Base de datos: alto_sistema
-Registradas: 3
+Registradas: 4
 Pendientes: 0
 ================================
 BASE DE DATOS ACTUALIZADA
 ================================
 ```
 
-Este es el resultado esperado en v0.3.0 tras una
-segunda ejecución sin migraciones pendientes.
-El estado de tres migraciones registradas y cero
-pendientes fue verificado durante HU-005 antes del
-incremento de versión de la aplicación.
+El ejemplo representa el resultado esperado
+de una ejecución sobre una base actualizada.
+
+La migración 004 ya fue aplicada en la base
+principal y en la base aislada de integración.
+
+La ejecución final de idempotencia
+permanece pendiente de confirmación.
 
 ### 7.7. Restricciones
 
@@ -431,30 +489,25 @@ de intentar ejecutarla nuevamente.
 ### 7.8. Eliminación de torneos
 
 La incorporación de la eliminación
-definitiva no requirió una nueva
-migración.
+definitiva en HU-004 no requirió
+una nueva migración.
 
 Las migraciones 001 y 002 permanecieron
 sin modificaciones.
 
-La migración 003 incorpora la relación entre torneos
-y ediciones con ON DELETE RESTRICT y ON UPDATE RESTRICT.
-No modifica los archivos SQL 001 y 002.
+La migración 003 incorpora la relación
+restrictiva entre torneos y ediciones.
 
+La migración 004 incorpora la relación
+restrictiva entre ediciones y categorías.
 
 ### 7.9. Migración 003 — EDICIONES
 
-Antes de actualizar una base existente, detener las
-escrituras, generar el respaldo según la sección 19 y
-verificar que la conexión apunte a la base prevista.
+En una instalación que ya posee
+las migraciones 001 y 002, la migración 003
+incorpora la estructura de EDICIONES.
 
-Desde backend, ejecutar `npm run migrate` con la
-configuración correspondiente. En una base que ya
-posee 001 y 002, se espera una migración pendiente.
-Al repetir la ejecución se esperan tres registradas y
-cero pendientes. No es necesario recrear la base.
-
-Verificación de solo lectura desde MySQL Client:
+Verificación de solo lectura:
 
 ```sql
 SELECT DATABASE();
@@ -462,7 +515,7 @@ SHOW CREATE TABLE ediciones;
 SHOW INDEX FROM ediciones;
 ```
 
-La estructura comprobada durante HU-005 contiene:
+Estructura:
 
 | Elemento | Definición |
 |---|---|
@@ -472,7 +525,8 @@ La estructura comprobada durante HU-005 contiene:
 | descripcion | VARCHAR(500), nullable |
 | fecha_inicio | DATE, nullable |
 | fecha_finalizacion | DATE, nullable |
-| estado | ENUM PLANIFICADA, EN_CURSO, FINALIZADA; default PLANIFICADA |
+| estado | ENUM PLANIFICADA, EN_CURSO, FINALIZADA |
+| Estado inicial | PLANIFICADA |
 | fecha_creacion | TIMESTAMP, default CURRENT_TIMESTAMP |
 | fecha_actualizacion | TIMESTAMP, actualización automática |
 | uq_ediciones_torneo_nombre | UNIQUE (torneo_id, nombre) |
@@ -480,13 +534,117 @@ La estructura comprobada durante HU-005 contiene:
 | fk_ediciones_torneo | ON DELETE RESTRICT y ON UPDATE RESTRICT |
 | chk_ediciones_fechas | Si ambas fechas existen, finalización >= inicio |
 
-Motor InnoDB, utf8mb4, intercalación utf8mb4_unicode_ci.
-La migración fue aplicada tanto en la base principal
-como en la base aislada de integración. La instalación
-desde cero se verificó por separado (sección 16.7).
+Motor InnoDB, utf8mb4 e intercalación
+utf8mb4_unicode_ci.
 
-No se deberá desactivar una restricción de integridad
-para hacer pasar una migración o eliminar registros.
+La instalación limpia de las primeras
+tres migraciones fue verificada en HU-005.
+
+### 7.10. Migración 004 — CATEGORÍAS
+
+La migración 004 incorpora el tercer nivel
+de la arquitectura multitorneo.
+
+En una base con las migraciones 001 a 003,
+se espera una migración pendiente.
+
+Ejecutar desde backend:
+
+```powershell
+npm run migrate
+```
+
+La actualización no requiere eliminar
+ni recrear la base existente.
+
+Verificación estructural:
+
+```sql
+SELECT DATABASE();
+SHOW CREATE TABLE categorias;
+SHOW INDEX FROM categorias;
+```
+
+Estructura:
+
+| Elemento | Definición |
+|---|---|
+| id | INT autoincremental, PK |
+| edicion_id | INT NOT NULL, FK a ediciones.id |
+| nombre | VARCHAR(100) NOT NULL |
+| descripcion | VARCHAR(500), nullable |
+| estado | ENUM ACTIVA, ARCHIVADA |
+| Estado inicial | ACTIVA |
+| fecha_creacion | TIMESTAMP, default CURRENT_TIMESTAMP |
+| fecha_actualizacion | TIMESTAMP, actualización automática |
+| uq_categorias_edicion_nombre | UNIQUE (edicion_id, nombre) |
+| idx_categorias_edicion_estado | Índice (edicion_id, estado) |
+| fk_categorias_edicion | ON DELETE RESTRICT y ON UPDATE RESTRICT |
+
+Motor InnoDB, utf8mb4 e intercalación
+utf8mb4_unicode_ci.
+
+La migración fue aplicada satisfactoriamente en:
+
+- alto_sistema.
+- altosistemahu004test.
+
+### 7.11. Verificación de integridad jerárquica
+
+Consultar posibles ediciones huérfanas:
+
+```sql
+SELECT COUNT(*) AS ediciones_huerfanas
+FROM ediciones e
+LEFT JOIN torneos t ON t.id = e.torneo_id
+WHERE t.id IS NULL;
+```
+
+Consultar posibles categorías huérfanas:
+
+```sql
+SELECT COUNT(*) AS categorias_huerfanas
+FROM categorias c
+LEFT JOIN ediciones e ON e.id = c.edicion_id
+WHERE e.id IS NULL;
+```
+
+Resultado esperado en ambos casos:
+
+```text
+0
+```
+
+Estas consultas son de solo lectura.
+
+No deberán ejecutarse sobre respaldos
+que todavía no posean las tablas
+correspondientes.
+
+### 7.12. Diagnóstico de migraciones sin verificador
+
+Durante la primera ejecución de HU-006,
+el migrador rechazó la migración 004
+debido a la ausencia de su verificador
+estructural correspondiente.
+
+Se actualizó `backend/src/migrate.js`
+y se repitió la operación.
+
+La migración fue aplicada satisfactoriamente.
+
+Ante un problema similar:
+
+1. Identificar la migración rechazada.
+2. Revisar el registro de verificadores.
+3. Comprobar el estado real de la tabla.
+4. Incorporar el verificador correspondiente.
+5. Ejecutar nuevamente el migrador.
+6. Confirmar el resultado estructural.
+
+No deberán alterarse las migraciones
+ya aplicadas ni registrarse manualmente
+como exitosas para evitar el error.
 
 ---
 
@@ -511,9 +669,6 @@ con las variables correspondientes.
 - ADMIN_USER
 - ADMIN_PASSWORD
 
-La contraseña deberá cumplir las
-validaciones del sistema.
-
 Procedimiento desde PowerShell:
 
 ```powershell
@@ -531,6 +686,9 @@ try {
     Remove-Variable clave -ErrorAction SilentlyContinue
 }
 ```
+
+La contraseña deberá cumplir las
+validaciones del sistema.
 
 ### 8.3. Seguridad
 
@@ -625,12 +783,46 @@ Comprobar:
 
 - Inicio correcto del backend.
 - Disponibilidad de MySQL.
+- Disponibilidad de sesiones.
 - Inicio correcto del frontend.
 - Pantalla de acceso privado.
 - Autenticación.
 - Visualización del Dashboard.
 - Disponibilidad del módulo TORNEOS.
-- Acceso a EDICIONES desde un torneo, cuando exista.
+- Acceso a EDICIONES.
+- Acceso a CATEGORÍAS, cuando exista una edición.
+- Identificación correcta de versión.
+
+### 9.7. Resultado confirmado de v0.4.0
+
+El backend principal inició correctamente:
+
+```text
+================================
+ALTO-SISTEMA v0.4.0
+Servidor: http://127.0.0.1:3000
+Entorno: development
+Base de datos: ONLINE
+Sesiones MySQL: ONLINE
+Autenticacion: HABILITADA
+Modulo de torneos: HABILITADO
+Modulo de ediciones: HABILITADO
+Modulo de categorias: HABILITADO
+================================
+```
+
+El frontend inició correctamente:
+
+```text
+frontend@0.4.0 dev
+
+VITE v8.4.0 ready in 327 ms
+
+Local: http://localhost:5173/
+```
+
+El tiempo registrado corresponde
+a esa ejecución local y podrá variar.
 
 ---
 
@@ -675,42 +867,56 @@ exista una necesidad operativa.
 
 ### 10.5. Reemplazo de archivos
 
-Antes de instalar una actualización
-mediante archivos completos o ZIP:
+Para instalar una actualización:
 
-1. Detener los servidores afectados.
-2. Verificar la estructura del paquete.
-3. Reemplazar los archivos correspondientes.
+1. Identificar los archivos afectados.
+2. Detener los procesos cuando corresponda.
+3. Reemplazar únicamente los archivos indicados.
 4. Conservar la configuración privada.
-5. Reiniciar los servidores.
+5. Reiniciar los procesos afectados.
 6. Ejecutar las pruebas necesarias.
+
+La modalidad preferente de entrega
+es código completo directamente
+en la conversación.
+
+Los paquetes ZIP podrán utilizarse
+cuando hayan sido solicitados
+o exista una necesidad justificada.
 
 No deberán reemplazarse carpetas
 completas cuando la actualización
 solamente incluya algunos archivos.
 
+### 10.6. Reinicio controlado de v0.4.0
 
-### 10.6. Reinicio controlado de v0.3.0
+1. Terminal 1: detener y reiniciar el backend.
+2. Verificar versión 0.4.0 y puerto 3000.
+3. Confirmar conexión con MySQL y sesiones.
+4. Confirmar autenticación y los tres módulos deportivos.
+5. Terminal 2: detener y reiniciar el frontend.
+6. Actualizar el navegador.
+7. Verificar la identificación visual de versión.
+8. Detener el backend aislado cuando ya no se necesite.
+9. Mantener disponible la cuarta terminal.
 
-Con las versiones sincronizadas (sección 23.9):
+El cierre del proceso de pruebas
+no elimina sus datos ni requiere
+detener MySQL.
 
-1. Terminal 1, backend: Ctrl + C y `npm start`.
-2. Verificar el puerto 3000, versión v0.3.0, conexión
-   MySQL, sesiones y módulos de autenticación, torneos
-   y ediciones habilitados.
-3. Terminal 2, frontend: Ctrl + C y `npm run dev`.
-4. Actualizar el navegador y comprobar v0.3.0.
-5. Terminal 3: detener el backend aislado si ya no
-   se necesitan pruebas, mediante Ctrl + C.
-6. Mantener terminal 4 disponible para verificaciones.
+### 10.7. Actualizaciones exclusivamente documentales
 
-El cierre del proceso de pruebas no elimina sus datos
-ni requiere detener MySQL. El backend principal y el
-frontend fueron reiniciados y el servidor aislado fue
-detenido durante la consolidación local de HU-005.
+No será necesario reiniciar servidores
+cuando se modifiquen únicamente
+archivos Markdown.
 
-Una actualización exclusivamente documental no requiere
-reiniciar servidores.
+Las modificaciones de React y CSS
+podrán aprovechar la actualización
+automática de Vite.
+
+Los cambios en archivos del backend
+deberán incorporarse al proceso
+mediante un reinicio cuando corresponda.
 
 ---
 
@@ -725,6 +931,19 @@ mediante:
 - Conexión con MySQL.
 - Endpoint de disponibilidad.
 - Respuestas de la API REST.
+
+Endpoint de disponibilidad:
+
+http://localhost:3000/api/health
+
+Desde PowerShell:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3000/api/health"
+```
+
+La consulta no deberá contener
+credenciales privadas.
 
 ### 11.2. Frontend
 
@@ -742,9 +961,24 @@ El Dashboard incorpora indicadores
 de infraestructura y un contador
 real de torneos activos.
 
+TORNEOS incorpora indicadores
+de ediciones totales y en curso.
+
+EDICIONES incorpora indicadores
+de categorías totales y activas.
+
+CATEGORÍAS muestra los indicadores
+totales, activos y archivados
+de su edición correspondiente.
+
 Las consultas fallidas no deberán
 representarse mediante estadísticas
 ficticias.
+
+Un guion indica que el valor
+no se encuentra disponible.
+
+El cero representa una cantidad real.
 
 ### 11.4. Sesiones
 
@@ -758,9 +992,9 @@ La verificación deberá contemplar:
 
 ---
 
-## 12. ADMINISTRACIÓN DE TORNEOS
+## 12. ADMINISTRACIÓN DE COMPETICIONES
 
-### 12.1. Acceso
+### 12.1. Acceso a TORNEOS
 
 Ingresar a ALTO-SISTEMA mediante
 una sesión autenticada.
@@ -768,7 +1002,7 @@ una sesión autenticada.
 Seleccionar TORNEOS desde el menú
 lateral o el acceso correspondiente.
 
-### 12.2. Creación
+### 12.2. Creación de torneos
 
 Seleccionar NUEVO TORNEO.
 
@@ -784,7 +1018,7 @@ Los nombres duplicados serán rechazados.
 Todo torneo nuevo se registra inicialmente
 con estado ACTIVO.
 
-### 12.3. Edición
+### 12.3. Edición de torneos
 
 Seleccionar EDITAR sobre el torneo
 correspondiente.
@@ -793,7 +1027,7 @@ Modificar el nombre o la descripción.
 
 Guardar los cambios.
 
-### 12.4. Archivado
+### 12.4. Archivado de torneos
 
 Seleccionar ARCHIVAR.
 
@@ -802,10 +1036,10 @@ Confirmar la operación.
 El torneo permanecerá registrado en MySQL
 con estado ARCHIVADO.
 
-El archivado conserva la identidad
-y los datos del torneo.
+El archivado conserva la identidad,
+los datos y las entidades asociadas.
 
-### 12.5. Reactivación
+### 12.5. Reactivación de torneos
 
 Seleccionar REACTIVAR sobre un
 torneo archivado.
@@ -814,24 +1048,20 @@ Confirmar la operación.
 
 El torneo recuperará el estado ACTIVO.
 
-### 12.6. Eliminación definitiva
+### 12.6. Eliminación definitiva de torneos
 
-Seleccionar ELIMINAR sobre el torneo
-correspondiente.
+Seleccionar ELIMINAR.
 
-La interfaz solicitará una confirmación
-que identificará el registro y advertirá
-que la operación es irreversible.
+La interfaz solicitará confirmación
+e identificará el registro afectado.
 
-El administrador podrá confirmar
-o cancelar la operación.
-
-Si confirma y el backend autoriza
-la eliminación, el registro será
+Si el administrador confirma y el backend
+autoriza la operación, el registro será
 retirado físicamente de MySQL.
 
 La operación está disponible para
-torneos activos y archivados.
+torneos activos y archivados sin
+dependencias incompatibles.
 
 No existe una papelera de recuperación.
 
@@ -841,10 +1071,10 @@ Seleccionar Cancelar en la confirmación.
 
 Resultado esperado:
 
-- El torneo permanece registrado.
+- El registro permanece disponible.
 - No se modifica su estado.
-- No se altera su descripción.
-- No se modifican los indicadores.
+- No se modifica su descripción.
+- No se alteran los indicadores.
 - No se envía una solicitud DELETE.
 
 ### 12.8. Reutilización de nombres
@@ -856,32 +1086,34 @@ Un torneo eliminado libera su nombre
 para una creación posterior.
 
 Crear nuevamente un torneo con
-el mismo nombre no recupera el
-registro eliminado.
+el mismo nombre no recupera
+el registro eliminado.
 
-### 12.9. Dependencias de ediciones y futuras entidades
+### 12.9. Dependencias de torneos
 
-Desde v0.3.0, un torneo con ediciones asociadas
-no puede eliminarse, sea activo o archivado.
-La clave foránea impide la eliminación y la API
-responde HTTP 409 con un mensaje comprensible.
+Desde v0.3.0, un torneo con ediciones
+asociadas no puede eliminarse.
 
-Mensaje verificado desde la interfaz:
+La restricción se aplica tanto
+a torneos activos como archivados.
+
+La API devuelve HTTP 409.
+
+Mensaje histórico verificado:
 
 > No se puede eliminar el torneo porque tiene registros asociados. Podés archivarlo.
 
-El archivado conserva sus ediciones y sus estados.
-Ante una dependencia, considerar archivar el torneo;
-no eliminar datos históricos para forzar su borrado.
-La protección real fue verificada durante HU-005.
-Las futuras entidades también deberán proteger su
-integridad referencial.
+Ante una dependencia, deberá conservarse
+o archivarse el torneo correspondiente.
+
+No eliminar información histórica
+solamente para permitir el borrado.
 
 ### 12.10. Comparación administrativa
 
 | Operación | Conserva datos | Reversible desde la aplicación |
 |---|---|---|
-| EDITAR | Conserva la identidad | Mediante nueva edición |
+| EDITAR | Conserva la identidad | Mediante nueva edición de datos |
 | ARCHIVAR | Sí | Sí |
 | REACTIVAR | Sí | Sí |
 | ELIMINAR | No | No |
@@ -893,42 +1125,65 @@ competiciones que ya no se encuentren
 administrativamente activas.
 
 Utilizar la eliminación para registros
-creados accidentalmente, pruebas o
-competiciones que puedan retirarse
-sin comprometer datos asociados.
+accidentales, pruebas o competiciones
+que puedan retirarse sin comprometer
+información asociada.
 
 Antes de confirmar una eliminación,
-verificar que se haya seleccionado
-el torneo correcto.
+verificar el registro seleccionado.
 
 Cuando los datos sean importantes,
 deberá existir un respaldo apropiado.
 
+### 12.12. Administración de EDICIONES
 
-### 12.12. Administración de EDICIONES (HU-005)
+Desde TORNEOS, seleccionar
+GESTIONAR EDICIONES.
 
-Desde TORNEOS, seleccionar GESTIONAR EDICIONES en la
-tarjeta del torneo correspondiente. No existe una
-entrada independiente en el menú lateral. Cada tarjeta
-muestra el total de ediciones y las que están en curso.
+No existe una entrada independiente
+en el menú lateral.
 
-La pantalla permite regresar a TORNEOS, consultar
-indicadores, buscar por nombre o descripción y filtrar
-por estado. Los indicadores incluyen total, planificadas,
-en curso y finalizadas.
+Cada tarjeta de torneo muestra:
 
-**Creación y edición:** ingresar el nombre obligatorio
-(hasta 100 caracteres), descripción opcional (hasta 500)
-y fechas de inicio y finalización opcionales. No existe
-un campo año separado: el año puede formar parte del
-nombre, por ejemplo NOCTURNO 2027. Se permiten varias
-ediciones en un año y simultáneamente en curso.
+- Total de ediciones.
+- Ediciones en curso.
 
-El nombre debe ser único dentro del torneo, sin distinguir
-mayúsculas ni acentos según la colación de MySQL. Otro
-torneo puede utilizar el mismo nombre. Las fechas pueden
-modificarse o quitarse; si existen ambas, la finalización
-no puede preceder al inicio.
+La pantalla EDICIONES permite:
+
+- Consultar indicadores.
+- Buscar por nombre o descripción.
+- Filtrar por estado.
+- Crear ediciones.
+- Editar datos.
+- Administrar estados.
+- Eliminar registros sin dependencias.
+- Regresar a TORNEOS.
+
+Campos:
+
+| Campo | Condición |
+|---|---|
+| Nombre | Obligatorio, hasta 100 caracteres |
+| Descripción | Opcional, hasta 500 caracteres |
+| Fecha de inicio | Opcional |
+| Fecha de finalización | Opcional |
+
+No existe un campo independiente
+para el año.
+
+El nombre puede incluirlo libremente.
+
+Ejemplo: NOCTURNO 2027.
+
+El nombre debe ser único dentro
+del torneo correspondiente.
+
+Las fechas pueden modificarse o quitarse.
+
+Si ambas existen, la fecha de finalización
+no puede ser anterior a la fecha de inicio.
+
+### 12.13. Estados de EDICIONES
 
 | Acción | Estado de origen | Resultado |
 |---|---|---|
@@ -937,16 +1192,18 @@ no puede preceder al inicio.
 | Finalizar | EN_CURSO | FINALIZADA |
 | Reabrir | FINALIZADA | EN_CURSO |
 | Editar | Cualquiera | Conserva el estado |
-| Eliminar | Cualquiera | Eliminación física si no hay dependencias |
+| Eliminar | Cualquiera | Eliminación sin dependencias |
 
-Los cambios de estado son manuales: las fechas no inician
-ni finalizan automáticamente una edición. Repetir el
-estado actual no genera una nueva transición. Las acciones
-de cambio de estado y eliminación requieren confirmación
-en la interfaz. La eliminación es irreversible desde la
-aplicación.
+Las fechas no cambian automáticamente
+los estados deportivos.
 
-### 12.13. EDICIONES de torneos archivados
+Se permiten múltiples ediciones
+en curso simultáneamente.
+
+Las transiciones y eliminaciones
+requieren confirmación desde la interfaz.
+
+### 12.14. EDICIONES de torneos archivados
 
 | Operación | Torneo ACTIVO | Torneo ARCHIVADO |
 |---|---|---|
@@ -958,11 +1215,276 @@ aplicación.
 | Reabrir | Sí | No |
 | Eliminar sin dependencias | Sí | Sí |
 
-Archivar el torneo no finaliza automáticamente sus
-ediciones. Para iniciar o reabrir una edición, reactivar
-primero el torneo. Las futuras categorías no están
-implementadas en esta versión; su relación deberá
-proteger a la edición frente a eliminaciones incompatibles.
+Archivar el torneo no finaliza
+automáticamente sus ediciones.
+
+Para iniciar o reabrir una edición,
+reactivar previamente el torneo,
+cuando corresponda.
+
+### 12.15. Dependencias de categorías
+
+Desde v0.4.0, una edición con categorías
+asociadas no puede eliminarse.
+
+La protección se aplica a ediciones:
+
+- PLANIFICADAS.
+- EN_CURSO.
+- FINALIZADAS.
+
+No depende del estado administrativo
+de las categorías asociadas.
+
+Una categoría archivada continúa
+constituyendo una dependencia.
+
+La API responde HTTP 409 ante
+una eliminación incompatible.
+
+Esta protección fue verificada
+contra MySQL y desde la interfaz.
+
+### 12.16. Administración de CATEGORÍAS
+
+Desde TORNEOS:
+
+```text
+TORNEOS
+    ↓
+GESTIONAR EDICIONES
+    ↓
+GESTIONAR CATEGORÍAS
+```
+
+Cada tarjeta de edición incorpora:
+
+- Indicador CATEGORÍAS.
+- Indicador ACTIVAS.
+- Botón GESTIONAR CATEGORÍAS.
+
+La pantalla de categorías identifica
+el torneo y la edición correspondientes.
+
+No existe una opción independiente
+en el menú lateral.
+
+### 12.17. Creación de categorías
+
+Seleccionar NUEVA CATEGORÍA.
+
+Completar:
+
+| Campo | Condición |
+|---|---|
+| Nombre | Obligatorio, hasta 100 caracteres |
+| Descripción | Opcional, hasta 500 caracteres |
+
+Guardar los datos.
+
+Toda categoría nueva se registra
+con estado ACTIVA.
+
+No existen categorías predeterminadas.
+
+Ejemplos de nombres configurables:
+
+- LIBRE.
+- SENIOR.
+- FEMENINO.
+
+Los nombres no determinan automáticamente
+las reglas de edad ni el formato deportivo.
+
+La creación requiere:
+
+- Torneo ACTIVO.
+- Edición PLANIFICADA o EN_CURSO.
+
+### 12.18. Unicidad de categorías
+
+Una categoría debe tener un nombre
+único dentro de su edición.
+
+Se permiten nombres iguales en
+ediciones diferentes.
+
+Ejemplo:
+
+| Edición | Categoría | Resultado |
+|---|---|---|
+| NOCTURNO 2027 | LIBRE | Permitido |
+| NOCTURNO 2027 | SENIOR | Permitido |
+| NOCTURNO 2028 | LIBRE | Permitido |
+| NOCTURNO 2027 | libre | Duplicado |
+
+La unicidad no distingue mayúsculas
+ni acentos según la intercalación
+establecida en MySQL.
+
+Una categoría archivada conserva
+la reserva de su nombre.
+
+### 12.19. Edición de categorías
+
+Seleccionar EDITAR.
+
+Modificar:
+
+- Nombre.
+- Descripción.
+
+Guardar los cambios.
+
+La categoría conserva:
+
+- Identificador.
+- Edición asociada.
+- Estado administrativo.
+
+No se permite trasladar una categoría
+a otra edición mediante su modificación.
+
+### 12.20. Archivado de categorías
+
+Seleccionar ARCHIVAR.
+
+Confirmar la operación.
+
+La categoría pasará a ARCHIVADA.
+
+Se conservan su identidad, nombre,
+descripción y relación con la edición.
+
+El archivado está permitido incluso
+si el torneo se encuentra archivado
+o la edición finalizada.
+
+### 12.21. Reactivación de categorías
+
+Seleccionar REACTIVAR.
+
+Confirmar la operación.
+
+La categoría recuperará el estado ACTIVA.
+
+La reactivación requiere:
+
+- Torneo ACTIVO.
+- Edición PLANIFICADA o EN_CURSO.
+
+Si alguna condición no se cumple,
+la operación estará bloqueada.
+
+### 12.22. Eliminación de categorías
+
+Seleccionar ELIMINAR.
+
+Verificar el nombre de la categoría
+y su contexto deportivo.
+
+Confirmar la operación.
+
+La eliminación definitiva:
+
+- Retira físicamente el registro de MySQL.
+- Libera el nombre dentro de la edición.
+- Actualiza los indicadores correspondientes.
+- No elimina categorías de otras ediciones.
+- No puede revertirse desde la aplicación.
+
+La operación está disponible para
+categorías activas y archivadas,
+siempre que no existan dependencias
+que impidan su eliminación.
+
+Las entidades deportivas dependientes
+de categorías se incorporarán posteriormente.
+
+### 12.23. Restricciones administrativas de categorías
+
+| Operación | Torneo activo y edición habilitada | Torneo archivado o edición finalizada |
+|---|---|---|
+| Consultar | Sí | Sí |
+| Buscar y filtrar | Sí | Sí |
+| Crear | Sí | No |
+| Editar | Sí | Sí |
+| Archivar | Sí | Sí |
+| Reactivar | Sí | No |
+| Eliminar sin dependencias | Sí | Sí |
+
+Una edición habilitada corresponde
+a PLANIFICADA o EN_CURSO.
+
+La pantalla permanece disponible
+en contextos restringidos.
+
+Las restricciones afectan determinadas
+operaciones, no el acceso completo
+a la información.
+
+### 12.24. Independencia de estados
+
+Archivar un torneo no archiva
+automáticamente sus categorías.
+
+Finalizar una edición no archiva
+automáticamente sus categorías.
+
+Reactivar un torneo o reabrir una edición
+no reactiva categorías archivadas.
+
+Cada nivel conserva su propio estado.
+
+### 12.25. Búsqueda e indicadores de categorías
+
+La pantalla permite buscar
+por nombre y descripción.
+
+Filtros:
+
+- Todas.
+- Activas.
+- Archivadas.
+
+Indicadores:
+
+- Total.
+- Activas.
+- Archivadas.
+
+Los indicadores representan
+el conjunto completo de categorías,
+independientemente de los filtros.
+
+Al regresar a EDICIONES se actualizan
+los indicadores correspondientes
+a cada tarjeta.
+
+### 12.26. Orden de eliminación
+
+Para retirar un contexto temporal completo:
+
+```text
+CATEGORÍAS
+    ↓
+EDICIONES
+    ↓
+TORNEO
+```
+
+Primero deberán eliminarse
+las categorías temporales.
+
+Después podrán eliminarse
+las ediciones vacías.
+
+Finalmente podrá eliminarse
+el torneo sin ediciones.
+
+Este procedimiento no autoriza
+la eliminación de información
+deportiva real o histórica.
 
 ---
 
@@ -979,8 +1501,8 @@ proteger a la edición frente a eliminaciones incompatibles.
 | PATCH | /api/torneos/:id/estado | Cambio de estado |
 | DELETE | /api/torneos/:id | Eliminación definitiva |
 
-Todos los endpoints requieren
-autenticación.
+Todos los endpoints deportivos
+requieren autenticación.
 
 ### 13.2. Códigos HTTP
 
@@ -991,8 +1513,8 @@ autenticación.
 | 400 | Solicitud inválida |
 | 401 | Sesión no válida |
 | 403 | Operación no permitida |
-| 404 | Registro inexistente |
-| 409 | Conflicto de datos o dependencias |
+| 404 | Registro inexistente o fuera de contexto |
+| 409 | Conflicto de datos, restricciones o dependencias |
 | 500 | Error interno |
 | 503 | Servicio no disponible |
 
@@ -1003,15 +1525,15 @@ autenticación.
 | Identificador inválido | Revisar la solicitud |
 | Sesión expirada | Iniciar sesión nuevamente |
 | Origen rechazado | Revisar configuración |
-| Torneo inexistente | Actualizar el listado |
-| Dependencias | Conservar o archivar el torneo |
+| Registro inexistente | Actualizar el listado |
+| Dependencias | Conservar o archivar cuando corresponda |
 | Error interno | Revisar registros del backend |
 
 No deberán deshabilitarse los controles
 de autenticación, origen o integridad
 para evitar estos errores.
 
-### 13.4. Respuesta de eliminación
+### 13.4. Respuesta de eliminación de torneos
 
 ```json
 {
@@ -1021,54 +1543,199 @@ para evitar estos errores.
 
 La interfaz solamente deberá interpretar
 la eliminación como exitosa después
-de recibir una respuesta satisfactoria
-del servidor.
-
+de recibir una respuesta satisfactoria.
 
 ### 13.5. Endpoints de EDICIONES
 
-| Método | Endpoint | Operación |
+Ruta base:
+
+`/api/torneos/:torneoId/ediciones`
+
+| Método | Ruta relativa | Operación |
 |---|---|---|
-| GET | `/api/torneos/:torneoId/ediciones` | Listado e indicadores |
-| GET | `/api/torneos/:torneoId/ediciones/:edicionId` | Consulta individual |
-| POST | `/api/torneos/:torneoId/ediciones` | Creación |
-| PUT | `/api/torneos/:torneoId/ediciones/:edicionId` | Edición de datos |
-| PATCH | `/api/torneos/:torneoId/ediciones/:edicionId/estado` | Cambio de estado |
-| DELETE | `/api/torneos/:torneoId/ediciones/:edicionId` | Eliminación |
+| GET | / | Listado e indicadores |
+| GET | /:edicionId | Consulta individual |
+| POST | / | Creación |
+| PUT | /:edicionId | Edición de datos |
+| PATCH | /:edicionId/estado | Cambio de estado |
+| DELETE | /:edicionId | Eliminación |
 
-Todos requieren autenticación. Las escrituras respetan
-los controles de origen. El listado admite `busqueda` y
-`estado`; los indicadores representan el conjunto del
-torneo, aunque se filtre el listado.
+El listado admite los filtros
+`busqueda` y `estado`.
 
-El estado no debe enviarse en el cuerpo de creación o
-edición de datos. Usar PATCH de estado para transiciones.
-El PUT admite actualización parcial en el contrato actual.
-Una edición de otro torneo no puede consultarse ni
-modificarse mediante un identificador de torneo ajeno.
+El estado no debe enviarse
+en el cuerpo de creación
+o edición de datos.
+
+Utilizar PATCH de estado
+para las transiciones.
 
 ### 13.6. Diagnóstico de EDICIONES
 
 | Código | Situación posible | Acción |
 |---|---|---|
-| 400 | Datos, identificadores, fechas o estado inválidos | Revisar campos y estado |
+| 400 | Datos, identificadores o fechas inválidos | Revisar campos |
 | 401 | Sesión inválida | Autenticarse |
 | 403 | Origen no permitido | Revisar configuración |
-| 404 | Torneo/edición inexistente o fuera de contexto | Actualizar y revisar ruta |
-| 409 | Duplicado, dependencia, transición no permitida, restricción por archivo o conflicto concurrente | Revisar estado y datos antes de reintentar |
-| 500 | Error inesperado | Revisar registros del backend sin exponer información sensible |
+| 404 | Contexto inexistente o incorrecto | Revisar ruta |
+| 409 | Duplicado, dependencia o transición incompatible | Revisar datos y estado |
+| 500 | Error inesperado | Revisar backend |
 
-El servicio utiliza transacciones y bloqueo del torneo
-para las escrituras de EDICIONES. Ante un conflicto
-concurrente, actualizar los datos antes de reintentar.
+El servicio utiliza transacciones
+y bloqueo del torneo para las escrituras.
 
-Respuesta de eliminación exitosa (HTTP 200):
+Ante un conflicto concurrente,
+actualizar los datos antes de reintentar.
+
+Respuesta de eliminación:
 
 ```json
 {
     "mensaje": "Edición eliminada correctamente."
 }
 ```
+
+### 13.7. Endpoints de CATEGORÍAS
+
+Ruta base:
+
+`/api/torneos/:torneoId/ediciones/:edicionId/categorias`
+
+| Método | Ruta relativa | Operación |
+|---|---|---|
+| GET | / | Listado e indicadores |
+| GET | /:categoriaId | Consulta individual |
+| POST | / | Creación |
+| PUT | /:categoriaId | Actualización |
+| PATCH | /:categoriaId/estado | Cambio de estado |
+| DELETE | /:categoriaId | Eliminación |
+
+Los seis endpoints requieren autenticación.
+
+Las escrituras respetan los controles
+de origen del servidor.
+
+El listado admite:
+
+- busqueda.
+- estado.
+
+### 13.8. Contrato de creación y edición
+
+Ejemplo de creación:
+
+```json
+{
+    "nombre": "LIBRE",
+    "descripcion": "Categoría libre"
+}
+```
+
+El estado inicial será ACTIVA.
+
+La actualización admite únicamente:
+
+- nombre.
+- descripcion.
+
+Ejemplo de actualización parcial:
+
+```json
+{
+    "descripcion": "Nueva descripción"
+}
+```
+
+La edición asociada no puede modificarse.
+
+### 13.9. Cambio de estado
+
+Ejemplo:
+
+```json
+{
+    "estado": "ARCHIVADA"
+}
+```
+
+Valores admitidos:
+
+- ACTIVA.
+- ARCHIVADA.
+
+Repetir el estado vigente
+no requiere una nueva escritura.
+
+### 13.10. Respuesta de listado
+
+Ejemplo ilustrativo:
+
+```json
+{
+    "torneo": {
+        "id": 1,
+        "nombre": "NOCTURNO",
+        "estado": "ACTIVO"
+    },
+    "edicion": {
+        "id": 1,
+        "torneo_id": 1,
+        "nombre": "NOCTURNO 2027",
+        "estado": "PLANIFICADA"
+    },
+    "categorias": [],
+    "total": 0,
+    "indicadores": {
+        "total": 0,
+        "activas": 0,
+        "archivadas": 0
+    }
+}
+```
+
+El total del listado representa
+la cantidad de resultados obtenidos.
+
+Los indicadores representan
+todas las categorías de la edición.
+
+### 13.11. Diagnóstico de CATEGORÍAS
+
+| Código | Situación | Acción recomendada |
+|---|---|---|
+| 400 | Datos o identificadores inválidos | Revisar solicitud |
+| 401 | Sesión no válida | Iniciar sesión |
+| 403 | Origen rechazado | Revisar FRONTEND_URL |
+| 404 | Torneo, edición o categoría fuera de contexto | Revisar identificadores |
+| 409 | Nombre duplicado | Revisar categorías activas y archivadas |
+| 409 | Creación o reactivación restringida | Revisar estado del torneo y edición |
+| 409 | Dependencias incompatibles | Conservar el registro |
+| 409 | Conflicto transaccional | Actualizar información y reintentar |
+| 500 | Error inesperado | Revisar registros del backend |
+
+Las escrituras utilizan transacciones
+y bloqueo jerárquico del torneo
+y de la edición.
+
+Respuesta de eliminación exitosa:
+
+```json
+{
+    "mensaje": "Categoría eliminada correctamente."
+}
+```
+
+### 13.12. Aislamiento del contexto
+
+Los identificadores de la ruta
+deben pertenecer al contexto indicado.
+
+Una categoría de otra edición
+no podrá consultarse, modificarse
+ni eliminarse utilizando una ruta ajena.
+
+No se deberá sustituir este control
+por una búsqueda global del identificador.
 
 ---
 
@@ -1087,19 +1754,22 @@ El comando utiliza Node.js Test Runner.
 Las pruebas de integración permanecen
 deshabilitadas de forma predeterminada.
 
-### 14.2. Resultado esperado en v0.3.0
+### 14.2. Resultado esperado en v0.4.0
 
 ```text
-tests 105
-pass 102
+tests 217
+pass 213
 fail 0
-skipped 3
+cancelled 0
+skipped 4
+todo 0
 ```
 
-El resultado anterior es el esperado si se ejecuta `npm test`
-sin habilitar integraciones. Las 105 pruebas fueron
-verificadas mediante ejecuciones separadas, no mediante
-una única ejecución de este comando.
+Las cuatro integraciones requieren
+habilitación explícita.
+
+El resultado acumulado de 217/217
+se obtuvo mediante ejecuciones separadas.
 
 ### 14.3. Distribución
 
@@ -1108,23 +1778,23 @@ una única ejecución de este comando.
 | Unitarias de autenticación | 13 |
 | Unitarias de torneos | 30 |
 | Unitarias de ediciones | 59 |
-| Total de pruebas unitarias | 102 |
-| Integraciones opcionales | 3 |
-| Total general | 105 |
+| Unitarias de categorías | 111 |
+| Total de pruebas unitarias | 213 |
+| Integraciones opcionales | 4 |
+| Total general | 217 |
 
 ### 14.4. Pruebas de eliminación
 
-La ampliación de HU-004 incorporó
-seis pruebas unitarias adicionales.
+Las pruebas de operaciones destructivas
+deberán comprobar:
 
-Estas contemplan:
-
-- Eliminación de torneo activo.
-- Eliminación de torneo archivado.
-- Identificador inválido.
-- Registro inexistente.
-- Restricción de dependencia.
-- Error inesperado de persistencia.
+- Identificadores inválidos.
+- Registros inexistentes.
+- Eliminación de registros autorizados.
+- Restricciones administrativas.
+- Dependencias.
+- Independencia entre contextos.
+- Errores inesperados de persistencia.
 
 ### 14.5. Interpretación
 
@@ -1132,12 +1802,13 @@ Las pruebas omitidas no constituyen
 fallos cuando corresponden a integraciones
 deshabilitadas intencionalmente.
 
-Un resultado satisfactorio de pruebas
-unitarias no reemplaza las pruebas
-contra MySQL real.
+No deberán contabilizarse como aprobadas
+si no fueron ejecutadas por separado.
 
+Las pruebas unitarias no reemplazan
+las integraciones contra MySQL real.
 
-### 14.6. Pruebas unitarias específicas de EDICIONES
+### 14.6. Pruebas unitarias de EDICIONES
 
 Desde backend:
 
@@ -1145,8 +1816,9 @@ Desde backend:
 node --test tests/edicion.service.test.js
 ```
 
-Resultado registrado: 59 pruebas aprobadas, cero fallidas,
-canceladas u omitidas, duración 445,5618 ms.
+Resultado registrado:
+
+59 pruebas aprobadas.
 
 Regresión de servicios anteriores:
 
@@ -1154,8 +1826,52 @@ Regresión de servicios anteriores:
 node --test tests/auth.service.test.js tests/torneo.service.test.js
 ```
 
-Resultado registrado: 43/43, duración 302,3158 ms.
-Los resultados combinados representan 102 pruebas unitarias.
+Resultado registrado:
+
+43 pruebas aprobadas.
+
+### 14.7. Pruebas unitarias de CATEGORÍAS
+
+Desde backend:
+
+```powershell
+node --test tests/categoria.service.test.js
+```
+
+Resultado registrado:
+
+```text
+tests 111
+pass 111
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 151.5432
+```
+
+Las pruebas utilizan un repositorio simulado.
+
+No requieren realizar escrituras
+sobre la base de datos principal.
+
+### 14.8. Regresión general
+
+Desde backend:
+
+```powershell
+npm test
+```
+
+Resultado esperado:
+
+- 213 pruebas unitarias aprobadas.
+- 4 integraciones omitidas.
+- 0 pruebas fallidas.
+
+Las integraciones deberán ejecutarse
+mediante los procedimientos específicos
+de las secciones siguientes.
 
 ---
 
@@ -1201,9 +1917,12 @@ fail 0
 skipped 0
 ```
 
-Este comando ejecuta únicamente la integración de
-autenticación. Resultado registrado en HU-005: 1/1,
-duración total 503,2238 ms.
+Resultados históricos:
+
+| Versión | Resultado | Duración |
+|---|---|---:|
+| 0.3.0 | 1/1 | 503,2238 ms |
+| 0.4.0 | 1/1 | 522,3231 ms |
 
 ### 15.4. Consideraciones
 
@@ -1230,15 +1949,22 @@ modifiquen competiciones reales.
 | Propiedad | Valor |
 |---|---|
 | Base principal | alto_sistema |
-| Base de pruebas de integración | altosistemahu004test |
-| Base de instalación desde cero | altosistemahu005fresh |
+| Base de integración | altosistemahu004test |
+| Base histórica de instalación limpia | altosistemahu005fresh |
 | Puerto principal | 3000 |
 | Puerto de pruebas | 3001 |
 | Administrador de pruebas | admin_pruebas |
 
+La denominación histórica de la base
+de integración se conserva para
+mantener compatibilidad con las pruebas.
+
+No implica que solamente pueda utilizarse
+para HU-004.
+
 ### 16.3. Preparación de una instalación nueva
 
-Mediante una cuenta autorizada de MySQL:
+Mediante una cuenta autorizada:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS altosistemahu004test
@@ -1248,12 +1974,15 @@ COLLATE utf8mb4_unicode_ci;
 
 La cuenta utilizada por el backend
 de pruebas deberá disponer de los
-permisos necesarios exclusivamente
-sobre las bases autorizadas.
+permisos correspondientes.
+
+No deberán ampliarse privilegios
+globales innecesariamente.
 
 ### 16.4. Migraciones de pruebas
 
-Desde backend:
+Desde la cuarta terminal,
+ubicada en backend:
 
 ```powershell
 $anteriorDB = $env:DB_NAME
@@ -1261,29 +1990,46 @@ $anteriorDB = $env:DB_NAME
 try {
     $env:DB_NAME = "altosistemahu004test"
 
+    node -e "const { pool } = require('./src/config/database'); (async () => { try { const [rows] = await pool.query('SELECT DATABASE() AS db'); console.log('Base seleccionada:', rows[0].db); if (rows[0].db !== 'altosistemahu004test') process.exitCode = 1; } finally { await pool.end(); } })().catch(error => { console.error(error.message); process.exitCode = 1; });"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo verificar la base de pruebas."
+    }
+
     npm run migrate
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Falló la migración de pruebas."
+    }
 } finally {
     $env:DB_NAME = $anteriorDB
 }
 ```
 
-Verificar que el migrador indique
-la base de pruebas.
+Verificar que el migrador indique:
+
+```text
+Base de datos: altosistemahu004test
+```
+
+En v0.4.0 deberán encontrarse aplicadas
+las migraciones 001 a 004.
 
 ### 16.5. Administrador de pruebas
 
 La cuenta admin_pruebas deberá
-crearse dentro de la base aislada
-mediante el procedimiento de creación
-de administradores.
+crearse dentro de la base aislada.
 
-Durante su creación deberá configurarse
+Durante su creación deberán configurarse
 temporalmente:
 
 ```text
 DB_NAME=altosistemahu004test
 ADMIN_USER=admin_pruebas
 ```
+
+Utilizar el procedimiento de creación
+de administradores de la sección 8.
 
 La contraseña deberá ser exclusiva
 del entorno de pruebas.
@@ -1293,74 +2039,150 @@ del administrador principal.
 
 ### 16.6. Restricciones
 
-Nunca ejecutar las integraciones de torneos o ediciones
-contra la base alto_sistema.
+Nunca ejecutar las integraciones de:
+
+- TORNEOS.
+- EDICIONES.
+- CATEGORÍAS.
+
+Contra la base principal `alto_sistema`.
 
 No modificar el archivo .env principal
 para habilitar estas pruebas.
 
-No utilizar nombres de competiciones
-reales como registros temporales.
+Los registros temporales deberán
+identificarse de forma inequívoca.
 
+### 16.7. Instalación limpia histórica de HU-005
 
-### 16.7. Instalación desde cero e idempotencia
+La base `altosistemahu005fresh`
+fue utilizada para comprobar
+las migraciones 001 a 003.
 
-La base `altosistemahu005fresh` fue creada durante HU-005
-para comprobar las tres migraciones sin datos previos.
-No es la base de integración HTTP ni la base principal.
+Resultado registrado:
 
-Para preparar una base nueva equivalente, con una cuenta
-MySQL autorizada, comprobar primero que no exista:
+| Ejecución | Registradas inicialmente | Pendientes |
+|---|---:|---:|
+| Primera | 0 | 3 |
+| Segunda | 3 | 0 |
+
+Las tres migraciones se aplicaron
+correctamente.
+
+La base se conserva para futuras
+verificaciones.
+
+No deberá confundirse con el entorno
+de integración HTTP.
+
+### 16.8. Instalación limpia de v0.4.0
+
+Para verificar las cuatro migraciones
+sin estructuras ni registros previos,
+se propone una nueva base aislada:
+
+`altosistemahu006fresh`
+
+Antes de crearla, comprobar:
 
 ```sql
-SHOW DATABASES LIKE 'altosistemahu005fresh';
+SHOW DATABASES LIKE 'altosistemahu006fresh';
 ```
 
-Si no existe, crearla:
+Si no existe, crearla mediante
+una cuenta autorizada:
 
 ```sql
-CREATE DATABASE altosistemahu005fresh
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE altosistemahu006fresh
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 ```
 
-Conceder permisos a la cuenta de aplicación autorizada
-sobre esa base, sin ampliar privilegios globales.
-Si MySQL Client no está en PATH, utilizar la ruta completa
-indicada en la sección 5.2. No introducir la contraseña en
-la línea de comandos.
+Conceder a la cuenta de aplicación
+los permisos necesarios sobre
+esta base específica.
 
-Desde la cuarta terminal, en backend:
+No utilizar una base existente
+sin verificar previamente su contenido.
+
+### 16.9. Ejecución e idempotencia de v0.4.0
+
+Una vez preparada la nueva base,
+desde la cuarta terminal,
+ubicada en backend:
 
 ```powershell
 $anteriorDB = $env:DB_NAME
+
 try {
-    $env:DB_NAME = "altosistemahu005fresh"
-    node -e "const { pool } = require('./src/config/database'); (async () => { try { const [rows] = await pool.query('SELECT DATABASE() AS db'); console.log(rows[0].db); if (rows[0].db !== 'altosistemahu005fresh') process.exitCode = 1; } finally { await pool.end(); } })().catch(error => { console.error(error.message); process.exitCode = 1; });"
-    if ($LASTEXITCODE -ne 0) { throw "Base de instalación incorrecta." }
+    $env:DB_NAME = "altosistemahu006fresh"
+
+    node -e "const { pool } = require('./src/config/database'); (async () => { try { const [rows] = await pool.query('SELECT DATABASE() AS db'); console.log('Base seleccionada:', rows[0].db); if (rows[0].db !== 'altosistemahu006fresh') process.exitCode = 1; } finally { await pool.end(); } })().catch(error => { console.error(error.message); process.exitCode = 1; });"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Base de instalación incorrecta."
+    }
+
     npm run migrate
-    if ($LASTEXITCODE -ne 0) { throw "Falló la migración." }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Falló la instalación limpia."
+    }
+
     npm run migrate
-    if ($LASTEXITCODE -ne 0) { throw "Falló la verificación de idempotencia." }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Falló la verificación de idempotencia."
+    }
 } finally {
     $env:DB_NAME = $anteriorDB
 }
 ```
 
-En HU-005 se verificó la primera ejecución con cero
-registradas y tres pendientes, seguida de las migraciones
-001, 002 y 003; la segunda registró tres y cero pendientes.
-No utilizar este procedimiento para borrar o reinicializar
-una base existente. Si ya existe la base de instalación,
-una nueva ejecución solamente verificará idempotencia,
-no una instalación desde cero.
+Resultado esperado de la primera ejecución:
 
-Se conservan `altosistemahu004test` y `altosistemahu005fresh`
-para futuras verificaciones. No se requiere eliminarlas
-al detener el servidor de pruebas.
+```text
+Registradas: 0
+Pendientes: 4
+```
+
+Deberán aplicarse las migraciones:
+
+- 001_usuarios.sql.
+- 002_torneos.sql.
+- 003_ediciones.sql.
+- 004_categorias.sql.
+
+Resultado esperado de la segunda ejecución:
+
+```text
+Registradas: 4
+Pendientes: 0
+```
+
+Estos resultados corresponden
+al procedimiento previsto.
+
+Su ejecución y confirmación permanecen
+pendientes del cierre técnico de HU-006.
+
+### 16.10. Conservación de bases aisladas
+
+No será necesario eliminar las bases
+de pruebas al detener el backend aislado.
+
+Las bases podrán conservarse para
+futuras verificaciones.
+
+La instalación desde cero deberá
+realizarse sobre una base realmente vacía.
+
+No deberá recurrirse a DROP DATABASE
+para repetir una prueba sin autorización.
 
 ---
 
-## 17. INTEGRACIÓN DE TORNEOS
+## 17. INTEGRACIONES DE MÓDULOS DEPORTIVOS
 
 ### 17.1. Inicio del backend aislado
 
@@ -1393,11 +2215,14 @@ Comprobar:
 - Puerto 3001.
 - Base altosistemahu004test.
 - Inicio correcto del servidor.
+- Conexión con MySQL.
+- Sesiones disponibles.
+- Módulos correspondientes habilitados.
 
 No continuar si la base o el puerto
 no corresponden al entorno de pruebas.
 
-### 17.2. Ejecución de la integración
+### 17.2. Integración de TORNEOS
 
 Desde la cuarta terminal,
 ubicada en backend:
@@ -1425,7 +2250,7 @@ try {
 }
 ```
 
-### 17.3. Resultado esperado
+### 17.3. Resultado esperado de TORNEOS
 
 ```text
 tests 1
@@ -1434,16 +2259,23 @@ fail 0
 skipped 0
 ```
 
-La prueba de integración comprende
-múltiples controles internos.
+Resultados históricos:
 
-Estos no deberán contabilizarse como
+| Versión | Resultado | Duración |
+|---|---|---:|
+| 0.2.0 | 1/1 | 1414,30 ms |
+| 0.3.0 | 1/1 | 1394,3234 ms |
+| 0.4.0 | 1/1 | 1277,2883 ms |
+
+La integración contempla 20 controles
+internos previstos.
+
+Estos no se contabilizan como
 pruebas automatizadas independientes.
 
-### 17.4. Alcance
+### 17.4. Alcance de TORNEOS
 
-La integración contempla operaciones
-reales contra MySQL:
+La integración contempla:
 
 - Autenticación.
 - Protección de endpoints.
@@ -1457,45 +2289,55 @@ reales contra MySQL:
 - Reactivación.
 - Persistencia.
 - Eliminación definitiva.
-- Independencia entre torneos.
+- Independencia de registros.
 - Reutilización de nombres.
 - Cierre de sesión.
 - Limpieza de registros temporales.
 
-### 17.5. Finalización
+### 17.5. Finalización del backend aislado
 
-Detener el backend aislado mediante:
+Cuando finalicen todas las integraciones
+deportivas, detener la tercera terminal:
 
 ```text
 Ctrl + C
 ```
 
 Mantener operativo el backend principal
-cuando se continúe trabajando
+si se continúa trabajando
 desde la interfaz administrativa.
 
+No detener MySQL.
 
 ### 17.6. Integración de EDICIONES
 
-Reutilizar la base `altosistemahu004test` y el backend
-aislado del puerto 3001. Antes de iniciar, ejecutar las
-migraciones de esa base según 16.4 y verificar que 003 esté
-aplicada. Iniciar la tercera terminal según 17.1; no
-continuar si la base o el puerto no corresponden.
+Reutilizar:
 
-Desde la cuarta terminal, ubicada en backend:
+- Base altosistemahu004test.
+- Backend aislado del puerto 3001.
+- Administrador de pruebas.
+
+Verificar que las migraciones
+correspondientes estén aplicadas.
+
+Desde la cuarta terminal,
+ubicada en backend:
 
 ```powershell
 $anteriorDB = $env:DB_NAME
+
 $clave = Read-Host "Contraseña del administrador de pruebas" -AsSecureString
+
 try {
     $env:DB_NAME = "altosistemahu004test"
     $env:ALTO_EDICION_INTEGRATION_TEST = "1"
     $env:ALTO_TEST_USER = "admin_pruebas"
     $env:ALTO_TEST_PASSWORD = [System.Net.NetworkCredential]::new("", $clave).Password
+
     node --test tests/edicion.integration.test.js
 } finally {
     $env:DB_NAME = $anteriorDB
+
     Remove-Item Env:ALTO_EDICION_INTEGRATION_TEST -ErrorAction SilentlyContinue
     Remove-Item Env:ALTO_TEST_USER -ErrorAction SilentlyContinue
     Remove-Item Env:ALTO_TEST_PASSWORD -ErrorAction SilentlyContinue
@@ -1503,35 +2345,202 @@ try {
 }
 ```
 
-Resultado registrado durante HU-005:
+Resultados históricos:
+
+| Versión | Resultado | Duración |
+|---|---|---:|
+| 0.3.0 | 1/1 | 1860,0626 ms |
+| 0.4.0 | 1/1 | 1891,3573 ms |
+
+La integración contempla 14 bloques
+internos de verificación previstos.
+
+El resultado global fue satisfactorio.
+
+Los bloques internos no constituyen
+14 pruebas independientes.
+
+### 17.7. Integración de CATEGORÍAS
+
+Requisitos:
+
+- MySQL operativo.
+- Base altosistemahu004test.
+- Migraciones 001 a 004 aplicadas.
+- Backend aislado en puerto 3001.
+- Administrador de pruebas habilitado.
+
+Desde la cuarta terminal,
+ubicada en backend:
+
+```powershell
+$anteriorDB = $env:DB_NAME
+
+$clave = Read-Host "Contraseña del administrador de pruebas" -AsSecureString
+
+try {
+    $env:DB_NAME = "altosistemahu004test"
+    $env:ALTO_CATEGORIA_INTEGRATION_TEST = "1"
+    $env:ALTO_TEST_USER = "admin_pruebas"
+    $env:ALTO_TEST_PASSWORD = [System.Net.NetworkCredential]::new("", $clave).Password
+
+    node --test tests/categoria.integration.test.js
+} finally {
+    $env:DB_NAME = $anteriorDB
+
+    Remove-Item Env:ALTO_CATEGORIA_INTEGRATION_TEST -ErrorAction SilentlyContinue
+    Remove-Item Env:ALTO_TEST_USER -ErrorAction SilentlyContinue
+    Remove-Item Env:ALTO_TEST_PASSWORD -ErrorAction SilentlyContinue
+    Remove-Variable clave -ErrorAction SilentlyContinue
+}
+```
+
+### 17.8. Resultado confirmado de CATEGORÍAS
 
 ```text
+LIMPIEZA — Registros ficticios eliminados correctamente.
 tests 1
+suites 0
 pass 1
 fail 0
 cancelled 0
 skipped 0
 todo 0
+duration_ms 2723.073
 ```
 
-Duración total: 1860,0626 ms. El archivo contiene 14 bloques
-internos de diagnóstico: base aislada y sesión, torneos
-temporales, autenticación y origen, creación, validaciones
-y concurrencia, listado e indicadores, aislamiento, edición,
-transiciones, archivado, persistencia, restricciones SQL,
-eliminación y limpieza. Se registró el resultado global
-aprobado; no se conservaron en el intercambio las 14 líneas
-de diagnóstico individuales. No se contabilizan como 14
-pruebas independientes.
+Resultado global:
 
-La integración de TORNEOS también fue repetida: 1/1,
-duración 1394,3234 ms. Ejecutar las pruebas deportivas en
-forma separada para mantener el aislamiento y el control
-sobre los registros temporales.
+- Una prueba integral aprobada.
+- 28 controles internos superados.
+- Cero pruebas fallidas.
+- Limpieza satisfactoria.
 
-Al finalizar, detener únicamente el backend aislado con
-Ctrl + C si ya no se necesita. Conservar las bases de
-pruebas; no modificar el archivo .env principal.
+### 17.9. Alcance de CATEGORÍAS
+
+| N.º | Control |
+|---:|---|
+| 01 | Base de datos aislada |
+| 02 | Servidor operativo |
+| 03 | Protección sin autenticación |
+| 04 | Autenticación y aislamiento |
+| 05 | Contextos ficticios |
+| 06 | Ediciones inicialmente vacías |
+| 07 | Control de origen |
+| 08 | Validaciones de creación |
+| 09 | Creación y normalización |
+| 10 | Unicidad |
+| 11 | Independencia entre contextos |
+| 12 | Consulta individual |
+| 13 | Identificadores inválidos |
+| 14 | Aislamiento de operaciones |
+| 15 | Edición parcial |
+| 16 | Archivado y reactivación |
+| 17 | Filtros y búsqueda |
+| 18 | Estados inválidos |
+| 19 | Edición en curso |
+| 20 | Edición finalizada |
+| 21 | Reapertura |
+| 22 | Torneo archivado |
+| 23 | Reactivación del torneo |
+| 24 | Integridad referencial |
+| 25 | Persistencia |
+| 26 | Eliminación definitiva |
+| 27 | Eliminación de contextos vacíos |
+| 28 | Cierre de sesión |
+
+Los controles se ejecutan dentro
+de una única prueba integral.
+
+### 17.10. Limpieza automática
+
+La integración de categorías utiliza
+registros ficticios identificados
+mediante UUID.
+
+La limpieza respeta el orden:
+
+```text
+CATEGORÍAS → EDICIONES → TORNEOS
+```
+
+Las restricciones referenciales
+permanecen habilitadas.
+
+La limpieza fue satisfactoria tanto
+durante la primera ejecución fallida
+como durante la ejecución aprobada.
+
+### 17.11. Incidente de búsqueda detectado en HU-006
+
+La primera integración superó
+los controles 01 a 16.
+
+Durante el control 17 se detectó:
+
+```text
+Descripción: Competición amateur
+Búsqueda: competicion
+
+Resultado esperado: 1
+Resultado obtenido: 0
+```
+
+Se comprobó que el archivo de pruebas
+estaba correctamente codificado en UTF-8.
+
+La causa se localizó en el mecanismo
+de búsqueda SQL basado en LOCATE.
+
+Se corrigió el repositorio de categorías
+mediante LIKE e intercalación explícita
+utf8mb4_unicode_ci.
+
+También se incorporó el escape de
+caracteres especiales de búsqueda.
+
+Después de reiniciar el backend aislado,
+la prueba original fue aprobada.
+
+No se modificaron los criterios
+de aceptación ni la migración 004.
+
+### 17.12. Procedimiento ante una integración fallida
+
+1. Conservar el mensaje de error.
+2. Identificar la prueba y línea afectada.
+3. Confirmar la base de datos seleccionada.
+4. Verificar el estado de los registros temporales.
+5. Identificar la capa responsable.
+6. Corregir la causa del problema.
+7. Reiniciar el backend si corresponde.
+8. Ejecutar nuevamente la prueba original.
+9. Verificar la limpieza.
+10. Ejecutar las regresiones necesarias.
+
+No deberán alterarse las pruebas
+para ocultar un error de implementación.
+
+### 17.13. Regresión de v0.4.0
+
+| Grupo | Resultado |
+|---|---:|
+| Unitarias de autenticación | 13/13 |
+| Unitarias de torneos | 30/30 |
+| Unitarias de ediciones | 59/59 |
+| Unitarias de categorías | 111/111 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Integración de ediciones | 1/1 |
+| Integración de categorías | 1/1 |
+| Total acumulado | 217/217 |
+
+Las integraciones se ejecutaron
+de manera separada.
+
+No deberán habilitarse todas las
+integraciones deportivas simultáneamente
+sin verificar su aislamiento.
 
 ---
 
@@ -1551,6 +2560,8 @@ Resultado esperado:
 - Sin advertencias.
 
 ### 18.2. Compilación
+
+Desde frontend:
 
 ```powershell
 npm run build
@@ -1598,9 +2609,14 @@ Las acciones destructivas deberán
 utilizar la variante semántica
 correspondiente.
 
-Las acciones administrativas y el acceso a EDICIONES
-de una tarjeta de torneo deberán mantenerse accesibles
-y correctamente distribuidos en pantallas pequeñas.
+Las tarjetas y los accesos a módulos
+dependientes deberán mantenerse
+correctamente distribuidos en
+pantallas pequeñas.
+
+La identidad institucional no deberá
+modificarse al incorporar nuevos
+módulos deportivos.
 
 ### 18.6. Limitaciones
 
@@ -1612,20 +2628,90 @@ Una compilación exitosa tampoco
 garantiza por sí sola la ausencia
 de errores funcionales.
 
+### 18.7. Verificación histórica de v0.3.0
 
-### 18.7. Verificación de v0.3.0
+El análisis estático del frontend
+fue informado sin errores.
 
-El análisis estático de frontend fue informado sin errores.
-La compilación de producción fue exitosa en 2,52 segundos.
-La simulación responsive de EDICIONES se realizó a 390 × 844
-píxeles mediante herramientas del navegador y fue confirmada
-por el administrador. No equivale a una prueba en un equipo
-móvil físico ni a una auditoría de accesibilidad.
+La compilación de producción
+fue satisfactoria.
 
-Verificar en EDICIONES los indicadores, filtros, formulario,
-fechas opcionales, tarjetas y acciones por estado. Comprobar
-la advertencia y las restricciones de un torneo archivado.
-No confundir un indicador no disponible con cero registros.
+Durante la implementación se registró
+una compilación de 2,52 segundos.
+
+La validación responsive de EDICIONES
+fue confirmada mediante simulación.
+
+HU-005 se encuentra consolidada.
+
+### 18.8. Verificación de CATEGORÍAS
+
+Comprobar:
+
+- Acceso desde EDICIONES.
+- Identificación del contexto.
+- Indicadores de total, activas y archivadas.
+- Búsqueda.
+- Filtros.
+- Formulario.
+- Contadores de caracteres.
+- Archivado.
+- Reactivación.
+- Eliminación.
+- Advertencias de restricciones.
+- Actualización de indicadores externos.
+
+Los controles funcionales de HU-006
+fueron revisados durante el desarrollo.
+
+### 18.9. Simulación móvil
+
+Desde el navegador:
+
+1. Abrir las herramientas de desarrollo con F12.
+2. Activar la emulación con Ctrl + Shift + M.
+3. Seleccionar una resolución de referencia.
+4. Revisar la distribución de los componentes.
+5. Comprobar las acciones administrativas.
+6. Verificar que no existan desbordamientos incompatibles.
+
+Resolución de referencia utilizada:
+
+390 × 844 píxeles.
+
+La validación de HU-006 fue confirmada
+mediante emulación en el navegador.
+
+No se considera una verificación
+sobre un dispositivo físico.
+
+### 18.10. Capturas esenciales de v0.4.0
+
+| Archivo | Evidencia |
+|---|---|
+| 30-ediciones-categorias-v040.png | Indicadores externos |
+| 31-categorias-listado-v040.png | Listado y estados |
+| 32-categorias-formulario-v040.png | Formulario |
+| 33-movil-categorias-v040.png | Adaptación móvil |
+| 34-pruebas-v040.png | Regresión automatizada |
+
+Las cinco capturas fueron revisadas.
+
+Se verificará su presencia definitiva
+en el repositorio antes del commit.
+
+### 18.11. Verificación técnica pendiente
+
+Antes de finalizar HU-006:
+
+```powershell
+npm run lint
+npm run build
+```
+
+No se considerarán aprobados
+estos controles hasta obtener
+sus resultados correspondientes.
 
 ---
 
@@ -1660,12 +2746,11 @@ Ubicación local recomendada:
 ```
 
 Esta ubicación reduce el riesgo de
-incorporarlos accidentalmente al
-control de versiones.
+incorporarlos accidentalmente a Git.
 
-No constituye por sí sola una
-protección frente a fallas del disco
-o pérdida del equipo.
+No constituye por sí sola una protección
+frente a fallas del disco o pérdida
+del equipo.
 
 ### 19.4. Generación de respaldo
 
@@ -1709,8 +2794,12 @@ por mysqldump.
 
 El parámetro result-file permite
 generar directamente el archivo SQL
-sin depender de la codificación de
-la redirección de PowerShell.
+sin depender de la codificación
+de PowerShell.
+
+Durante la generación del respaldo
+deberán evitarse cambios estructurales
+concurrentes sobre la base.
 
 ### 19.5. Verificación del respaldo
 
@@ -1728,8 +2817,8 @@ Podrá registrarse un hash SHA-256:
 Get-FileHash -LiteralPath $archivo -Algorithm SHA256
 ```
 
-La existencia de un archivo no
-garantiza por sí sola su recuperación.
+La existencia de un archivo no garantiza
+por sí sola su recuperación.
 
 La restauración deberá comprobarse
 periódicamente.
@@ -1761,25 +2850,65 @@ No existe un RPO máximo garantizado
 mientras no se automatice y verifique
 la generación periódica de respaldos.
 
-
 ### 19.8. Respaldo previo a HU-005
 
-Antes de aplicar la migración 003 a `alto_sistema` se
-registró el respaldo:
+Archivo registrado:
 
 `alto_sistema_v0.2.0_pre_HU005_2026-11-27_23-57-09.sql`
 
-Tamaño confirmado: 5682 bytes. Ubicación local fuera del
-repositorio, en `%LOCALAPPDATA%\ALTO-SISTEMA\backups`.
-El respaldo corresponde a v0.2.0, por lo que no debe
-interpretarse como una copia de EDICIONES ni como prueba
-exitosa de restauración de v0.3.0.
+Tamaño confirmado:
 
-Para futuros respaldos de v0.3.0, utilizar el procedimiento
-19.4; podrá incorporarse la versión al nombre del archivo.
-La generación de un nuevo respaldo y su restauración aislada
-con las tablas torneos y ediciones siguen pendientes de
-verificación específica. No publicar respaldos en GitHub.
+5682 bytes.
+
+Ubicación:
+
+`%LOCALAPPDATA%\ALTO-SISTEMA\backups`
+
+Corresponde a v0.2.0, antes de
+incorporar la tabla ediciones.
+
+### 19.9. Respaldo previo a HU-006
+
+Antes de aplicar la migración 004,
+se registró el respaldo:
+
+`alto_sistema_v0.3.0_pre_HU006_2026-11-28_03-51-42.sql`
+
+Tamaño confirmado:
+
+7358 bytes.
+
+Ubicación:
+
+`%LOCALAPPDATA%\ALTO-SISTEMA\backups`
+
+El respaldo corresponde a la versión
+0.3.0 anterior a la incorporación
+de la tabla categorias.
+
+La existencia y tamaño del archivo
+fueron confirmados.
+
+No se ha comprobado todavía
+su restauración efectiva.
+
+### 19.10. Respaldo posterior a HU-006
+
+Los futuros respaldos de v0.4.0
+deberán incluir la estructura
+y los datos correspondientes a:
+
+- Usuarios.
+- Torneos.
+- Ediciones.
+- Categorías.
+- Historial de migraciones.
+- Infraestructura de sesiones, cuando exista.
+
+La generación de un respaldo
+posterior a HU-006 y su restauración
+aislada deberán registrarse cuando
+se realicen efectivamente.
 
 ---
 
@@ -1805,7 +2934,14 @@ Nombre recomendado:
 Ingresar a MySQL mediante una
 cuenta autorizada.
 
-Crear la base de destino:
+Comprobar previamente la existencia
+de la base de restauración:
+
+```sql
+SHOW DATABASES LIKE 'alto_sistema_restore_test';
+```
+
+Si no existe:
 
 ```sql
 CREATE DATABASE alto_sistema_restore_test
@@ -1825,21 +2961,29 @@ sin autorización expresa.
 Identificar el archivo SQL exacto
 que se desea restaurar.
 
-Comprobar que corresponda al
-respaldo esperado.
+Comprobar:
+
+- Versión de origen.
+- Fecha.
+- Tamaño.
+- Base de datos correspondiente.
+- Integridad del archivo, cuando exista un hash registrado.
 
 El archivo no deberá contener
 instrucciones que seleccionen
 o eliminen la base principal.
 
 Los respaldos generados mediante
-el procedimiento de este manual
-no utilizan la opción --databases.
+este manual no utilizan la opción
+--databases.
+
+Esto no sustituye la revisión
+del contenido antes de restaurarlo.
 
 ### 20.5. Restauración mediante MySQL Client
 
-Conectarse explícitamente a la
-base de restauración:
+Conectarse explícitamente a la base
+de restauración:
 
 ```powershell
 $usuario = Read-Host "Usuario de MySQL"
@@ -1852,34 +2996,31 @@ $usuario = Read-Host "Usuario de MySQL"
     --database=alto_sistema_restore_test
 ```
 
-Desde el cliente MySQL verificar:
+Desde MySQL Client:
 
 ```sql
 SELECT DATABASE();
-
 SHOW TABLES;
 ```
 
-La base seleccionada deberá ser
-alto_sistema_restore_test.
+La base seleccionada deberá ser:
+
+`alto_sistema_restore_test`
 
 Deberá encontrarse vacía antes
 de importar un respaldo nuevo.
 
 Ejecutar SOURCE indicando la ruta
-real del archivo.
-
-Ejemplo ilustrativo:
+real del archivo:
 
 ```sql
 SOURCE C:/ruta/al/respaldo/alto_sistema_FECHA.sql
 ```
 
-Utilizar la ruta correspondiente
-al archivo seleccionado.
+La ruta anterior es ilustrativa.
 
-Revisar los mensajes de ejecución
-y comprobar que no existan errores.
+Revisar todos los mensajes
+generados durante la importación.
 
 ### 20.6. Verificación posterior
 
@@ -1893,46 +3034,61 @@ SELECT COUNT(*) FROM usuarios;
 SELECT COUNT(*) FROM torneos;
 ```
 
-La consulta sobre torneos corresponde
-a respaldos de v0.2.0 o posteriores
-que incluyan esta tabla.
+Las consultas deberán corresponder
+a las tablas incluidas en el respaldo.
 
-Para respaldos de v0.3.0 que incluyan EDICIONES, ejecutar
-adicionalmente:
+Para respaldos que incluyan
+la migración 003:
 
 ```sql
 SELECT COUNT(*) FROM ediciones;
+
 SHOW CREATE TABLE ediciones;
+
 SELECT COUNT(*) AS ediciones_huerfanas
 FROM ediciones e
 LEFT JOIN torneos t ON t.id = e.torneo_id
 WHERE t.id IS NULL;
 ```
 
-Se espera cero ediciones huérfanas. Contrastar las
-cantidades con los registros del respaldo elegido, no
-con datos de otra fecha. No ejecutar estas consultas
-sobre una copia anterior a 003 sin migrarla.
+Para respaldos que incluyan
+la migración 004:
 
-Comprobar adicionalmente:
+```sql
+SELECT COUNT(*) FROM categorias;
 
-- Estructuras de tablas.
-- Restricciones.
-- Cantidades de registros.
-- Integridad de migraciones.
-- Datos administrativos.
-- Registros deportivos correspondientes.
+SHOW CREATE TABLE categorias;
+
+SELECT COUNT(*) AS categorias_huerfanas
+FROM categorias c
+LEFT JOIN ediciones e ON e.id = c.edicion_id
+WHERE e.id IS NULL;
+```
+
+Resultado esperado:
+
+- Cero ediciones huérfanas.
+- Cero categorías huérfanas.
+
+Las cantidades deberán contrastarse
+con los registros correspondientes
+al respaldo seleccionado.
+
+No deberán compararse indiscriminadamente
+con información de otra fecha.
 
 ### 20.7. Estado de verificación
 
-Durante la consolidación de v0.1.3
-se verificó una restauración en
-una base independiente.
+| Versión del respaldo | Restauración aislada |
+|---|---|
+| 0.1.3 | Verificada históricamente |
+| 0.2.0 con torneos | Pendiente de verificación específica |
+| 0.3.0 con ediciones | Pendiente |
+| 0.4.0 con categorías | Pendiente |
 
-La restauración de respaldos que incluyan torneos y
-ediciones permanece pendiente de verificación. La
-instalación desde cero de las tres migraciones no
-sustituye la comprobación de restauración de datos.
+La instalación desde cero mediante
+migraciones no sustituye la restauración
+de un respaldo con datos.
 
 ### 20.8. Recuperación real
 
@@ -1956,60 +3112,78 @@ completa para recuperar un único registro
 sin evaluar el impacto sobre las
 modificaciones posteriores al respaldo.
 
+### 20.9. Recuperación de estructuras anteriores
+
+Un respaldo de v0.3.0 no contiene
+la información de categorías creada
+posteriormente en v0.4.0.
+
+Aplicar la migración 004 sobre
+una restauración de v0.3.0 permite
+incorporar la estructura correspondiente,
+pero no recupera las categorías
+creadas después del respaldo.
+
+La recuperación de datos y la actualización
+estructural son operaciones diferentes.
+
+### 20.10. Seguridad posterior a una restauración
+
+Los respaldos pueden contener registros
+de sesiones previamente emitidas.
+
+Antes de utilizar una base restaurada
+como entorno operativo deberá evaluarse
+la validez de sus sesiones y credenciales.
+
+No deberá exponerse una base restaurada
+de pruebas a usuarios no autorizados.
+
 ---
 
 ## 21. LIMPIEZA DE REGISTROS TEMPORALES
 
 ### 21.1. Propósito
 
-Evitar que datos utilizados durante
+Evitar que los datos utilizados durante
 el desarrollo permanezcan mezclados
-con las competiciones reales.
+con competiciones reales.
 
-### 21.2. Registros utilizados en HU-004
+### 21.2. Registros históricos de HU-004
 
-Durante las comprobaciones funcionales
-se utilizaron registros temporales,
-incluyendo:
+Durante las comprobaciones se utilizaron:
 
 - Prueba Nocturno Inicio 2027.
 - torneo de prueba.
 
-También podrán haberse generado
-registros adicionales durante
-las comprobaciones de edición
-y reutilización de nombres.
+Estos registros fueron eliminados
+durante el cierre correspondiente.
 
 ### 21.3. Procedimiento oficial
 
-Desde la versión 0.2.0, la limpieza
-administrativa de torneos deberá
+La limpieza administrativa deberá
 realizarse preferentemente mediante
-el módulo TORNEOS.
+la interfaz de ALTO-SISTEMA.
 
 Procedimiento:
 
 1. Iniciar sesión.
-2. Ingresar a TORNEOS.
-3. Identificar el registro temporal.
-4. Seleccionar ELIMINAR.
-5. Verificar el nombre indicado.
-6. Confirmar la eliminación.
-7. Comprobar la actualización del listado.
-8. Comprobar los indicadores.
-
-El procedimiento podrá utilizarse
-sobre torneos activos y archivados.
+2. Identificar el contexto temporal.
+3. Comprobar sus dependencias.
+4. Eliminar únicamente los registros de prueba.
+5. Confirmar las operaciones.
+6. Verificar los indicadores.
+7. Comprobar la persistencia después de recargar.
 
 ### 21.4. Verificación posterior
 
 Comprobar:
 
-- Ausencia del registro eliminado.
-- Conservación de otros torneos.
+- Ausencia de registros eliminados.
+- Conservación de otros contextos.
 - Actualización de indicadores.
 - Persistencia después de recargar.
-- Ausencia de errores en la interfaz.
+- Ausencia de errores.
 
 Cuando todos los registros existentes
 sean temporales, el resultado podrá
@@ -2018,10 +3192,9 @@ ser un listado vacío.
 No deberán eliminarse competiciones
 reales para conseguir un contador cero.
 
-### 21.5. Consultas de verificación
+### 21.5. Consultas de verificación de torneos
 
-Desde MySQL podrá comprobarse
-la información sin modificarla.
+Desde MySQL Client:
 
 ```sql
 SELECT DATABASE();
@@ -2036,7 +3209,7 @@ FROM torneos
 ORDER BY id;
 ```
 
-Para verificar las cantidades:
+Cantidades:
 
 ```sql
 SELECT
@@ -2057,63 +3230,160 @@ habitual de limpieza:
 - DELETE sin condiciones.
 - Desactivación de claves foráneas.
 
-La disponibilidad del endpoint DELETE
-evita recurrir a escrituras manuales
-sobre MySQL para eliminar torneos.
-
 Las intervenciones directas sobre
 la base deberán reservarse para
 situaciones justificadas de mantenimiento.
 
-### 21.7. Resultado de HU-004
+### 21.7. Resultado histórico de HU-004
 
 La eliminación de registros temporales
-fue realizada mediante la interfaz
-administrativa.
+fue realizada mediante la interfaz.
 
-La comprobación funcional fue
-confirmada satisfactoriamente.
+La comprobación funcional fue satisfactoria.
 
 No fue necesario modificar manualmente
 la estructura de MySQL.
 
+### 21.8. Limpieza histórica de HU-005
 
-### 21.8. Limpieza de HU-005
+Durante la validación se utilizaron:
 
-Durante la validación funcional se utilizaron el torneo
-`TORNEO DE PRUEBA HU005` y las ediciones `NOCTURNO 2007`
-(renombrada posteriormente a `NOCTURNO 2027`) y
-`COPA DE VERANO 2027`.
+- TORNEO DE PRUEBA HU005.
+- NOCTURNO 2007, renombrada a NOCTURNO 2027.
+- COPA DE VERANO 2027.
 
-Se comprobó que el torneo no podía eliminarse mientras
-existieran ediciones asociadas. Se eliminaron primero
-las ediciones temporales, se verificaron los indicadores
-en cero y finalmente se eliminó el torneo temporal.
-El administrador confirmó la limpieza satisfactoria.
+Se eliminaron primero las ediciones
+temporales y posteriormente el torneo.
 
-Para futuras pruebas, identificar explícitamente los
-registros temporales. Eliminar únicamente sus ediciones
-sin dependencias desde la interfaz, verificar que no
-queden registros asociados y después eliminar el torneo.
-No eliminar competiciones reales para conseguir un
-listado vacío; el archivado es preferible cuando se debe
-conservar información deportiva.
+La limpieza fue confirmada.
 
-Consultas de solo lectura para verificar el contexto:
+### 21.9. Consultas de verificación de ediciones
 
 ```sql
 SELECT DATABASE();
-SELECT t.id, t.nombre, COUNT(e.id) AS total_ediciones,
-       COALESCE(SUM(e.estado = 'EN_CURSO'), 0) AS en_curso
+
+SELECT
+    t.id,
+    t.nombre,
+    COUNT(e.id) AS total_ediciones,
+    COALESCE(
+        SUM(e.estado = 'EN_CURSO'),
+        0
+    ) AS en_curso
 FROM torneos t
 LEFT JOIN ediciones e ON e.torneo_id = t.id
 GROUP BY t.id, t.nombre
 ORDER BY t.id;
 ```
 
-Las bases de integración e instalación desde cero se
-conservan. La limpieza de registros no implica borrar
-una base de datos completa.
+### 21.10. Registros utilizados en HU-006
+
+Durante las comprobaciones funcionales
+y las capturas se utilizaron contextos
+deportivos demostrativos, incluyendo:
+
+- NOCTURNO.
+- NOCTURNO 2027.
+- NOCTURNO 2028.
+- LIBRE.
+- SENIOR.
+
+Los nombres podrán haberse modificado
+durante las pruebas.
+
+No deberá utilizarse únicamente
+la coincidencia del nombre para
+identificar registros temporales.
+
+### 21.11. Limpieza de HU-006
+
+Procedimiento recomendado:
+
+1. Ingresar a TORNEOS.
+2. Identificar el torneo demostrativo.
+3. Ingresar a EDICIONES.
+4. Seleccionar GESTIONAR CATEGORÍAS.
+5. Identificar las categorías temporales.
+6. Eliminar las categorías correspondientes.
+7. Regresar a EDICIONES.
+8. Verificar que las ediciones temporales estén vacías.
+9. Eliminar las ediciones de prueba.
+10. Regresar a TORNEOS.
+11. Eliminar el torneo temporal sin dependencias.
+12. Verificar los registros conservados.
+
+La limpieza final deberá realizarse
+después de obtener las capturas oficiales.
+
+### 21.12. Consultas de verificación de categorías
+
+```sql
+SELECT DATABASE();
+
+SELECT
+    t.id AS torneo_id,
+    t.nombre AS torneo,
+    e.id AS edicion_id,
+    e.nombre AS edicion,
+    c.id AS categoria_id,
+    c.nombre AS categoria,
+    c.estado
+FROM categorias c
+INNER JOIN ediciones e ON e.id = c.edicion_id
+INNER JOIN torneos t ON t.id = e.torneo_id
+ORDER BY t.id, e.id, c.id;
+```
+
+Indicadores por edición:
+
+```sql
+SELECT
+    e.id AS edicion_id,
+    e.nombre AS edicion,
+    COUNT(c.id) AS total_categorias,
+    COALESCE(
+        SUM(c.estado = 'ACTIVA'),
+        0
+    ) AS activas,
+    COALESCE(
+        SUM(c.estado = 'ARCHIVADA'),
+        0
+    ) AS archivadas
+FROM ediciones e
+LEFT JOIN categorias c ON c.edicion_id = e.id
+GROUP BY e.id, e.nombre
+ORDER BY e.id;
+```
+
+Estas consultas son de solo lectura.
+
+### 21.13. Limpieza de integraciones
+
+Las pruebas de integración deportivas
+realizan su propia limpieza controlada.
+
+Los registros ficticios deberán
+identificarse inequívocamente.
+
+En HU-006 se confirmó la limpieza
+automática de categorías, ediciones
+y torneos creados durante la integración.
+
+Las bases aisladas se conservan.
+
+### 21.14. Estado de limpieza de HU-006
+
+| Entorno | Resultado |
+|---|---|
+| Integración fallida inicial | Limpieza completada |
+| Integración satisfactoria | Limpieza completada |
+| Pruebas funcionales | Se eliminaron registros temporales |
+| Registros recreados para capturas | Limpieza final pendiente |
+
+No deberá confundirse la limpieza
+automática de integración con la
+limpieza de registros demostrativos
+de la base principal.
 
 ---
 
@@ -2138,19 +3408,19 @@ Comprobar:
 
 ### 22.2. Puerto ocupado
 
-Consultar el puerto:
+Backend principal:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
 ```
 
-Para el frontend:
+Frontend:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue
 ```
 
-Para el backend aislado:
+Backend aislado:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue
@@ -2169,9 +3439,9 @@ Comprobar:
 - Usuario correcto.
 - Contraseña correcta.
 - Usuario habilitado.
-- Disponibilidad del backend.
-- Base de datos correspondiente.
-- Estado de la sesión.
+- Backend operativo.
+- Base correspondiente.
+- Estado de sesión.
 
 ### 22.4. Error de origen
 
@@ -2181,7 +3451,7 @@ Revisar:
 - FRONTEND_URL.
 - Puerto del frontend.
 - Configuración CORS.
-- Controles de origen del backend.
+- Controles de origen.
 
 No desactivar las protecciones
 como solución permanente.
@@ -2194,7 +3464,8 @@ Revisar:
 - Historial de migraciones.
 - Archivos SQL.
 - Checksums.
-- Estado estructural.
+- Verificadores estructurales.
+- Estado de las tablas.
 - Permisos del usuario.
 
 No modificar una migración aplicada
@@ -2202,24 +3473,32 @@ para evitar el error.
 
 ### 22.6. Error de nombre duplicado
 
-Comprobar si existe un torneo
-activo o archivado con el mismo nombre.
+Comprobar los registros existentes,
+incluidos los archivados o finalizados.
 
-La restricción contempla diferencias
-de mayúsculas, minúsculas y la
-normalización de espacios.
+Alcance de unicidad:
 
-No eliminar un torneo existente
-únicamente para reutilizar su nombre
-sin verificar previamente sus datos.
+| Entidad | Contexto |
+|---|---|
+| Torneo | General |
+| Edición | Torneo correspondiente |
+| Categoría | Edición correspondiente |
 
-### 22.7. Error al eliminar un torneo
+Las comparaciones contemplan
+la normalización de nombres
+y la intercalación de MySQL.
+
+No eliminar registros existentes
+solamente para reutilizar su nombre.
+
+### 22.7. Error al eliminar un registro
 
 Comprobar:
 
 - Sesión autenticada.
 - Registro existente.
 - Identificador válido.
+- Contexto correcto.
 - Conexión con el backend.
 - Restricciones de integridad.
 
@@ -2227,10 +3506,10 @@ Si el registro ya fue eliminado,
 actualizar el listado.
 
 Si existen dependencias incompatibles,
-utilizar el archivado cuando corresponda.
+conservar o archivar cuando corresponda.
 
-No deshabilitar restricciones de
-integridad para forzar una eliminación.
+No deshabilitar claves foráneas
+para forzar la eliminación.
 
 ### 22.8. Error de compilación
 
@@ -2257,7 +3536,7 @@ motores pueden producir advertencias
 sobre instrucciones válidas de MySQL.
 
 No modificar migraciones aplicadas
-exclusivamente por una advertencia
+exclusivamente por advertencias
 del editor.
 
 ### 22.10. Indicadores incorrectos
@@ -2271,31 +3550,147 @@ Verificar:
 - Filtros administrativos.
 - Estado de carga.
 - Respuestas del backend.
+- Contexto solicitado.
 
 No reemplazar indicadores reales
 por valores constantes.
 
-
 ### 22.11. Problemas específicos de EDICIONES
 
-- Si un torneo archivado impide iniciar, crear o reabrir
-  una edición, reactivar el torneo si corresponde.
-- Si se rechaza una fecha, comprobar su formato y que la
-  finalización no preceda al inicio. Ambas son opcionales.
-- Si se rechaza un nombre, comprobar las ediciones del
-  mismo torneo, incluidas las finalizadas.
-- Si una edición no se encuentra, verificar que el
-  identificador corresponda al torneo de la ruta.
-- Si los indicadores no se cargan, revisar las respuestas
-  de la API de EDICIONES y actualizar el listado. No
-  sustituir el error por un cero ficticio.
-- Si el cliente mysql no se reconoce en PowerShell,
-  utilizar su ruta completa (sección 5.2).
-- Si el servidor aislado apunta a la base incorrecta,
-  detenerlo inmediatamente y revisar DB_NAME y PORT.
+| Problema | Acción |
+|---|---|
+| No permite iniciar o reabrir | Revisar estado del torneo |
+| Fecha rechazada | Revisar formato y coherencia cronológica |
+| Nombre duplicado | Revisar ediciones del mismo torneo |
+| Edición inexistente | Revisar contexto e identificador |
+| No permite eliminar | Comprobar categorías asociadas |
+| Indicadores no disponibles | Revisar API correspondiente |
 
-No modificar directamente el estado ni desactivar claves
-foráneas como solución a una restricción de negocio.
+No modificar directamente el estado
+de una edición para evitar
+restricciones de negocio.
+
+### 22.12. Problemas específicos de CATEGORÍAS
+
+| Problema | Acción |
+|---|---|
+| No permite crear | Revisar torneo y edición |
+| No permite reactivar | Revisar restricciones del contexto |
+| Nombre duplicado | Consultar categorías activas y archivadas |
+| Categoría inexistente | Verificar edición e identificador |
+| Indicadores incorrectos | Actualizar listado y revisar API |
+| No permite eliminar edición | Comprobar categorías asociadas |
+| Búsqueda sin resultados esperados | Revisar filtros, intercalación y repositorio |
+
+Si el torneo está archivado,
+reactivarlo cuando corresponda.
+
+Si la edición está finalizada,
+reabrirla únicamente cuando resulte
+compatible con las reglas deportivas.
+
+Estas acciones no deberán utilizarse
+para alterar indebidamente el historial.
+
+### 22.13. Caracteres acentuados incorrectos
+
+Durante HU-006 se observó una representación
+incorrecta de caracteres UTF-8
+en Windows PowerShell.
+
+Ejemplo:
+
+```text
+CompeticiÃ³n amateur
+```
+
+El contenido original era:
+
+```text
+Competición amateur
+```
+
+Antes de modificar un archivo:
+
+- Verificar su codificación en VS Code.
+- Comprobar que utilice UTF-8.
+- Diferenciar el archivo real de su representación en terminal.
+- Revisar la codificación de MySQL cuando corresponda.
+
+Para diagnósticos específicos de terminal
+puede utilizarse la opción:
+
+```text
+-Encoding UTF8
+```
+
+No deberá solicitarse la recuperación
+de archivos completos por terminal
+cuando puedan compartirse directamente
+desde el árbol de VS Code.
+
+### 22.14. Búsqueda insensible a acentos
+
+Si una búsqueda no encuentra un texto
+que contiene caracteres acentuados:
+
+1. Comprobar el dato almacenado.
+2. Comprobar el filtro enviado.
+3. Verificar el contexto.
+4. Revisar la intercalación SQL.
+5. Revisar la expresión utilizada.
+6. Ejecutar el caso real contra MySQL.
+
+El repositorio de categorías utiliza
+LIKE con intercalación explícita
+utf8mb4_unicode_ci.
+
+Los caracteres especiales del patrón
+se escapan para conservar su búsqueda
+literal.
+
+No modificar las pruebas para adaptar
+el resultado esperado a una consulta
+que incumple las reglas aprobadas.
+
+### 22.15. Servidor aislado incorrecto
+
+Si el backend de pruebas apunta
+a la base principal o a un puerto
+incorrecto:
+
+1. Detener inmediatamente el proceso.
+2. No ejecutar pruebas deportivas.
+3. Revisar DB_NAME.
+4. Revisar PORT.
+5. Verificar la base mediante SELECT DATABASE().
+6. Reiniciar el entorno aislado.
+
+### 22.16. El navegador no puede acceder
+
+Comprobar por separado:
+
+Backend:
+
+```text
+http://localhost:3000/api/health
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+Si el backend está operativo
+pero la aplicación no abre,
+verificar que Vite se encuentre iniciado.
+
+Si Vite informa un puerto diferente,
+revisar si el puerto 5173 está ocupado.
+
+Mantener coherencia entre el puerto
+del frontend y FRONTEND_URL.
 
 ---
 
@@ -2317,21 +3712,11 @@ git diff
 
 ### 23.2. Actualización de dependencias
 
-Consultar versiones instaladas:
+Desde backend o frontend:
 
 ```powershell
 npm ls --depth=0
-```
-
-Consultar posibles actualizaciones:
-
-```powershell
 npm outdated
-```
-
-Realizar una auditoría:
-
-```powershell
 npm audit
 ```
 
@@ -2344,15 +3729,19 @@ Desde backend o frontend,
 según corresponda:
 
 ```powershell
-npm version 0.3.0 --no-git-tag-version --ignore-scripts
+npm version 0.4.0 --no-git-tag-version
 ```
 
-Este comando deberá utilizarse
+El comando deberá utilizarse
 con la versión del incremento
 que se esté preparando.
 
 No deberá repetirse innecesariamente
 si la versión ya es correcta.
+
+Puede utilizarse --ignore-scripts
+cuando corresponda evitar scripts
+asociados al versionado.
 
 ### 23.4. Consistencia
 
@@ -2366,23 +3755,24 @@ Verificar la versión entre:
 - Identificación visual.
 - Documentación.
 
-### 23.5. Actualización mediante ZIP
+### 23.5. Actualización de archivos
 
-Cuando una actualización incluya
-archivos completos:
+Modalidad preferente:
 
-1. Verificar el contenido del paquete.
-2. Detener los servidores afectados.
-3. Extraer el paquete.
+- Código completo directamente en la conversación.
+- Reemplazo desde VS Code.
+- Un archivo o paso operativo por vez.
+- Conservación de las configuraciones privadas.
+
+Cuando se utilice un ZIP:
+
+1. Verificar su contenido.
+2. Detener los procesos afectados.
+3. Extraer los archivos.
 4. Reemplazar únicamente los archivos indicados.
-5. Conservar los archivos privados.
+5. Conservar las configuraciones privadas.
 6. Reiniciar los servicios.
-7. Ejecutar las pruebas correspondientes.
-
-No deberá incorporarse un paquete ZIP
-de actualización al repositorio
-salvo que exista una finalidad
-expresamente definida.
+7. Ejecutar las pruebas necesarias.
 
 ### 23.6. Revisión previa al commit
 
@@ -2396,40 +3786,55 @@ Verificar:
 - Ausencia de compilaciones generadas.
 - Documentación actualizada.
 - Resultados de pruebas.
+- Capturas correspondientes.
 - CHECK integral.
+
+Desde la raíz:
+
+```powershell
+git status
+git diff --stat
+git diff --check
+```
+
+Los archivos no rastreados deberán
+revisarse mediante git status,
+ya que git diff no los incluye
+automáticamente.
 
 ### 23.7. Consolidación
 
 El incremento deberá contar con
 aprobación expresa antes de registrarse.
 
-Mensaje histórico de referencia de HU-004:
+Historial:
+
+| Versión | Historia | Commit |
+|---|---|---|
+| 0.2.0 | HU-004 | 27654c0 |
+| 0.3.0 | HU-005 | ccfb4d2 |
+| 0.4.0 | HU-006 | Pendiente |
+
+Mensaje propuesto para HU-006:
 
 ```text
-HU-004 - Gestion integral de torneos y Sistema de Diseno v0.2.0
+feat: HU-006 - Gestion de categorias (v0.4.0)
 ```
 
-HU-004 fue consolidada en el commit `27654c0`.
+El mensaje definitivo deberá corresponder
+a los cambios efectivamente incorporados.
 
-Mensaje propuesto para HU-005 (pendiente de aprobación):
+Antes del commit:
 
-```text
-HU-005 - Gestion de ediciones v0.3.0
+```powershell
+git diff --cached --stat
+git diff --cached --check
 ```
 
 La selección de archivos deberá
 realizarse de manera controlada.
 
-Antes del commit comprobar:
-
-```powershell
-git diff --cached --stat
-```
-
 ### 23.8. Publicación
-
-La publicación se realizará sobre
-la rama correspondiente.
 
 Rama principal utilizada:
 
@@ -2441,24 +3846,98 @@ Después del commit aprobado:
 git push origin master
 ```
 
-La publicación deberá verificarse
+Verificar posteriormente:
+
+```powershell
+git status
+git log -1 --oneline
+```
+
+La publicación deberá confirmarse
 antes de considerar consolidado
 el incremento.
 
-
 ### 23.9. Verificación de coherencia de versión
 
-Desde la raíz del proyecto, en la cuarta terminal:
+Desde la raíz del proyecto,
+en la cuarta terminal:
 
 ```powershell
 node -e "for (const carpeta of ['backend','frontend']) { const p = require('./' + carpeta + '/package.json'); const l = require('./' + carpeta + '/package-lock.json'); console.log(carpeta + '/package.json: ' + p.version); console.log(carpeta + '/package-lock.json: ' + l.version); console.log(carpeta + '/package-lock.json (raiz): ' + l.packages[''].version); }"
+
 Select-String -Path backend/src/config/app.config.js, frontend/src/config/app.config.js -Pattern "version:"
 ```
 
-Durante la consolidación de HU-005 se verificaron los ocho
-valores: todos corresponden a 0.3.0. Luego se reiniciaron
-los servidores según 10.6. El cambio de versión no
-modifica las reglas de negocio de los servicios.
+Se verifican ocho valores distribuidos
+en seis archivos.
+
+Resultado esperado de HU-006:
+
+```text
+0.4.0
+```
+
+En todos los valores correspondientes.
+
+La verificación conjunta permanece
+pendiente del cierre técnico.
+
+### 23.10. Revisión de capturas
+
+Desde la raíz:
+
+```powershell
+Get-ChildItem docs/capturas -Filter "*-v040.png" |
+    Select-Object Name, Length
+```
+
+Archivos esperados:
+
+```text
+30-ediciones-categorias-v040.png
+31-categorias-listado-v040.png
+32-categorias-formulario-v040.png
+33-movil-categorias-v040.png
+34-pruebas-v040.png
+```
+
+Comprobar:
+
+- Cinco archivos correspondientes.
+- Nombres correctos.
+- Tamaño superior a cero.
+- Enlaces del README.
+- Ausencia de información privada innecesaria.
+
+La revisión visual de las imágenes
+no sustituye la comprobación
+de su presencia en el repositorio.
+
+### 23.11. Política de capturas esenciales
+
+A partir de v0.4.0 se documentarán
+principalmente las novedades
+de cada incremento.
+
+No será necesario repetir capturas
+del Dashboard, login o módulos
+que no hayan cambiado.
+
+Las evidencias históricas se conservarán.
+
+### 23.12. Cierre operativo de una historia
+
+Antes de iniciar una historia nueva:
+
+1. Completar las verificaciones técnicas.
+2. Limpiar los registros demostrativos.
+3. Actualizar la documentación.
+4. Verificar las evidencias.
+5. Completar el CHECK integral.
+6. Obtener aprobación expresa.
+7. Registrar el commit.
+8. Publicar en GitHub.
+9. Confirmar el estado del repositorio.
 
 ---
 
@@ -2481,6 +3960,7 @@ Mantener diferenciados:
 
 - Desarrollo principal.
 - Pruebas aisladas.
+- Instalación limpia.
 - Restauración.
 - Producción futura.
 
@@ -2492,6 +3972,7 @@ identificar previamente:
 - Base de datos.
 - Entidad.
 - Registro afectado.
+- Contexto deportivo.
 - Dependencias.
 - Consecuencias.
 - Posibilidad de recuperación.
@@ -2542,8 +4023,7 @@ de sesión.
 
 ### 24.8. Producción
 
-Antes del despliegue deberán
-evaluarse:
+Antes del despliegue deberán evaluarse:
 
 - HTTPS.
 - Configuración de cookies.
@@ -2559,6 +4039,45 @@ evaluarse:
 ALTO-SISTEMA todavía no se encuentra
 desplegado en producción.
 
+### 24.9. Seguridad de evidencias
+
+Antes de publicar capturas
+o registros de pruebas, revisar:
+
+- Usuarios administrativos visibles.
+- Rutas personales del sistema operativo.
+- Variables de entorno.
+- Información de sesiones.
+- Datos personales.
+- Información deportiva privada.
+
+La información innecesaria podrá
+recortarse o anonimizarse.
+
+No deberán modificarse los resultados
+de pruebas para mejorar artificialmente
+las evidencias.
+
+### 24.10. Integridad jerárquica
+
+Las relaciones actuales son:
+
+```text
+TORNEO
+  └── EDICIÓN
+        └── CATEGORÍA
+```
+
+Las relaciones referenciales
+son restrictivas.
+
+No deberán deshabilitarse
+para facilitar eliminaciones.
+
+Las futuras entidades deportivas
+deberán respetar la independencia
+de cada contexto.
+
 ---
 
 ## 25. ESTADO OPERATIVO Y CONTROL FINAL
@@ -2569,44 +4088,32 @@ desplegado en producción.
 |---|---|
 | ALTO-SISTEMA | 0.2.0 |
 | Sistema de Diseño | 1.0 |
-| Historia de usuario | HU-004 |
+| Historia | HU-004 |
 | Módulo incorporado | TORNEOS |
-| Base principal | alto_sistema |
-| Base de pruebas | altosistemahu004test |
-| Puerto principal | 3000 |
-| Puerto de pruebas | 3001 |
-| Puerto frontend | 5173 |
+| Commit | 27654c0 |
+| Estado | Consolidado |
 
-### 25.2. Resultados automatizados históricos de HU-004
+### 25.2. Resultados históricos de HU-004
 
 | Grupo | Resultado |
-|---|---|
+|---|---:|
 | Unitarias de autenticación | 13/13 |
 | Unitarias de torneos | 30/30 |
 | Integración de autenticación | 1/1 |
 | Integración de torneos | 1/1 |
-| Total de pruebas automatizadas | 45/45 |
-| Pruebas fallidas | 0 |
+| Total acumulado | 45/45 |
 
-La totalidad de las pruebas fue
-superada mediante ejecuciones
-separadas.
+Las ejecuciones fueron separadas.
 
-La integración de torneos contempla
-20 controles internos previstos.
-
-El resultado global de dicha prueba
-fue satisfactorio.
-
-### 25.3. Ejecuciones registradas de HU-004
+### 25.3. Regresión histórica de HU-004
 
 | Ejecución | Totales | Aprobadas | Omitidas | Fallidas |
 |---|---:|---:|---:|---:|
 | Unitarias | 45 | 43 | 2 | 0 |
 | Regresión con autenticación | 45 | 44 | 1 | 0 |
-| Integración aislada de torneos | 1 | 1 | 0 | 0 |
+| Integración aislada | 1 | 1 | 0 | 0 |
 
-### 25.4. Tiempos registrados de HU-004
+### 25.4. Tiempos históricos de HU-004
 
 | Operación | Duración |
 |---|---:|
@@ -2618,164 +4125,295 @@ fue satisfactorio.
 Los tiempos corresponden al entorno
 local de desarrollo.
 
-No constituyen mediciones de
-rendimiento en producción.
-
 ### 25.5. Verificaciones complementarias de HU-004
 
-| Control | Resultado |
-|---|---|
-| ESLint: errores | 0 |
-| ESLint: advertencias | 0 |
-| Compilación de producción | Exitosa |
-| Migraciones registradas | 2 |
-| Migraciones pendientes | 0 |
-| Integridad de migraciones | Verificada |
-| Revisión visual inicial | 8/8 |
-| Validación funcional | Satisfactoria |
-| Eliminación definitiva | Verificada |
-| Cancelación de eliminación | Verificada |
-| Limpieza de registros temporales | Completada |
-| Sistema de Diseño v1.0 | Verificado |
+- ESLint satisfactorio.
+- Compilación exitosa.
+- Dos migraciones verificadas.
+- Sistema de Diseño v1.0.
+- Validación funcional.
+- Eliminación definitiva.
+- Cancelación de eliminación.
+- Limpieza de registros temporales.
+- CHECK integral aprobado.
+- Publicación completada.
 
 ### 25.6. Mantenimiento periódico recomendado
 
-- Verificar disponibilidad de los servicios.
+- Verificar disponibilidad de servicios.
 - Revisar errores operativos.
 - Generar respaldos.
 - Comprobar restauraciones.
 - Auditar dependencias.
 - Revisar cambios pendientes en Git.
-- Verificar la seguridad de credenciales.
+- Verificar seguridad de credenciales.
 - Comprobar integridad de migraciones.
 - Actualizar la documentación.
 
-### 25.7. Verificaciones pendientes
+### 25.7. Verificaciones generales pendientes
 
-- Restauración de respaldos que incluyan torneos y ediciones.
+- Restauración de respaldos con entidades deportivas.
 - Automatización de respaldos.
 - Conservación de copias externas.
 - Pruebas de rendimiento y carga.
 - Pruebas automatizadas del frontend.
 - Auditoría formal de accesibilidad.
 - Validación en dispositivos móviles físicos.
-- Verificación de nuevas claves foráneas al implementar otras entidades (torneos–ediciones ya verificada).
+- Verificación de futuras claves foráneas.
 - Optimización de recursos tipográficos.
 - Evaluación de seguridad de producción.
 - Despliegue en producción.
 
-### 25.8. Lista de cierre de HU-004
+### 25.8. Cierre histórico de HU-004
 
 - [x] Backend implementado.
 - [x] Frontend implementado.
-- [x] Sistema de Diseño incorporado.
 - [x] Gestión integral de torneos.
+- [x] Sistema de Diseño.
 - [x] Eliminación definitiva.
-- [x] Pruebas unitarias: 43/43.
-- [x] Pruebas de integración: 2/2.
+- [x] Pruebas automatizadas: 45/45.
 - [x] Regresión satisfactoria.
-- [x] ESLint satisfactorio.
-- [x] Compilación exitosa.
-- [x] Integridad de migraciones.
+- [x] ESLint y compilación.
+- [x] Migraciones verificadas.
 - [x] Validación funcional.
 - [x] Limpieza de registros temporales.
-- [x] Actualización a v0.2.0.
-- [x] Consolidación documental.
-- [x] Capturas oficiales.
-- [x] CHECK integral aprobado.
-- [x] Commit registrado.
-- [x] Publicación en GitHub.
+- [x] Versionado.
+- [x] Documentación.
+- [x] Capturas.
+- [x] CHECK integral.
+- [x] Commit.
+- [x] Publicación.
 
-La versión 0.2.0 fue aprobada y consolidada en Git
-(commit `27654c0`), antes de iniciar HU-005.
+HU-004 consolidada mediante
+el commit `27654c0`.
 
-
-### 25.9. Estado operativo actual — v0.3.0
+### 25.9. Registro histórico de v0.3.0
 
 | Propiedad | Valor |
 |---|---|
 | ALTO-SISTEMA | 0.3.0 |
 | Sistema de Diseño | 1.0 |
-| Historia de usuario | HU-005 |
-| Módulos deportivos implementados | TORNEOS y EDICIONES |
-| Base principal | alto_sistema |
-| Base aislada de integración | altosistemahu004test |
-| Base aislada de instalación | altosistemahu005fresh |
-| Puerto principal | 3000 |
-| Puerto aislado | 3001 (servidor detenido tras las pruebas) |
-| Puerto frontend | 5173 |
-| Última versión consolidada | v0.2.0 |
+| Historia | HU-005 |
+| Módulo incorporado | EDICIONES |
+| Migraciones | 3 |
+| Commit | ccfb4d2 |
+| Estado | Consolidado |
 
-### 25.10. Resultados de HU-005
+### 25.10. Resultados históricos de HU-005
 
 | Grupo | Resultado |
 |---|---:|
 | Unitarias de autenticación | 13/13 |
 | Unitarias de torneos | 30/30 |
 | Unitarias de ediciones | 59/59 |
-| Total unitarias | 102/102 |
 | Integración de autenticación | 1/1 |
 | Integración de torneos | 1/1 |
 | Integración de ediciones | 1/1 |
-| Total pruebas automatizadas | 105/105 |
-| Fallidas, canceladas u omitidas en las ejecuciones específicas | 0 |
+| Total acumulado | 105/105 |
 
-| Ejecución específica | Duración total |
-|---|---:|
-| Unitarias de ediciones | 445,5618 ms |
-| Regresión de servicios auth y torneo | 302,3158 ms |
-| Integración de ediciones | 1860,0626 ms |
-| Integración de torneos | 1394,3234 ms |
-| Integración de autenticación | 503,2238 ms |
-| Compilación frontend | 2,52 s |
+Resultados complementarios:
 
-Las ejecuciones fueron separadas. Los controles internos
-no se suman como pruebas adicionales. Las duraciones
-corresponden al entorno de desarrollo, no a producción.
+- Instalación limpia de tres migraciones.
+- Idempotencia verificada.
+- Integridad referencial torneo-edición.
+- 17 controles funcionales.
+- Adaptación responsive confirmada.
+- ESLint y compilación satisfactorios.
+- Limpieza de registros demostrativos.
+- Doce capturas oficiales.
+- Coherencia de versiones.
+- CHECK integral aprobado.
 
-| Verificación complementaria | Resultado |
-|---|---|
-| ESLint | Sin errores informados |
-| Compilación | Exitosa |
-| Migraciones principal y prueba | 3 registradas, 0 pendientes |
-| Instalación desde cero e idempotencia | Verificadas |
-| Integridad referencial torneos–ediciones | Verificada |
-| Controles funcionales y responsive | 17/17, confirmados durante el desarrollo |
-| Registros temporales principales | Eliminados |
-| Respaldo previo a HU-005 | Generado y tamaño confirmado |
-| Restauración de respaldo v0.3.0 | Pendiente |
-| Coherencia de versiones | 8/8 |
-| Reinicio controlado | Completado |
+### 25.11. Cierre histórico de HU-005
 
-### 25.11. Lista de cierre de HU-005
-
-- [x] Backend y frontend de EDICIONES implementados.
-- [x] Migración 003 aplicada y verificada.
-- [x] Integridad referencial efectiva.
-- [x] Instalación desde cero e idempotencia.
-- [x] Pruebas unitarias: 102/102.
-- [x] Pruebas de integración: 3/3.
-- [x] Regresión, lint y compilación satisfactorios.
-- [x] Verificación funcional y responsive: 17/17.
+- [x] Backend y frontend implementados.
+- [x] Migración 003 aplicada.
+- [x] Integridad referencial.
+- [x] Instalación limpia.
+- [x] Idempotencia.
+- [x] Pruebas automatizadas: 105/105.
+- [x] Regresión.
+- [x] ESLint y compilación.
+- [x] Verificación funcional y responsive.
 - [x] Limpieza de registros temporales.
-- [x] Actualización a v0.3.0 y coherencia de versiones.
-- [x] Reinicio del backend y frontend principales.
-- [x] Detención del backend aislado y conservación de bases.
-- [ ] Consolidación documental completa.
-- [ ] Capturas oficiales de v0.3.0.
-- [ ] CHECK integral aprobado.
-- [ ] Commit registrado.
+- [x] Versionado y reinicio.
+- [x] Consolidación documental.
+- [x] Capturas oficiales.
+- [x] CHECK integral.
+- [x] Commit.
+- [x] Publicación.
+
+HU-005 consolidada mediante
+el commit `ccfb4d2`.
+
+### 25.12. Estado operativo actual — v0.4.0
+
+| Propiedad | Valor |
+|---|---|
+| ALTO-SISTEMA | 0.4.0 |
+| Sistema de Diseño | 1.0 |
+| Historia | HU-006 |
+| Módulos deportivos | TORNEOS, EDICIONES y CATEGORÍAS |
+| Base principal | alto_sistema |
+| Base de integración | altosistemahu004test |
+| Puerto principal | 3000 |
+| Puerto aislado | 3001 |
+| Puerto frontend | 5173 |
+| Migraciones aplicadas | 4 |
+| Última versión consolidada | 0.3.0 |
+
+El backend principal y el frontend
+iniciaron correctamente con v0.4.0.
+
+### 25.13. Resultados de HU-006
+
+| Grupo | Resultado |
+|---|---:|
+| Unitarias de autenticación | 13/13 |
+| Unitarias de torneos | 30/30 |
+| Unitarias de ediciones | 59/59 |
+| Unitarias de categorías | 111/111 |
+| Total unitarias | 213/213 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Integración de ediciones | 1/1 |
+| Integración de categorías | 1/1 |
+| Total integraciones | 4/4 |
+| Total acumulado | 217/217 |
+
+Las integraciones se ejecutaron
+por separado.
+
+El resultado acumulado no representa
+una única ejecución con las 217
+pruebas habilitadas simultáneamente.
+
+### 25.14. Tiempos registrados de HU-006
+
+| Operación | Duración |
+|---|---:|
+| Unitarias de categorías | 151,5432 ms |
+| Integración de categorías aprobada | 2723,073 ms |
+| Regresión unitaria general | 651,1334 ms |
+| Integración de ediciones | 1891,3573 ms |
+| Integración de torneos | 1277,2883 ms |
+| Integración de autenticación | 522,3231 ms |
+
+Los tiempos corresponden
+al entorno local de desarrollo.
+
+No representan mediciones
+de rendimiento en producción.
+
+### 25.15. Validación funcional de HU-006
+
+Durante el desarrollo se revisaron
+17 controles funcionales relacionados con:
+
+- Integración con EDICIONES.
+- Creación de categorías.
+- Validaciones.
+- Edición.
+- Archivado.
+- Reactivación.
+- Búsqueda.
+- Filtros.
+- Indicadores.
+- Independencia de contextos.
+- Restricciones de edición finalizada.
+- Restricciones de torneo archivado.
+- Integridad referencial.
+- Eliminación.
+- Adaptación responsive.
+
+El administrador confirmó resultados
+satisfactorios durante el proceso.
+
+La secuencia manual de eliminación
+fue parcialmente abreviada debido
+a la eliminación anticipada de registros.
+
+La independencia de contextos y la
+eliminación ordenada cuentan también
+con verificación automatizada.
+
+### 25.16. Verificaciones complementarias de HU-006
+
+| Control | Resultado |
+|---|---|
+| Migración 004 principal | Aplicada |
+| Migración 004 de pruebas | Aplicada |
+| Integridad referencial | Verificada |
+| Búsqueda SQL de categorías | Corregida y verificada |
+| Controles internos de integración | 28/28 |
+| Limpieza de integración | Completada |
+| Respaldo preventivo | Generado |
+| Restauración del respaldo | Pendiente |
+| Backend v0.4.0 | Operativo |
+| Frontend v0.4.0 | Operativo |
+| Capturas esenciales | 5/5 revisadas |
+| Validación móvil | Confirmada mediante emulación |
+| Instalación limpia de cuatro migraciones | Pendiente |
+| Idempotencia final | Pendiente |
+| ESLint final | Pendiente |
+| Compilación final | Pendiente |
+| Limpieza de registros demostrativos | Pendiente de confirmación |
+
+### 25.17. Lista de cierre de HU-006
+
+- [x] Alcance funcional aprobado.
+- [x] Respaldo preventivo de v0.3.0.
+- [x] Migración 004 creada.
+- [x] Migrador actualizado.
+- [x] Base principal migrada.
+- [x] Base de pruebas migrada.
+- [x] Backend de CATEGORÍAS implementado.
+- [x] Frontend de CATEGORÍAS implementado.
+- [x] Integración con EDICIONES.
+- [x] Indicadores jerárquicos.
+- [x] Pruebas unitarias de categorías: 111/111.
+- [x] Integración de categorías: 1/1.
+- [x] Controles internos: 28/28.
+- [x] Corrección de búsqueda SQL.
+- [x] Regresión unitaria: 213/213.
+- [x] Integraciones acumuladas: 4/4.
+- [x] Total acumulado: 217/217.
+- [x] Integridad referencial.
+- [x] Validaciones funcionales realizadas.
+- [x] Adaptación responsive mediante emulación.
+- [x] Versionado de paquetes a 0.4.0.
+- [x] Configuraciones internas actualizadas.
+- [x] Backend principal reiniciado.
+- [x] Frontend reiniciado.
+- [x] Cinco capturas esenciales revisadas.
+- [ ] Instalación limpia de migraciones.
+- [ ] Idempotencia de las cuatro migraciones.
+- [ ] ESLint final.
+- [ ] Compilación de producción final.
+- [ ] Verificación conjunta de versiones.
+- [ ] Limpieza final de datos demostrativos.
+- [ ] Consolidación documental.
+- [ ] Verificación de archivos de capturas.
+- [ ] Revisión de privacidad de evidencias.
+- [ ] Auditoría final de archivos Git.
+- [ ] CHECK integral.
+- [ ] Aprobación formal.
+- [ ] Commit.
 - [ ] Publicación en GitHub.
 
-La implementación de HU-005 se encuentra técnica y
-funcionalmente verificada. El cierre formal permanece
-pendiente. No se deberá avanzar hacia HU-006 antes de
-aprobar y consolidar este incremento.
+### 25.18. Próximo incremento
 
-Se mantienen las limitaciones de restauración, pruebas
-físicas móviles, accesibilidad, carga y seguridad de
-producción. No se han realizado pruebas nuevas por el
-solo hecho de actualizar este manual.
+La próxima historia de usuario prevista es:
+
+**HU-007 — Identidad visual de competiciones**
+
+No se iniciará su implementación
+hasta finalizar formalmente
+HU-006 y consolidar v0.4.0.
+
+Las verificaciones pendientes fuera
+del alcance actual permanecerán
+registradas en el presente manual.
 
 ---
 

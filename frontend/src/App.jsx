@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 
 import {
@@ -20,6 +19,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Torneos from './pages/Torneos';
 import Ediciones from './pages/Ediciones';
+import Categorias from './pages/Categorias';
 import ModuloPendiente from './pages/ModuloPendiente';
 
 import AppLayout from './layouts/AppLayout';
@@ -257,6 +257,14 @@ function App() {
                     <Route
                         path="torneos/:torneoId/ediciones"
                         element={<Ediciones />}
+                    />
+
+
+                    {/* CATEGORÍAS DE UNA EDICIÓN */}
+
+                    <Route
+                        path="torneos/:torneoId/ediciones/:edicionId/categorias"
+                        element={<Categorias />}
                     />
 
 

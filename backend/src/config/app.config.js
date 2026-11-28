@@ -1,4 +1,3 @@
-
 const path = require('path');
 
 require('dotenv').config({
@@ -10,7 +9,7 @@ const APP_CONFIG = Object.freeze({
 
     nombre: 'ALTO-SISTEMA',
 
-    version: '0.3.0',
+    version: '0.4.0',
 
     entorno: process.env.NODE_ENV || 'development',
 
