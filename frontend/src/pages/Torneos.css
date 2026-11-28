@@ -1,3 +1,4 @@
+
 /* ==================================================
    ALTO-SISTEMA
    SISTEMA DE DISEÑO v1.0
@@ -130,7 +131,8 @@
 }
 
 
-.torneos-formulario-panel .as-field-counter.as-text-danger {
+.torneos-formulario-panel
+.as-field-counter.as-text-danger {
 
     color: var(--color-danger-text);
 
@@ -369,7 +371,148 @@
 }
 
 
-/* ACCIONES */
+/* ==================================================
+   EDICIONES DEL TORNEO
+   HU-005
+   ================================================== */
+
+.torneos-ediciones {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-3);
+
+    min-width: 0;
+
+    padding-block-start: var(--space-4);
+
+    border-top:
+        1px
+        solid
+        var(--color-border);
+
+}
+
+
+/* INDICADORES DE EDICIONES */
+
+.torneos-ediciones-indicadores {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: var(--space-3);
+
+}
+
+
+.torneos-ediciones-indicador {
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: var(--space-2);
+
+    min-width: 0;
+
+    padding: var(--space-4);
+
+    background-color: var(--color-surface-active);
+
+    border:
+        1px
+        solid
+        var(--color-border);
+
+    border-radius: var(--radius-md);
+
+}
+
+
+.torneos-ediciones-indicador .as-stat-label {
+
+    font-size: var(--font-size-xs);
+
+    overflow-wrap: anywhere;
+
+}
+
+
+.torneos-ediciones-indicador .as-stat-value {
+
+    font-size: var(--font-size-2xl);
+
+    font-variant-numeric: tabular-nums;
+
+    line-height: var(--line-height-heading);
+
+    overflow-wrap: anywhere;
+
+}
+
+
+.torneos-ediciones-indicadores[aria-busy="true"]
+.torneos-ediciones-indicador .as-stat-value {
+
+    color: var(--color-text-muted);
+
+}
+
+
+/* MENSAJE DE INDICADORES NO DISPONIBLES */
+
+.torneos-ediciones > .as-text-description {
+
+    font-size: var(--font-size-xs);
+
+    line-height: var(--line-height-relaxed);
+
+    color: var(--color-text-secondary);
+
+    overflow-wrap: anywhere;
+
+}
+
+
+/* ACCESO A EDICIONES */
+
+.torneos-ediciones-acceso {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+
+    min-width: 0;
+
+    gap: var(--space-2);
+
+    font-size: var(--font-size-sm);
+
+    letter-spacing: var(--letter-spacing-heading);
+
+}
+
+
+.torneos-ediciones-acceso svg {
+
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+
+    flex-shrink: 0;
+
+}
+
+
+/* ==================================================
+   ACCIONES ADMINISTRATIVAS DEL TORNEO
+   ================================================== */
 
 .torneos-tarjeta-acciones {
 
@@ -545,6 +688,56 @@
     }
 
 
+    /* EDICIONES */
+
+    .torneos-ediciones {
+
+        gap: var(--space-2);
+
+        padding-block-start: var(--space-3);
+
+    }
+
+
+    .torneos-ediciones-indicadores {
+
+        gap: var(--space-2);
+
+    }
+
+
+    .torneos-ediciones-indicador {
+
+        padding: var(--space-3);
+
+        gap: var(--space-1);
+
+    }
+
+
+    .torneos-ediciones-indicador .as-stat-label {
+
+        font-size: 10px;
+
+    }
+
+
+    .torneos-ediciones-indicador .as-stat-value {
+
+        font-size: var(--font-size-xl);
+
+    }
+
+
+    .torneos-ediciones-acceso {
+
+        font-size: var(--font-size-xs);
+
+    }
+
+
+    /* ACCIONES ADMINISTRATIVAS */
+
     .torneos-tarjeta-acciones {
 
         flex-direction: row;
@@ -576,6 +769,28 @@
     .torneos-formulario-panel {
 
         gap: var(--space-4);
+
+    }
+
+}
+
+
+/* ==================================================
+   CELULARES MUY ESTRECHOS
+   ================================================== */
+
+@media (max-width: 360px) {
+
+    .torneos-tarjeta-acciones {
+
+        flex-direction: column;
+
+    }
+
+
+    .torneos-tarjeta-acciones > .as-button {
+
+        width: 100%;
 
     }
 

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 
 import {
@@ -18,11 +19,13 @@ import { api } from './services/api';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Torneos from './pages/Torneos';
+import Ediciones from './pages/Ediciones';
 import ModuloPendiente from './pages/ModuloPendiente';
 
 import AppLayout from './layouts/AppLayout';
 
 import './App.css';
+
 
 /* ==================================================
    REGISTRO DE MÓDULOS IMPLEMENTADOS
@@ -31,6 +34,7 @@ import './App.css';
 const COMPONENTES_MODULOS = Object.freeze({
     torneos: Torneos
 });
+
 
 /* ==================================================
    APLICACIÓN PRINCIPAL
@@ -47,6 +51,7 @@ function App() {
         useState(false);
 
     const [error, setError] = useState('');
+
 
     /* VERIFICACIÓN DE SESIÓN */
 
@@ -97,6 +102,7 @@ function App() {
 
     }, []);
 
+
     /* INICIO DE SESIÓN */
 
     function iniciarSesion(usuarioAutenticado) {
@@ -106,6 +112,7 @@ function App() {
         setUsuario(usuarioAutenticado);
 
     }
+
 
     /* CIERRE DE SESIÓN */
 
@@ -138,6 +145,7 @@ function App() {
         }
 
     }
+
 
     /* PANTALLA DE CARGA */
 
@@ -172,6 +180,7 @@ function App() {
 
     }
 
+
     /* ACCESO PRIVADO */
 
     if (!usuario) {
@@ -183,6 +192,7 @@ function App() {
         );
 
     }
+
 
     /* APLICACIÓN AUTENTICADA */
 
@@ -210,6 +220,7 @@ function App() {
                         index
                         element={<Dashboard />}
                     />
+
 
                     {/* MÓDULOS DEL SISTEMA */}
 
@@ -240,6 +251,15 @@ function App() {
 
                     })}
 
+
+                    {/* EDICIONES DE UN TORNEO */}
+
+                    <Route
+                        path="torneos/:torneoId/ediciones"
+                        element={<Ediciones />}
+                    />
+
+
                     {/* RUTAS INEXISTENTES */}
 
                     <Route
@@ -261,5 +281,6 @@ function App() {
     );
 
 }
+
 
 export default App;

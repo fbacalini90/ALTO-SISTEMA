@@ -1,10 +1,10 @@
-
 # ALTO-SISTEMA — Modelo multitorneo
 
-Versión de referencia: 0.2.0
+Versión de referencia: 0.3.0
 
 Estado: implementación parcial.
-HU-004 verificada, pendiente de consolidación.
+HU-004 consolidada. HU-005 implementada y verificada,
+pendiente de CHECK integral y consolidación definitiva.
 
 ---
 
@@ -72,12 +72,12 @@ del sistema.
 Las tablas y relaciones definitivas se diseñarán
 durante las historias de usuario correspondientes.
 
-En la versión 0.2.0 se encuentra implementado
-y verificado el primer nivel de esta jerarquía:
-TORNEO.
+En la versión 0.3.0 se encuentran implementados
+y verificados los dos primeros niveles de esta
+jerarquía: TORNEO y EDICIÓN.
 
-Las restantes entidades deportivas permanecen
-pendientes de implementación.
+CATEGORÍA y las restantes entidades deportivas
+permanecen pendientes de implementación.
 
 ---
 
@@ -113,7 +113,7 @@ parte de las condiciones fijas del código.
 | Entidad | Torneo |
 | Tabla | `torneos` |
 | Migración | `002_torneos.sql` |
-| Estado | Implementado y verificado |
+| Estado | Aprobado y consolidado |
 
 La HU-004 establece la identidad administrativa
 básica de cada competición y su ciclo de vida.
@@ -180,21 +180,31 @@ Los torneos archivados conservan:
 - Nombre.
 - Descripción.
 - Fechas registradas.
+- Ediciones asociadas, incluidos sus datos y estados.
 - Información histórica que se incorpore
   en futuras historias de usuario.
 
 La edición de sus datos básicos permanece
 disponible.
 
-Las futuras operaciones deportivas deberán
-comprobar el estado del torneo correspondiente.
+Las operaciones de EDICIONES ya comprueban
+el estado del torneo correspondiente.
+
+Archivar un torneo no finaliza automáticamente
+sus ediciones ni modifica sus fechas. Las restricciones
+de operación se detallan en la sección 5.6.
+
+Las futuras operaciones deportivas deberán respetar
+las reglas de contexto que se aprueben.
 
 ### 4.5. Eliminación definitiva
 
 La eliminación definitiva de torneos se encuentra
 disponible desde la interfaz y la API.
 
-Puede utilizarse sobre torneos activos y archivados.
+Puede utilizarse sobre torneos activos y archivados,
+siempre que no existan registros dependientes que
+impidan su eliminación.
 
 La operación elimina físicamente el registro
 correspondiente de MySQL.
@@ -265,43 +275,40 @@ la instalación del sistema.
 La versión 0.2.0 implementa exclusivamente
 la gestión administrativa básica de torneos.
 
-Permanecen pendientes:
+Al cierre de HU-004, las ediciones permanecían
+pendientes. HU-005 las incorpora en v0.3.0.
 
-- Ediciones.
+Permanecen pendientes en la versión actual:
+
 - Categorías.
 - Identidad visual de competiciones.
 - Reglamentos deportivos.
 - Selección del contexto deportivo.
-- Relaciones con otras entidades deportivas.
+- Relaciones con entidades deportivas posteriores a ediciones.
 
 ### 4.9. Protección de registros dependientes
 
-Las futuras relaciones entre torneos y otras
-entidades deportivas deberán preservar
-la integridad referencial.
+La relación TORNEO–EDICIÓN se encuentra implementada
+mediante la migración `003_ediciones.sql`.
 
-La eliminación de un torneo que posea ediciones
-u otros registros dependientes deberá impedirse
-cuando resulte incompatible con la conservación
-de los datos.
+La clave foránea `fk_ediciones_torneo` impide eliminar
+un torneo con ediciones asociadas, independientemente
+de su estado administrativo o deportivo.
 
-En esos casos deberá utilizarse el archivado
-como alternativa administrativa.
+La restricción utiliza `ON DELETE RESTRICT` y
+`ON UPDATE RESTRICT`. No existe eliminación en cascada.
 
-El backend contempla la respuesta HTTP 409
-ante errores de dependencia producidos por
-restricciones de claves foráneas.
+El backend traduce el error de dependencia en una
+respuesta HTTP 409. La interfaz conserva el torneo
+y permite utilizar el archivado como alternativa.
 
-No deberán utilizarse eliminaciones en cascada
-que destruyan información deportiva histórica.
+La protección real se verificó durante HU-005 con MySQL
+y mediante la interfaz administrativa. Las restricciones
+de entidades deportivas futuras deberán implementarse
+y comprobarse en sus respectivas historias de usuario.
 
-La incorporación y verificación real de estas
-restricciones corresponderá a las historias
-de usuario que implementen las entidades
-dependientes.
-
-Actualmente no existen ediciones asociadas
-a los torneos.
+No deberán eliminarse ediciones históricas únicamente
+para permitir la eliminación de su torneo.
 
 ### 4.10. Comparación de operaciones
 
@@ -314,6 +321,7 @@ a los torneos.
 | Requiere confirmación en la interfaz | Sí | Sí |
 | Permite recuperar el mismo registro | Sí | No |
 | Preserva los demás torneos | Sí | Sí |
+| Disponible con ediciones asociadas | Sí | No |
 
 ---
 
@@ -345,14 +353,256 @@ de más de una edición durante un mismo año.
 | Propiedad | Valor |
 |---|---|
 | Historia de usuario | HU-005 |
-| Estado | Pendiente |
+| Versión | 0.3.0 |
+| Entidad | Edición |
+| Tabla | `ediciones` |
+| Migración | `003_ediciones.sql` |
+| Estado | Implementado y verificado; cierre formal pendiente |
 
-El modelo de persistencia y las funcionalidades
-administrativas se definirán durante HU-005.
+El módulo permite gestionar las ediciones de cada torneo
+sin introducir categorías ni modificar las reglas deportivas
+previstas para etapas posteriores.
 
-La relación entre torneo y edición deberá
-impedir la eliminación de un torneo que
-posea ediciones dependientes.
+### 5.2. Identidad y denominación
+
+Cada edición posee un identificador persistente propio y
+pertenece a un único torneo. La relación es de uno a muchos:
+
+```mermaid
+erDiagram
+    TORNEOS ||--o{ EDICIONES : contiene
+    TORNEOS {
+        int id PK
+        varchar nombre UK
+        enum estado
+    }
+    EDICIONES {
+        int id PK
+        int torneo_id FK
+        varchar nombre
+        varchar descripcion
+        date fecha_inicio
+        date fecha_finalizacion
+        enum estado
+        timestamp fecha_creacion
+        timestamp fecha_actualizacion
+    }
+```
+
+El nombre es libre, obligatorio y admite hasta 100 caracteres.
+El año, cuando corresponda, forma parte del nombre. No existe
+un campo `anio` independiente ni se exige incluir un año.
+
+La unicidad del nombre se limita al torneo correspondiente.
+Se permiten nombres iguales en torneos diferentes, pero no
+nombres duplicados dentro del mismo torneo. Se aplica la
+normalización Unicode NFC y de espacios, y la unicidad se
+protege con la intercalación `utf8mb4_unicode_ci` de MySQL,
+que no distingue mayúsculas, minúsculas ni acentos para
+estas comparaciones.
+
+La descripción es opcional y admite hasta 500 caracteres.
+Un nombre reservado por una edición finalizada sigue reservado.
+La eliminación definitiva libera el nombre dentro de su torneo;
+una creación posterior con ese nombre tendrá otro identificador.
+
+Ejemplos de ediciones de un mismo torneo:
+
+- NOCTURNO 2027.
+- COPA DE VERANO 2027.
+- NOCTURNO 2028.
+
+Son nombres ilustrativos, no registros obligatorios ni valores
+fijos del código. Se permiten múltiples ediciones en el mismo año.
+
+### 5.3. Modelo de persistencia
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | INT | PK, autoincremental |
+| torneo_id | INT | Obligatorio, FK a `torneos.id` |
+| nombre | VARCHAR(100) | Obligatorio; único dentro del torneo |
+| descripcion | VARCHAR(500) | Opcional, admite NULL |
+| fecha_inicio | DATE | Opcional, admite NULL |
+| fecha_finalizacion | DATE | Opcional, admite NULL |
+| estado | ENUM | PLANIFICADA, EN_CURSO, FINALIZADA; inicial PLANIFICADA |
+| fecha_creacion | TIMESTAMP | Creación automática |
+| fecha_actualizacion | TIMESTAMP | Actualización automática |
+
+Restricciones e índices implementados:
+
+| Nombre | Responsabilidad |
+|---|---|
+| `uq_ediciones_torneo_nombre` | UNIQUE (`torneo_id`, `nombre`) |
+| `idx_ediciones_torneo_estado` | Índice (`torneo_id`, `estado`) |
+| `fk_ediciones_torneo` | FK a `torneos.id`; RESTRICT en eliminación y actualización |
+| `chk_ediciones_fechas` | Finalización igual o posterior al inicio cuando ambas existen |
+
+El motor de almacenamiento es InnoDB, con codificación
+`utf8mb4` e intercalación `utf8mb4_unicode_ci`.
+No existe eliminación automática de ediciones al archivar
+ni al intentar eliminar el torneo asociado.
+
+### 5.4. Fechas de la edición
+
+Las fechas de inicio y finalización son independientes,
+opcionales y editables. Pueden incorporarse, modificarse
+o retirarse sin cambiar automáticamente el estado deportivo.
+
+- Se admiten ambas fechas vacías, una sola fecha o ambas.
+- Las fechas informadas deben ser fechas reales y válidas.
+- Si ambas están informadas, la fecha de finalización no puede
+  ser anterior a la de inicio; se permite que sean iguales.
+- Se almacenan como DATE y se intercambian con la API en
+  formato `YYYY-MM-DD`, sin conversiones de zona horaria.
+- La interfaz permite limpiar cualquiera de las fechas.
+
+Estas fechas representan datos de planificación o registro.
+No son condiciones automáticas para iniciar, finalizar o
+reabrir una edición. Tampoco impiden la coexistencia de
+ediciones cuyas fechas se superpongan.
+
+### 5.5. Ciclo de vida deportivo
+
+| Estado | Significado |
+|---|---|
+| PLANIFICADA | Edición registrada, aún no iniciada |
+| EN_CURSO | Edición iniciada o reabierta |
+| FINALIZADA | Edición cerrada deportivamente; conserva sus datos |
+
+```mermaid
+stateDiagram-v2
+    [*] --> PLANIFICADA: Crear
+    PLANIFICADA --> EN_CURSO: Iniciar
+    EN_CURSO --> FINALIZADA: Finalizar
+    FINALIZADA --> EN_CURSO: Reabrir
+```
+
+Las transiciones de estado son manuales y se validan en el
+backend. El estado inicial siempre es PLANIFICADA.
+No se permite finalizar directamente una edición planificada
+ni volver a PLANIFICADA desde EN_CURSO o FINALIZADA.
+Reiterar el estado actual no requiere modificar el registro.
+
+Pueden existir múltiples ediciones EN_CURSO del mismo torneo.
+Finalizar una edición no finaliza otras ediciones, no archiva
+el torneo ni elimina la información registrada.
+
+Reabrir una edición finalizada conserva su identidad y sus
+fechas. HU-005 no ejecuta procesos deportivos automáticos
+al cambiar el estado; las consecuencias sobre categorías,
+partidos, estadísticas y disciplina se resolverán conforme
+a las reglas aprobadas en las etapas correspondientes.
+
+### 5.6. Relación con el estado administrativo del torneo
+
+El estado ACTIVO o ARCHIVADO del torneo es independiente
+del estado deportivo de cada edición.
+
+| Operación sobre edición | Torneo ACTIVO | Torneo ARCHIVADO |
+|---|---|---|
+| Consultar y listar | Permitida | Permitida |
+| Buscar y filtrar | Permitida | Permitida |
+| Crear | Permitida | No permitida |
+| Editar nombre, descripción y fechas | Permitida | Permitida |
+| Iniciar una PLANIFICADA | Permitida | No permitida |
+| Finalizar una EN_CURSO | Permitida | Permitida |
+| Reabrir una FINALIZADA | Permitida | No permitida |
+| Eliminar sin dependencias incompatibles | Permitida | Permitida |
+
+La interfaz informa las restricciones del torneo archivado.
+El backend las hace cumplir independientemente de la interfaz.
+La reactivación de un torneo recupera la posibilidad de crear,
+iniciar y reabrir ediciones conforme a su estado deportivo.
+Archivar o reactivar no cambia automáticamente las ediciones.
+
+### 5.7. Operaciones administrativas y navegación
+
+Desde cada tarjeta de TORNEOS se accede a GESTIONAR EDICIONES.
+La pantalla identifica el torneo seleccionado, permite volver
+al listado y muestra exclusivamente sus ediciones.
+
+Funcionalidades:
+
+- Creación y consulta de ediciones.
+- Listado, búsqueda por nombre y descripción y filtros por estado.
+- Edición de datos básicos y fechas.
+- Inicio, finalización y reapertura con confirmación.
+- Eliminación definitiva con confirmación.
+- Indicadores administrativos de la edición y de su torneo.
+- Estados de carga, ausencia de registros y mensajes de error.
+- Adaptación responsive.
+
+No se incorpora un nuevo módulo independiente en el menú lateral.
+La gestión de ediciones depende del torneo seleccionado y no
+constituye todavía el selector integral de contexto deportivo
+previsto para HU-008.
+
+### 5.8. Eliminación y conservación histórica
+
+La eliminación de una edición es física, no un cambio de estado.
+Está disponible para ediciones PLANIFICADAS, EN_CURSO y
+FINALIZADAS, siempre que no existan dependencias incompatibles.
+No existe una papelera ni un estado ELIMINADA.
+
+La interfaz identifica el registro, advierte que la operación
+es irreversible y permite cancelar. El backend verifica el
+identificador, la pertenencia al torneo y las restricciones
+aplicables antes de eliminar el registro.
+
+El resultado exitoso actualiza el listado y los indicadores.
+La eliminación de una edición no afecta otras ediciones.
+La eliminación de un torneo con al menos una edición asociada
+se rechaza por integridad referencial.
+
+La finalización de ediciones no equivale a su eliminación.
+Las futuras categorías y demás entidades dependientes deberán
+utilizar restricciones que protejan la información histórica.
+HU-005 aún no incorpora esas tablas ni sus claves foráneas.
+
+### 5.9. Independencia de datos y operaciones concurrentes
+
+Las consultas y escrituras de una edición verifican tanto el
+identificador del torneo como el de la edición cuando corresponde.
+Una edición de otro torneo no deberá devolverse ni modificarse
+mediante la ruta de un torneo distinto.
+
+Las operaciones de escritura se ejecutan mediante transacciones
+que bloquean el registro del torneo (`SELECT ... FOR UPDATE`)
+antes de comprobar su estado y realizar la operación de negocio.
+Los conflictos de unicidad, dependencias y concurrencia se
+tratan como conflictos de datos; la transacción se revierte
+ante errores. Las restricciones de MySQL complementan las
+validaciones del servicio.
+
+### 5.10. Contrato de acceso
+
+| Método | Endpoint | Operación |
+|---|---|---|
+| GET | `/api/torneos/:torneoId/ediciones` | Listado e indicadores |
+| GET | `/api/torneos/:torneoId/ediciones/:edicionId` | Consulta individual |
+| POST | `/api/torneos/:torneoId/ediciones` | Crear |
+| PUT | `/api/torneos/:torneoId/ediciones/:edicionId` | Editar datos |
+| PATCH | `/api/torneos/:torneoId/ediciones/:edicionId/estado` | Cambiar estado |
+| DELETE | `/api/torneos/:torneoId/ediciones/:edicionId` | Eliminar |
+
+Todos requieren autenticación y las escrituras respetan
+los controles de origen de solicitudes. El listado admite
+los filtros `busqueda` y `estado` y devuelve los indicadores
+del torneo independientemente del filtrado del listado.
+El contrato técnico completo se detalla en ARQUITECTURA.md.
+
+### 5.11. Límites de HU-005
+
+No se incorporan categorías, equipos, inscripciones, zonas,
+jornadas, partidos, copas, estadísticas deportivas, disciplina,
+identidades visuales personalizadas ni el selector global
+de contexto. Las reglas ya documentadas para esas funcionalidades
+se conservan sin modificaciones.
+
+La futura HU-006 deberá definir e implementar la relación
+entre edición y categoría conforme al modelo conceptual,
+sin anticipar sus campos, acciones o criterios de aceptación.
 
 ---
 
@@ -430,9 +680,12 @@ en operaciones de otra competición.
 | Historia de usuario | HU-008 |
 | Estado | Pendiente |
 
-La gestión administrativa de torneos incorporada
-en HU-004 no constituye todavía un selector
-de contexto deportivo.
+La gestión administrativa de torneos de HU-004 y la
+navegación parametrizada de ediciones de HU-005 no
+constituyen todavía un selector integral de contexto deportivo.
+
+HU-005 ya verifica la relación torneo–edición en el backend.
+El nivel de categoría y la selección global permanecen pendientes.
 
 ---
 
@@ -556,6 +809,23 @@ activos obtenido mediante la API.
 
 Las creaciones, cambios de estado y eliminaciones
 deberán reflejarse en los indicadores correspondientes.
+
+En v0.3.0 se incorporan los siguientes indicadores por torneo:
+
+- Total de ediciones.
+- Ediciones PLANIFICADAS.
+- Ediciones EN CURSO.
+- Ediciones FINALIZADAS.
+
+La pantalla EDICIONES presenta los cuatro indicadores.
+Las tarjetas de TORNEOS muestran el total de ediciones y
+la cantidad de ediciones EN CURSO de cada torneo.
+Los indicadores reflejan el conjunto completo del torneo,
+no únicamente los registros visibles tras aplicar filtros.
+
+Las modificaciones exitosas actualizan los indicadores.
+Una consulta fallida no debe interpretarse como ausencia de
+ediciones ni sustituirse por valores ficticios.
 
 Estos indicadores no constituyen estadísticas
 de rendimiento deportivo.
@@ -876,6 +1146,7 @@ controladas, verificables y documentadas.
 |---|---|
 | `001_usuarios.sql` | Usuarios administrativos |
 | `002_torneos.sql` | Gestión de torneos |
+| `003_ediciones.sql` | Gestión de ediciones e integridad TORNEO–EDICIÓN |
 
 Las migraciones aplicadas deberán conservarse
 sin modificaciones posteriores.
@@ -895,29 +1166,35 @@ Las validaciones del frontend deberán
 complementarse con validaciones del backend
 y restricciones de integridad de la base de datos.
 
-### 14.4. Integridad referencial futura
+### 14.4. Integridad referencial actual y futura
 
-Las entidades dependientes deberán disponer
-de restricciones que impidan operaciones
-incompatibles con la conservación de los datos.
+La relación TORNEO–EDICIÓN dispone de una clave foránea
+obligatoria con restricciones RESTRICT. Se verificó el rechazo
+de la eliminación de un torneo con ediciones asociadas.
+La unicidad contextual y la coherencia de fechas disponen
+de restricciones UNIQUE y CHECK, respectivamente.
 
-La incorporación de ediciones deberá incluir
-pruebas que verifiquen el rechazo de la
-eliminación de su torneo asociado.
+Las futuras entidades dependientes deberán disponer
+de restricciones que impidan operaciones incompatibles
+con la conservación de los datos.
 
-No deberán existir registros deportivos
-huérfanos como consecuencia de operaciones
-administrativas.
+No deberán existir registros deportivos huérfanos como
+consecuencia de operaciones administrativas.
 
 ### 14.5. Verificación final de migraciones
 
 | Control | Resultado |
 |---|---|
 | Base de datos | alto_sistema |
-| Migraciones registradas | 2 |
+| Migraciones registradas | 3 |
 | Migraciones pendientes | 0 |
 | Errores | 0 |
 | Estado | Actualizada |
+
+Se verificó la migración desde v0.2.0, su aplicación en
+el entorno aislado de integración y una instalación desde
+una base nueva con las tres migraciones. Una nueva ejecución
+sobre la base recién instalada registró cero pendientes.
 
 ---
 
@@ -976,8 +1253,11 @@ como referencias de identidad.
 ### 15.4. Estado de implementación
 
 El archivado y la eliminación administrativa
-de torneos se encuentran implementados
-y verificados.
+de torneos se encuentran implementados y verificados.
+La consulta, finalización, reapertura y eliminación de
+ediciones también están implementadas. La finalización
+conserva los registros; no genera todavía un historial
+de resultados, campeones ni sanciones.
 
 El historial deportivo integral permanece
 pendiente de la ETAPA 12.
@@ -1021,10 +1301,21 @@ Su ciclo de vida comprende:
 ### 16.2. Evolución prevista
 
 Las siguientes historias de usuario incorporarán
-las entidades dependientes de cada competición.
+las entidades dependientes restantes de cada competición.
 
 El desarrollo deberá conservar la independencia
 de los datos y evitar límites arbitrarios.
+
+### 16.3. Capacidad incorporada en HU-005
+
+La versión 0.3.0 permite crear y administrar múltiples
+ediciones por torneo sin modificar el código fuente ni
+reiniciar los servicios por cada edición. Se permiten nombres
+libres, fechas opcionales y ediciones simultáneas EN_CURSO.
+
+Las ediciones se mantienen dentro de su propio torneo.
+La gestión de categorías continuará en HU-006, después
+de aprobar y consolidar HU-005.
 
 ---
 
@@ -1081,8 +1372,8 @@ técnicas y funcionales realizadas durante HU-004.
 La adaptación responsive se verificó mediante
 el navegador.
 
-La aprobación formal deberá registrarse
-durante el cierre del CHECK integral.
+HU-004 fue aprobada y consolidada en el commit
+`27654c0`, correspondiente a v0.2.0.
 
 ### 17.2. Controles complementarios
 
@@ -1092,7 +1383,44 @@ durante el cierre del CHECK integral.
 | Integridad de migraciones | Verificada |
 | Consistencia de versión | Verificada |
 | Limpieza de torneos temporales | Completada |
-| Documentación definitiva | En consolidación |
+| Documentación definitiva de HU-004 | Consolidada |
+
+### 17.3. Verificaciones funcionales de HU-005
+
+La validación funcional y visual se organizó en 17 controles,
+según las comprobaciones y confirmaciones efectuadas en el
+entorno local. Estos controles no sustituyen la aprobación
+formal del CHECK integral.
+
+| Nº | Control | Resultado |
+|---:|---|---|
+| 01 | Integración visual con TORNEOS | Verificado |
+| 02 | Navegación hacia EDICIONES | Verificado |
+| 03 | Creación de ediciones | Verificado |
+| 04 | Fechas opcionales | Verificado |
+| 05 | Modificación de fechas | Verificado |
+| 06 | Inicio | Verificado |
+| 07 | Finalización | Verificado |
+| 08 | Reapertura | Verificado |
+| 09 | Indicadores internos | Verificado |
+| 10 | Ediciones simultáneas | Verificado |
+| 11 | Modificación de nombre y descripción | Verificado |
+| 12 | Eliminación de fechas | Verificado |
+| 13 | Búsqueda y filtros | Verificado |
+| 14 | Indicadores externos de TORNEOS | Verificado |
+| 15 | Restricciones de torneos archivados | Verificado |
+| 16 | Eliminación e integridad referencial | Verificado |
+| 17 | Adaptación responsive | Verificado por confirmación del administrador |
+
+Resultado funcional: 17/17 controles validados.
+La adaptación responsive se confirmó mediante simulación
+indicada de 390 × 844 píxeles en el navegador; no equivale
+a una prueba en un dispositivo físico.
+
+Las pruebas automatizadas complementan estas comprobaciones
+con casos de unicidad, fechas válidas, transiciones no permitidas,
+identificadores, pertenencia al torneo, autenticación,
+concurrencia y restricciones de MySQL.
 
 ---
 
@@ -1107,13 +1435,14 @@ durante el cierre del CHECK integral.
 | 0.1.2 | Interfaz administrativa |
 | 0.1.3 | Consolidación arquitectónica |
 | 0.2.0 | Gestión integral de torneos y Sistema de Diseño v1.0 |
+| 0.3.0 | Gestión de ediciones e integridad TORNEO–EDICIÓN |
 
 ### 18.2. Entidades y funcionalidades
 
 | Entidad o funcionalidad | Estado |
 |---|---|
-| Torneos | Implementado y verificado |
-| Ediciones | Pendiente |
+| Torneos | Implementado, aprobado y consolidado |
+| Ediciones | Implementado y verificado; cierre formal pendiente |
 | Categorías | Pendiente |
 | Reglamentos deportivos | Pendiente |
 | Identidad visual de competiciones | Pendiente |
@@ -1151,7 +1480,7 @@ durante el cierre del CHECK integral.
 | Revisión visual inicial | 8/8 |
 | Validación funcional | Satisfactoria |
 | Eliminación de torneos temporales | Completada |
-| CHECK integral HU-004 | Pendiente de cierre formal |
+| CHECK integral HU-004 | Aprobado y consolidado |
 
 Los controles internos de integración forman
 parte de una única prueba automatizada.
@@ -1169,16 +1498,17 @@ simulación desde el navegador.
 La validación en dispositivos móviles físicos
 permanece pendiente.
 
-La protección de eliminación frente a futuras
-claves foráneas deberá verificarse cuando
-se incorporen las entidades dependientes.
+Durante HU-004 la protección de dependencias se verificó
+mediante simulación. HU-005 incorporó y comprobó la
+restricción real entre torneos y ediciones. Las claves
+foráneas de entidades posteriores siguen pendientes.
 
 ### 18.4. Evolución de la ETAPA 02
 
 | Historia | Responsabilidad | Estado |
 |---|---|---|
-| HU-004 | Gestión integral de torneos | Verificada, pendiente de consolidación |
-| HU-005 | Gestión de ediciones | Pendiente |
+| HU-004 | Gestión integral de torneos | Aprobada y consolidada |
+| HU-005 | Gestión de ediciones | Verificada, pendiente de CHECK y consolidación |
 | HU-006 | Gestión de categorías | Pendiente |
 | HU-007 | Identidad visual | Pendiente |
 | HU-008 | Selección del contexto deportivo | Pendiente |
@@ -1189,7 +1519,7 @@ todas sus historias de usuario.
 ### 18.5. Conservación de las reglas deportivas
 
 La implementación de la gestión integral
-de torneos no modifica las reglas previamente
+de torneos y ediciones no modifica las reglas previamente
 establecidas sobre:
 
 - Independencia deportiva.
@@ -1205,6 +1535,53 @@ durante la etapa correspondiente.
 
 Este documento constituye una referencia
 obligatoria para las futuras historias de usuario.
+
+### 18.6. Verificación de ediciones — v0.3.0
+
+| Control | Resultado |
+|---|---|
+| Pruebas unitarias de autenticación | 13/13 |
+| Pruebas unitarias de torneos | 30/30 |
+| Pruebas unitarias de ediciones | 59/59 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Integración de ediciones | 1/1 |
+| Total de pruebas automatizadas únicas | 105/105 |
+| Pruebas fallidas en las ejecuciones específicas | 0 |
+| Migraciones registradas | 3 |
+| Migraciones pendientes | 0 |
+| Instalación desde cero e idempotencia | Verificadas |
+| Integridad TORNEO–EDICIÓN | Verificada |
+| ESLint | Sin errores informados |
+| Compilación de producción | Exitosa (2,52 segundos) |
+| Validaciones funcionales | 17/17 |
+| Limpieza de registros deportivos temporales | Completada |
+| Coherencia de versión | 8/8 valores verificados |
+| CHECK integral HU-005 | Pendiente de aprobación formal |
+
+Las 105 pruebas corresponden a 102 unitarias y tres de
+integración, aprobadas mediante ejecuciones separadas.
+La integración de EDICIONES comprende 14 bloques internos;
+se recibió el resultado global satisfactorio de la prueba,
+no los diagnósticos individuales de cada bloque. No se
+contabilizan dichos bloques como pruebas independientes.
+
+La integración de torneos y ediciones se realizó en la base
+`altosistemahu004test`. La instalación limpia se verificó en
+`altosistemahu005fresh`. Ambas se conservan para futuras
+verificaciones, sin utilizarse como bases principales.
+
+Las pruebas precedieron a la actualización de versión; la
+coherencia de los archivos de versión y el reinicio de los
+servidores se verificaron posteriormente. La restauración de
+un respaldo con TORNEOS y EDICIONES, las pruebas de carga y
+la validación móvil física permanecen pendientes.
+
+La versión local es v0.3.0. La última versión consolidada
+es v0.2.0. La documentación y las capturas de HU-005,
+su CHECK integral y la publicación en GitHub forman parte
+del cierre pendiente. HU-006 no se iniciará antes de su
+aprobación y consolidación.
 
 ---
 

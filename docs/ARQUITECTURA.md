@@ -1,10 +1,9 @@
-
 # ALTO-SISTEMA — Arquitectura
 
-Versión de referencia: 0.2.0
+Versión de referencia: 0.3.0
 
-Estado: implementación verificada.
-Pendiente de consolidación definitiva de HU-004.
+Estado: HU-004 consolidada; HU-005 implementada y verificada.
+Pendiente de CHECK integral y publicación definitiva de HU-005.
 
 ---
 
@@ -111,7 +110,9 @@ frontend/src/
 │   ├── ModuloPendiente.jsx
 │   ├── ModuloPendiente.css
 │   ├── Torneos.jsx
-│   └── Torneos.css
+│   ├── Torneos.css
+│   ├── Ediciones.jsx
+│   └── Ediciones.css
 ├── services/
 │   └── api.js
 ├── styles/
@@ -192,6 +193,11 @@ Actualmente:
 
 - Inicio: Dashboard.
 - Torneos: Torneos.
+- Ediciones: Ediciones, mediante la ruta privada
+  `/torneos/:torneoId/ediciones` bajo AppLayout.
+
+EDICIONES es una pantalla dependiente del torneo,
+no una nueva opción del menú lateral.
 
 Los módulos secundarios que aún no
 dispongan de una implementación funcional
@@ -217,9 +223,11 @@ Contempla:
 - Tratamiento de errores de conexión.
 - Cancelación de solicitudes compatibles.
 
-El módulo TORNEOS utiliza los cinco
+Los módulos TORNEOS y EDICIONES utilizan los cinco
 métodos HTTP disponibles para administrar
 el ciclo de vida de sus registros.
+
+HU-005 reutiliza `api.js` sin modificarlo.
 
 ### 3.6. Estado de autenticación
 
@@ -361,19 +369,28 @@ encuentran en:
 
 ### 5.1. Organización
 
+Estructura general con los archivos incorporados en HU-005
+(los componentes de HU anteriores se conservan):
+
 ```text
 backend/
 ├── src/
 │   ├── config/
 │   ├── controllers/
+│   │   └── edicion.controller.js
 │   ├── middlewares/
 │   ├── repositories/
+│   │   └── edicion.repository.js
 │   ├── routes/
+│   │   └── edicion.routes.js
 │   ├── services/
+│   │   └── edicion.service.js
 │   ├── create-admin.js
 │   ├── migrate.js
 │   └── server.js
 ├── tests/
+│   ├── edicion.service.test.js
+│   └── edicion.integration.test.js
 ├── package.json
 └── package-lock.json
 ```
@@ -583,8 +600,8 @@ stateDiagram-v2
     [*] --> ACTIVO: Creación
     ACTIVO --> ARCHIVADO: Archivar
     ARCHIVADO --> ACTIVO: Reactivar
-    ACTIVO --> [*]: Eliminar
-    ARCHIVADO --> [*]: Eliminar
+    ACTIVO --> [*]: Eliminar sin dependencias
+    ARCHIVADO --> [*]: Eliminar sin dependencias
 ```
 
 El archivado es reversible.
@@ -597,7 +614,9 @@ está permitida para torneos
 activos y archivados.
 
 La eliminación definitiva está
-disponible en ambos estados.
+disponible en ambos estados siempre que
+no existan ediciones ni otras dependencias
+que la impidan.
 
 ELIMINADO no constituye un estado
 administrativo persistente.
@@ -725,9 +744,12 @@ ficticios como estadísticas reales.
 
 ### 8.11. Límites del módulo
 
-HU-004 no implementa todavía:
+HU-004, en su alcance original, no implementaba
+ediciones. HU-005 incorpora su gestión y vínculo
+con los torneos sin sustituir las operaciones
+administrativas existentes.
 
-- Ediciones.
+Continúan pendientes:
 - Categorías.
 - Equipos inscritos.
 - Zonas.
@@ -822,16 +844,19 @@ No deberán incorporarse eliminaciones
 en cascada que destruyan información
 deportiva histórica.
 
-Actualmente no existen ediciones
-ni otras entidades deportivas
-dependientes de torneos.
+Desde HU-005, la tabla `ediciones` depende
+de `torneos` mediante `fk_ediciones_torneo`
+con ON DELETE RESTRICT y ON UPDATE RESTRICT.
 
-La protección mediante claves foráneas
-reales deberá verificarse cuando se
-incorporen esas relaciones.
+La protección real fue verificada contra MySQL
+y desde la interfaz: al intentar eliminar un
+torneo con ediciones asociadas, se rechazó
+la operación y se conservaron sus registros.
 
-La comprobación unitaria actual
-simula el error de dependencia.
+Una vez eliminadas las ediciones temporales,
+se pudo eliminar el torneo correspondiente.
+La comprobación unitaria de HU-004 conserva
+la simulación del error de dependencia.
 
 ### 8.15. Independencia de operaciones
 
@@ -849,6 +874,349 @@ genera un nuevo registro.
 
 No constituye una restauración
 del torneo anterior.
+
+
+### 8.16. Integración con EDICIONES (HU-005)
+
+Las tarjetas de TORNEOS incorporan:
+
+- Total de ediciones asociadas.
+- Cantidad de ediciones EN_CURSO.
+- Botón GESTIONAR EDICIONES.
+
+El acceso utiliza el identificador del torneo
+seleccionado y permanece disponible para
+torneos activos y archivados.
+
+Los indicadores se obtienen reutilizando
+la API de EDICIONES, mediante consultas
+adicionales por torneo con concurrencia
+limitada a cuatro solicitudes.
+
+Si una consulta falla, se muestra un guion
+en lugar de informar un cero incorrecto.
+
+El regreso a TORNEOS vuelve a consultar
+los datos. La actualización de indicadores
+fue verificada desde la interfaz.
+
+La solución evita introducir un endpoint
+agregado en HU-005. Su costo aumenta con
+la cantidad de torneos; una consulta
+agregada podrá evaluarse cuando existan
+mediciones que justifiquen la optimización.
+
+### 8.17. Módulo de ediciones
+
+| Propiedad | Valor |
+|---|---|
+| Historia de usuario | HU-005 |
+| Versión | 0.3.0 |
+| Entidad | Edición |
+| Tabla | `ediciones` |
+| Migración | `003_ediciones.sql` |
+| Estado | Implementado y verificado |
+
+La edición representa una realización concreta
+de un torneo. Un torneo puede tener cero,
+una o múltiples ediciones, incluso simultáneas.
+
+El nombre contiene libremente la denominación
+y el año cuando corresponda. No existe un
+campo independiente para el año.
+
+#### 8.17.1. Componentes y responsabilidades
+
+| Capa | Archivo | Responsabilidad |
+|---|---|---|
+| Presentación | `frontend/src/pages/Ediciones.jsx` | Gestión de ediciones del torneo seleccionado |
+| Estilos | `frontend/src/pages/Ediciones.css` | Diseño específico y responsive |
+| Enrutamiento | `frontend/src/App.jsx` | Ruta privada parametrizada |
+| Integración | `frontend/src/pages/Torneos.jsx` y `Torneos.css` | Acceso e indicadores por torneo |
+| Route | `backend/src/routes/edicion.routes.js` | Endpoints anidados y autenticación |
+| Controller | `backend/src/controllers/edicion.controller.js` | Respuestas HTTP y tratamiento de errores |
+| Service | `backend/src/services/edicion.service.js` | Validaciones y reglas deportivas |
+| Repository | `backend/src/repositories/edicion.repository.js` | Consultas parametrizadas y transacciones |
+| Inicialización | `backend/src/server.js` | Registro del router |
+| Persistencia | `database/migrations/003_ediciones.sql` | Tabla, índices y restricciones |
+| Migrador | `backend/src/migrate.js` | Verificación estructural de la nueva migración |
+
+#### 8.17.2. Modelo de persistencia
+
+```mermaid
+erDiagram
+    TORNEOS ||--o{ EDICIONES : contiene
+    TORNEOS {
+        int id PK
+        varchar nombre UK
+        enum estado
+    }
+    EDICIONES {
+        int id PK
+        int torneo_id FK
+        varchar nombre
+        varchar descripcion
+        date fecha_inicio
+        date fecha_finalizacion
+        enum estado
+        timestamp fecha_creacion
+        timestamp fecha_actualizacion
+    }
+```
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | INT | PK, autoincremental |
+| torneo_id | INT | Obligatorio; FK a `torneos.id` |
+| nombre | VARCHAR(100) | Obligatorio; único dentro del torneo |
+| descripcion | VARCHAR(500) | Opcional |
+| fecha_inicio | DATE | Opcional |
+| fecha_finalizacion | DATE | Opcional |
+| estado | ENUM | PLANIFICADA, EN_CURSO o FINALIZADA |
+| fecha_creacion | TIMESTAMP | Obligatorio; valor inicial automático |
+| fecha_actualizacion | TIMESTAMP | Obligatorio; actualización automática |
+
+Motor InnoDB, codificación utf8mb4 y colación
+`utf8mb4_unicode_ci`.
+
+Restricciones e índices:
+
+- `uq_ediciones_torneo_nombre`: UNIQUE (`torneo_id`, `nombre`).
+- `idx_ediciones_torneo_estado`: índice (`torneo_id`, `estado`).
+- `fk_ediciones_torneo`: ON DELETE RESTRICT y ON UPDATE RESTRICT.
+- `chk_ediciones_fechas`: si ambas fechas están presentes,
+  la finalización debe ser igual o posterior al inicio.
+
+La unicidad es compuesta: el mismo nombre puede
+existir en torneos distintos. La colación protege
+contra duplicados que solo difieran en mayúsculas
+o acentos dentro del mismo torneo.
+
+La relación con categorías todavía no está implementada.
+
+#### 8.17.3. Ciclo de vida deportivo
+
+```mermaid
+stateDiagram-v2
+    [*] --> PLANIFICADA: Creación
+    PLANIFICADA --> EN_CURSO: Iniciar
+    EN_CURSO --> FINALIZADA: Finalizar
+    FINALIZADA --> EN_CURSO: Reabrir
+```
+
+El estado inicial es PLANIFICADA.
+
+Las fechas son informativas, editables e
+independientes del estado deportivo. Pueden
+omitirse, informarse por separado o eliminarse.
+
+Las transiciones se ejecutan manualmente y no
+modifican automáticamente las fechas.
+
+Repetir el estado actual no produce una escritura.
+No está permitido finalizar directamente una
+edición planificada ni volver a PLANIFICADA
+desde los otros estados.
+
+No existe una restricción que limite a una sola
+edición en curso por torneo.
+
+#### 8.17.4. Relación con el estado administrativo
+
+| Operación | Torneo ACTIVO | Torneo ARCHIVADO |
+|---|---|---|
+| Listar y consultar | Permitida | Permitida |
+| Crear | Permitida | Bloqueada |
+| Editar datos | Permitida | Permitida |
+| Iniciar | Permitida | Bloqueada |
+| Finalizar una edición en curso | Permitida | Permitida |
+| Reabrir | Permitida | Bloqueada |
+| Eliminar sin dependencias | Permitida | Permitida |
+
+El archivado no cambia los estados deportivos
+ni elimina sus datos asociados.
+
+Las restricciones se aplican en el Service.
+La interfaz también deshabilita las acciones
+incompatibles, pero no sustituye esa protección.
+
+#### 8.17.5. Endpoints privados
+
+| Método | Endpoint | Operación |
+|---|---|---|
+| GET | `/api/torneos/:torneoId/ediciones` | Listar ediciones |
+| GET | `/api/torneos/:torneoId/ediciones/:edicionId` | Consultar edición |
+| POST | `/api/torneos/:torneoId/ediciones` | Crear edición |
+| PUT | `/api/torneos/:torneoId/ediciones/:edicionId` | Actualizar datos |
+| PATCH | `/api/torneos/:torneoId/ediciones/:edicionId/estado` | Cambiar estado |
+| DELETE | `/api/torneos/:torneoId/ediciones/:edicionId` | Eliminar edición |
+
+El router utiliza `mergeParams: true` para
+recuperar el identificador del torneo padre
+y se protege mediante `requireAuth`.
+
+Se registra en `server.js` antes del router
+general de TORNEOS. Las escrituras están
+sujetas a los controles de origen existentes.
+
+Filtros del listado: `busqueda` y `estado`.
+
+La respuesta del listado incluye `torneo`,
+`ediciones`, `total` e `indicadores`.
+El total del listado corresponde a los registros
+obtenidos; los indicadores corresponden al
+conjunto completo de ediciones del torneo.
+
+Los indicadores contienen `total`, `planificadas`,
+`en_curso` y `finalizadas`.
+
+La consulta individual devuelve `edicion`.
+Las escrituras de creación, edición y cambio de
+estado devuelven `mensaje` y `edicion`.
+La creación responde HTTP 201 y encabezado Location.
+La eliminación exitosa devuelve un `mensaje`.
+
+#### 8.17.6. Validaciones y errores
+
+El Service valida:
+
+- Identificadores enteros positivos dentro del rango INT.
+- Existencia del torneo y pertenencia de la edición.
+- Campos permitidos en cada operación.
+- Nombre obligatorio de hasta 100 caracteres.
+- Descripción opcional de hasta 500 caracteres.
+- Normalización Unicode NFC y de espacios del nombre.
+- Fechas de calendario válidas en formato YYYY-MM-DD.
+- Coherencia entre fechas, incluso al actualizar parcialmente.
+- Unicidad dentro del torneo.
+- Estados y transiciones permitidos.
+- Restricciones derivadas del archivado.
+- Filtros de búsqueda.
+
+El torneo asociado no puede cambiarse mediante
+la actualización de una edición.
+
+| Código HTTP | Significado |
+|---|---|
+| 200 | Operación exitosa |
+| 201 | Edición creada |
+| 400 | Identificador, datos, fechas o filtros inválidos |
+| 401 | Autenticación requerida |
+| 403 | Solicitud no permitida |
+| 404 | Torneo o edición inexistente en el contexto solicitado |
+| 409 | Duplicado, dependencia, transición prohibida o conflicto transaccional |
+| 500 | Error interno inesperado |
+
+Los errores de negocio se representan mediante
+`EdicionError`. Los errores conocidos de MySQL
+se traducen a respuestas controladas.
+Los errores inesperados no exponen detalles SQL.
+
+#### 8.17.7. Transacciones e independencia
+
+Las escrituras utilizan el mecanismo
+`conTransaccion` del Repository.
+
+El Service comprueba y bloquea el registro
+del torneo padre mediante SELECT FOR UPDATE
+antes de ejecutar la operación de escritura.
+
+```mermaid
+sequenceDiagram
+    participant S as Service
+    participant R as Repository
+    participant D as MySQL
+    S->>R: conTransaccion
+    R->>D: BEGIN
+    S->>R: bloquearTorneo
+    R->>D: SELECT FOR UPDATE
+    D-->>R: Torneo
+    R-->>S: Estado y datos
+    S->>S: Validar contexto y operación
+    S->>R: Escritura parametrizada
+    R->>D: INSERT, UPDATE o DELETE
+    alt Operación exitosa
+        R->>D: COMMIT
+        R-->>S: Resultado
+    else Error
+        R->>D: ROLLBACK
+        R-->>S: Error
+    end
+    R->>R: Liberar conexión
+```
+
+Las operaciones de edición individual se limitan
+por `torneo_id` e `id`. Consultar o modificar
+una edición mediante el identificador de otro
+torneo no debe devolver ni alterar sus datos.
+
+La restricción UNIQUE mantiene la unicidad
+también frente a solicitudes concurrentes.
+
+La eliminación del torneo no se realiza en
+cascada. La FK impide eliminar un torneo
+con ediciones asociadas.
+
+La eliminación definitiva de una edición requiere
+confirmación explícita. Cuando se incorporen
+categorías y otras entidades dependientes,
+deberán establecerse sus restricciones de integridad.
+
+#### 8.17.8. Presentación y navegación
+
+```mermaid
+flowchart TD
+    A[App.jsx: sesión autenticada] --> B[AppLayout]
+    B --> C[TORNEOS]
+    C --> D[GESTIONAR EDICIONES]
+    D --> E["/torneos/:torneoId/ediciones"]
+    E --> F[Ediciones.jsx]
+    F --> G[API de ediciones del torneo]
+    F -->|Regresar| C
+```
+
+La pantalla utiliza `useParams` y `useNavigate`.
+El componente de gestión se identifica con una
+clave basada en el identificador del torneo,
+evitando reutilizar su estado local al cambiar
+de contexto.
+
+La carga inicial se cancela mediante AbortController
+al desmontar el componente o iniciar una nueva consulta.
+
+El listado completo se filtra localmente por nombre,
+descripción y estado. La búsqueda no distingue
+mayúsculas ni tildes. Los indicadores se calculan
+sobre el listado completo, no sobre los resultados
+filtrados.
+
+Las mutaciones exitosas actualizan el estado local
+con las respuestas del servidor. No se eliminan
+tarjetas anticipadamente ante solicitudes fallidas.
+
+Los campos DATE se reciben como cadenas YYYY-MM-DD
+y se muestran como DD/MM/AAAA, evitando conversiones
+de zona horaria sobre fechas sin componente horario.
+
+La interfaz reutiliza el Sistema de Diseño v1.0:
+
+| Estado | Identidad visual |
+|---|---|
+| PLANIFICADA | Azul informativo |
+| EN_CURSO | Verde de éxito |
+| FINALIZADA | Gris neutro |
+
+La pantalla ofrece cuatro indicadores, formularios
+con fechas opcionales, confirmaciones de transición
+y eliminación, mensajes de error y estado vacío.
+
+No se añaden dependencias ni una opción nueva
+al menú lateral.
+
+En pantallas pequeñas se reorganizan los indicadores,
+filtros, tarjetas y campos de fecha. La validación
+responsive fue confirmada mediante la simulación
+del navegador, no en un dispositivo físico.
 
 ---
 
@@ -931,13 +1299,15 @@ migraciones SQL versionadas.
 ```text
 database/migrations/
 ├── 001_usuarios.sql
-└── 002_torneos.sql
+├── 002_torneos.sql
+└── 003_ediciones.sql
 ```
 
 | Versión | Responsabilidad |
 |---|---|
 | 001 | Usuarios administrativos |
 | 002 | Gestión de torneos |
+| 003 | Gestión de ediciones y relación con torneos |
 
 El migrador contempla:
 
@@ -957,8 +1327,12 @@ deberá incorporarse mediante
 una nueva migración.
 
 La incorporación de la eliminación
-definitiva no requirió modificar
+definitiva en HU-004 no requirió modificar
 las migraciones existentes.
+
+HU-005 añade `003_ediciones.sql` y amplía
+la verificación estructural del migrador,
+sin modificar las migraciones 001 y 002.
 
 ### 10.3. Integridad
 
@@ -1000,7 +1374,7 @@ adecuadas.
 
 ### 10.5. Verificación final
 
-La ejecución final del migrador
+La ejecución histórica del migrador
 en la versión 0.2.0 registró:
 
 | Control | Resultado |
@@ -1010,6 +1384,20 @@ en la versión 0.2.0 registró:
 | Migraciones pendientes | 0 |
 | Errores | 0 |
 | Estado | Actualizada |
+
+La verificación de HU-005, previa a la actualización
+del número de versión a 0.3.0, registró:
+
+| Base de datos | Migraciones registradas | Pendientes |
+|---|---:|---:|
+| `alto_sistema` | 3 | 0 |
+| `altosistemahu004test` | 3 | 0 tras aplicar 003 |
+| `altosistemahu005fresh` | 3 | 0 |
+
+La instalación limpia y la repetición de las
+migraciones sobre la base nueva fueron verificadas.
+No se modificó la base principal durante
+las pruebas de instalación aislada.
 
 ---
 
@@ -1042,7 +1430,7 @@ implementadas actualmente.
 | Entidad o contexto | Estado |
 |---|---|
 | Torneo | Implementado y verificado |
-| Edición | Pendiente |
+| Edición | Implementada y verificada (HU-005) |
 | Categoría | Pendiente |
 | Identidad visual | Pendiente |
 | Contexto deportivo | Pendiente |
@@ -1061,6 +1449,7 @@ de negocio valores predefinidos
 para:
 
 - Nombres de torneos.
+- Nombres de ediciones.
 - Nombres de categorías.
 - Cantidades de equipos.
 - Cantidades de zonas.
@@ -1087,8 +1476,8 @@ establezca una relación transversal.
 
 La ETAPA 02 contempla:
 
-- HU-004: Gestión de torneos.
-- HU-005: Gestión de ediciones.
+- HU-004: Gestión de torneos — consolidada en v0.2.0.
+- HU-005: Gestión de ediciones — verificada en v0.3.0; cierre pendiente.
 - HU-006: Gestión de categorías.
 - HU-007: Identidad visual.
 - HU-008: Selección del contexto deportivo.
@@ -1157,7 +1546,7 @@ mediciones y pruebas.
 
 ### 13.1. Evolución del acceso a datos
 
-El listado completo de torneos
+El listado completo de torneos y ediciones
 y su filtrado local resultan
 adecuados para el alcance
 administrativo inicial.
@@ -1168,7 +1557,7 @@ lo requiera, podrán incorporarse:
 - Paginación del lado del servidor.
 - Filtros especializados.
 - Índices adicionales.
-- Consultas optimizadas.
+- Consultas optimizadas e indicadores agregados por torneo.
 - Carga diferida de información.
 
 Estas mejoras deberán justificarse
@@ -1209,7 +1598,7 @@ El proyecto contempla:
 ### 14.2. Aislamiento de pruebas
 
 Las pruebas de integración
-de torneos utilizan una base
+de torneos y ediciones utilizan una base
 de datos independiente.
 
 Base de pruebas:
@@ -1226,6 +1615,14 @@ de los datos principales.
 
 Los registros temporales deberán
 limpiarse de manera controlada.
+
+HU-005 reutiliza `altosistemahu004test` con
+la migración 003 aplicada. La instalación
+desde cero se verificó separadamente en
+`altosistemahu005fresh`.
+
+La regresión de autenticación HTTP se realizó
+contra el backend principal del puerto 3000.
 
 ### 14.3. Resultados definitivos de HU-004
 
@@ -1308,14 +1705,66 @@ verificada mediante la interfaz.
 - Auditoría formal de accesibilidad.
 - Pruebas de rendimiento y carga.
 - Validación en dispositivos móviles físicos.
-- Restauración de respaldo con la tabla torneos.
-- Verificación real de futuras claves foráneas.
+- Restauración de un respaldo que incluya las tablas torneos y ediciones.
+- Verificación real de claves foráneas de entidades futuras.
 - Evaluación de seguridad de producción.
 - Despliegue en producción.
 
 Estos controles corresponden a
 validaciones futuras o a entidades
 todavía no implementadas.
+
+
+### 14.7. Resultados de HU-005 — v0.3.0
+
+| Control | Resultado |
+|---|---|
+| Pruebas unitarias de ediciones | 59/59 |
+| Regresión unitaria de torneos | 30/30 |
+| Regresión unitaria de autenticación | 13/13 |
+| Integración de ediciones | 1/1 |
+| Integración de torneos | 1/1 |
+| Integración de autenticación | 1/1 |
+| Total de pruebas automatizadas | 105/105 |
+| Pruebas fallidas, canceladas u omitidas en las ejecuciones específicas | 0 |
+| ESLint | Sin errores informados |
+| Compilación de producción | Exitosa (2,52 segundos) |
+| Validaciones funcionales | 17/17 |
+| Migración sobre instalación existente | Exitosa |
+| Migración desde cero | 3/3 aplicadas |
+| Idempotencia de instalación nueva | 3 registradas, 0 pendientes |
+| Integridad referencial torneo-edición | Verificada contra MySQL y en la interfaz |
+| Limpieza de registros temporales de la base principal | Completada |
+| Coherencia de versiones | 8/8 valores en 0.3.0 |
+
+Las 105 pruebas corresponden a 102 unitarias y
+tres pruebas de integración, ejecutadas por separado.
+
+La integración de EDICIONES contempla 14 bloques
+internos de verificación previstos, que no se
+suman al total de pruebas. Se recibió el resumen
+global satisfactorio de Node.js, no el diagnóstico
+individual de cada bloque.
+
+Las validaciones funcionales incluyeron creación,
+edición, fechas opcionales, inicio, finalización,
+reapertura, simultaneidad, búsqueda, filtros,
+indicadores, archivado, eliminación e integridad
+referencial. La validación responsive fue confirmada
+por el administrador; no se dispone de captura móvil
+de HU-005.
+
+Los resultados técnicos fueron obtenidos antes de
+actualizar el número de versión. Posteriormente se
+comprobó la coherencia de las configuraciones y
+se reiniciaron el backend y el frontend.
+
+La restauración de un respaldo que incluya la
+tabla ediciones, las pruebas de carga y la auditoría
+de producción permanecen pendientes.
+
+El CHECK integral formal y la publicación de
+HU-005 todavía no se han completado.
 
 ---
 
@@ -1357,10 +1806,15 @@ aprobación funcional.
 | 0.1.2 | Interfaz administrativa |
 | 0.1.3 | Consolidación arquitectónica |
 | 0.2.0 | Gestión integral de torneos y Sistema de Diseño v1.0 |
+| 0.3.0 | Gestión de ediciones, integridad referencial y navegación dependiente del torneo |
 
 La versión 0.2.0 incorpora el primer
 módulo deportivo con un ciclo de vida
 administrativo completo.
+
+La versión 0.3.0 incorpora el segundo nivel
+jerárquico del modelo multitorneo y el ciclo
+de vida deportivo de sus ediciones.
 
 La arquitectura deberá evolucionar
 junto con las funcionalidades

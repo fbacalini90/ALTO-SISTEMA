@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Backend de ALTO-SISTEMA - Sistema integral de gestion deportiva",
   "private": true,
   "main": "src/server.js",

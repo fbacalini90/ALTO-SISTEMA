@@ -1,14 +1,16 @@
-
 # ALTO-SISTEMA — Sistema de Diseño
 
 Versión del Sistema de Diseño: 1.0
 
-Versión de ALTO-SISTEMA: 0.2.0
+Versión de ALTO-SISTEMA: 0.3.0
 
-Historia de usuario: HU-004.
+Historia de usuario de origen: HU-004.
 
-Estado: implementado y verificado.
-Pendiente de consolidación definitiva.
+Incremento actual: HU-005 — Gestión de ediciones.
+
+Estado: Sistema de Diseño v1.0 consolidado en HU-004.
+Aplicación a EDICIONES implementada y verificada.
+Pendiente de CHECK integral y consolidación de HU-005.
 
 ---
 
@@ -213,6 +215,29 @@ de su color.
 
 Los estados deberán complementarse
 con texto o iconografía.
+
+### 4.7. Colores de los estados deportivos
+
+La versión 0.3.0 aplica la semántica existente
+al ciclo de vida de las ediciones.
+
+| Estado persistente | Etiqueta visible | Tratamiento visual |
+|---|---|---|
+| PLANIFICADA | PLANIFICADA | Azul informativo (`#60A5FA`) |
+| EN_CURSO | EN CURSO | Verde (`#22C55E`) |
+| FINALIZADA | FINALIZADA | Gris neutro |
+
+La finalización no constituye un error ni una
+operación de eliminación. Su representación
+visual no deberá confundirse con una alerta.
+
+Estos estados deportivos son independientes
+de ACTIVO y ARCHIVADO, que corresponden
+al estado administrativo del torneo.
+
+Se mantiene el uso de etiquetas de texto
+además del color, sin redefinir la paleta
+institucional del Sistema de Diseño v1.0.
 
 ---
 
@@ -504,6 +529,7 @@ Ejemplos:
 - Login.css
 - Dashboard.css
 - Torneos.css
+- Ediciones.css
 - ModuloPendiente.css
 
 Los estilos particulares deberán
@@ -814,6 +840,27 @@ provisional identificada.
 No deberán simular funcionalidades
 que aún no se encuentren operativas.
 
+### 11.6. Navegación contextual de EDICIONES
+
+EDICIONES se incorpora como pantalla privada
+subordinada a TORNEOS, sin agregar un nuevo
+módulo al menú lateral.
+
+Ruta de frontend:
+
+`/torneos/:torneoId/ediciones`
+
+El acceso se realiza desde el botón
+GESTIONAR EDICIONES de la tarjeta del torneo.
+
+La pantalla identifica la competición seleccionada,
+proporciona una referencia de navegación contextual
+y permite volver al listado de TORNEOS.
+
+La identificación contextual de HU-005 no sustituye
+el futuro selector global de HU-008, que deberá
+incorporar también la categoría correspondiente.
+
 ---
 
 ## 12. FORMULARIOS Y OPERACIONES ADMINISTRATIVAS
@@ -895,7 +942,7 @@ el registro afectado.
 El administrador deberá poder
 cancelar sin modificar información.
 
-La versión 0.2.0 utiliza el
+Las versiones 0.2.0 y 0.3.0 utilizan el
 mecanismo nativo de confirmación
 del navegador.
 
@@ -931,6 +978,64 @@ el listado y los indicadores
 la respuesta satisfactoria
 del backend.
 
+### 12.11. Formulario de EDICIONES
+
+La creación y edición utilizan los patrones
+institucionales de formularios, botones y mensajes.
+
+| Campo | Presentación |
+|---|---|
+| Nombre | Obligatorio; hasta 100 caracteres |
+| Descripción | Opcional; hasta 500 caracteres |
+| Fecha de inicio | Opcional y editable |
+| Fecha de finalización | Opcional y editable |
+
+El año forma parte del nombre cuando el
+administrador decide incluirlo. No existe
+un campo independiente para el año.
+
+Los campos de fecha utilizan controles nativos
+adaptados a la interfaz oscura y permiten
+retirar los valores previamente registrados.
+
+La visualización de las fechas utiliza el
+formato DD/MM/AAAA, sin conversiones de zona
+horaria que puedan alterar el día registrado.
+
+Cuando ambas fechas están presentes, la de
+finalización no puede ser anterior a la de inicio.
+Los cambios de fechas no modifican automáticamente
+el estado deportivo de la edición.
+
+El formulario identifica campos obligatorios,
+contadores de caracteres y errores de validación.
+La navegación de regreso contempla la confirmación
+cuando existen cambios sin guardar.
+
+### 12.12. Operaciones sobre ediciones
+
+| Acción | Disponibilidad según estado de edición |
+|---|---|
+| EDITAR | Todos los estados |
+| INICIAR | PLANIFICADA |
+| FINALIZAR | EN_CURSO |
+| REABRIR | FINALIZADA |
+| ELIMINAR | Todos los estados, si no existen dependencias incompatibles |
+
+Las transiciones de estado y la eliminación
+requieren confirmación mediante el navegador.
+La eliminación utiliza el tratamiento semántico
+de peligro y advierte sobre su irreversibilidad.
+
+Si el torneo se encuentra ARCHIVADO, la pantalla
+permite consultar, editar, finalizar ediciones
+en curso y eliminar registros sin dependencias,
+pero no crear, iniciar ni reabrir ediciones.
+
+La interfaz informa estas restricciones y deshabilita
+las operaciones incompatibles. El backend mantiene
+las validaciones definitivas de negocio.
+
 ---
 
 ## 13. ESTADOS VISUALES Y MENSAJES
@@ -955,8 +1060,8 @@ no administrativamente activa.
 ELIMINADO no constituye un estado
 administrativo persistente.
 
-Un torneo eliminado correctamente
-deberá retirarse del listado.
+Un torneo o una edición eliminados correctamente
+deberán retirarse de su listado correspondiente.
 
 No deberá conservarse una tarjeta
 simulada de un registro inexistente.
@@ -1009,6 +1114,40 @@ no deberá representarse como un
 error de persistencia.
 
 El estado anterior deberá conservarse.
+
+### 13.8. Estados deportivos de EDICIONES
+
+| Estado | Significado |
+|---|---|
+| PLANIFICADA | Edición creada que todavía no se inició |
+| EN CURSO | Edición iniciada o reabierta manualmente |
+| FINALIZADA | Edición cerrada manualmente, con sus datos conservados |
+
+La etiqueta EN CURSO representa el valor
+persistente `EN_CURSO`.
+
+No se deberá equiparar FINALIZADA con ARCHIVADO.
+El estado de la edición y el del torneo se
+presentan como informaciones diferentes.
+
+### 13.9. Advertencias y resultados de EDICIONES
+
+Cuando el torneo está archivado se informa:
+
+> Este torneo está archivado. Podés consultar, editar y finalizar sus ediciones existentes, pero no crear, iniciar ni reabrir ediciones.
+
+La eliminación exitosa de una edición informa:
+
+> Edición eliminada correctamente.
+
+Si existen ediciones asociadas, la eliminación
+del torneo se rechaza y la interfaz informa
+la dependencia, sin retirar el torneo del listado.
+
+Los indicadores de EDICIONES distinguen un
+resultado real de cero de una consulta fallida.
+En las tarjetas de TORNEOS se muestra un guion
+cuando el resumen de ediciones no está disponible.
 
 ---
 
@@ -1065,14 +1204,17 @@ sin perder información relevante.
 
 ### 14.6. Acciones de torneos
 
-Cada tarjeta de torneo dispone
-de tres acciones administrativas:
+Cada tarjeta de torneo conserva
+tres acciones administrativas:
 
 - EDITAR.
 - ARCHIVAR o REACTIVAR.
 - ELIMINAR.
 
-La incorporación de ELIMINAR
+Desde HU-005 incorpora además un acceso separado
+a GESTIONAR EDICIONES y dos indicadores contextuales.
+
+La distribución de las acciones
 no deberá provocar:
 
 - Desbordamiento horizontal.
@@ -1111,6 +1253,32 @@ funcional de la interfaz.
 
 La validación en dispositivos
 móviles físicos permanece pendiente.
+
+### 14.10. Adaptación responsive de EDICIONES
+
+La pantalla de EDICIONES utiliza puntos de corte
+particulares en `Ediciones.css`, complementarios
+a los puntos de corte institucionales.
+
+| Elemento | Distribución |
+|---|---|
+| Indicadores | Cuatro columnas; dos hasta 900 px |
+| Tarjetas de edición | Dos columnas en ancho amplio; una hasta 1250 px |
+| Campos de fecha | Distribución vertical hasta 480 px |
+| Acciones de tarjeta | Reorganización en pantallas compactas; disposición vertical hasta 360 px |
+
+Los puntos de corte particulares no modifican
+la navegación institucional ni sus dimensiones.
+
+Durante HU-005 se confirmó satisfactoriamente
+la adaptación mediante simulación del navegador
+a 390 × 844 px. Esta comprobación fue confirmada
+por el administrador; no se dispone de una captura
+específica de dicha prueba en este registro.
+
+La prueba sobre un dispositivo móvil físico
+y la evaluación sistemática de todos los puntos
+de corte permanecen pendientes.
 
 ---
 
@@ -1389,6 +1557,112 @@ v1.0 y ampliar sus componentes
 cuando exista una necesidad
 justificada.
 
+### 17.11. Integración de EDICIONES en TORNEOS
+
+Las tarjetas de torneo incorporan una sección
+contextual de ediciones con dos indicadores:
+
+| Indicador | Responsabilidad |
+|---|---|
+| EDICIONES | Total de ediciones asociadas al torneo |
+| EN CURSO | Cantidad de ediciones en estado EN_CURSO |
+
+El botón GESTIONAR EDICIONES utiliza el icono
+CalendarDays y las clases compartidas
+`as-button as-button-primary as-button-block`.
+
+Los estilos particulares de esta integración
+se encuentran en `Torneos.css`:
+
+- `torneos-ediciones`
+- `torneos-ediciones-indicadores`
+- `torneos-ediciones-indicador`
+- `torneos-ediciones-acceso`
+
+Los indicadores reutilizan los estilos `as-stat-label`
+y `as-stat-value`; el valor de ediciones en curso
+incorpora el tratamiento semántico favorable.
+
+El acceso permanece disponible para consultar
+ediciones de torneos archivados, sujeto a los
+estados de operación de la interfaz.
+
+El regreso desde EDICIONES actualiza los datos
+mostrados por TORNEOS sin requerir una recarga
+manual del navegador.
+
+### 17.12. Pantalla EDICIONES
+
+Archivos específicos:
+
+- `frontend/src/pages/Ediciones.jsx`
+- `frontend/src/pages/Ediciones.css`
+
+La pantalla incorpora:
+
+- Encabezado y contexto del torneo.
+- Navegación de regreso a TORNEOS.
+- Acción de creación.
+- Cuatro indicadores administrativos.
+- Formulario de creación y edición.
+- Búsqueda por nombre y descripción.
+- Filtros por estado deportivo.
+- Tarjetas de ediciones.
+- Estados de carga y ausencia de registros.
+- Mensajes de éxito, error y advertencia.
+- Acciones de edición y cambios de estado.
+- Eliminación definitiva con confirmación.
+- Distribución responsive.
+
+### 17.13. Indicadores de EDICIONES
+
+| Indicador | Responsabilidad |
+|---|---|
+| Total | Cantidad de ediciones del torneo |
+| Planificadas | Cantidad en estado PLANIFICADA |
+| En curso | Cantidad en estado EN_CURSO |
+| Finalizadas | Cantidad en estado FINALIZADA |
+
+Los indicadores corresponden al conjunto de
+ediciones del torneo, independientemente del
+filtro de búsqueda aplicado al listado visible.
+
+Las operaciones satisfactorias actualizan
+los registros y los indicadores correspondientes.
+No se utilizan estadísticas deportivas ficticias.
+
+### 17.14. Tarjeta de edición
+
+La tarjeta identifica el nombre, la descripción,
+el estado deportivo y las fechas opcionales.
+Las fechas no informadas se distinguen de las
+fechas registradas, sin completar valores ficticios.
+
+Las acciones se presentan según el estado
+de la edición y las restricciones del torneo.
+Los cambios de estado utilizan etiquetas claras,
+con tratamiento semántico acorde a la operación.
+
+### 17.15. Estados vacíos y filtros de EDICIONES
+
+La ausencia total de ediciones se distingue
+de un listado sin coincidencias o de un fallo
+de consulta.
+
+Cuando no existen ediciones, los indicadores
+reflejan los valores reales. La posibilidad
+de crear una edición depende de que el torneo
+esté administrativamente ACTIVO.
+
+El buscador permite consultar nombre y descripción.
+Los filtros permiten distinguir PLANIFICADA,
+EN CURSO y FINALIZADA.
+
+La actualización de v0.3.0 aplica estos patrones
+sin establecer una nueva identidad visual para
+las competiciones; dicha personalización continúa
+prevista para HU-007.
+
 ---
 
 ## 18. CALIDAD Y VERIFICACIÓN VISUAL
@@ -1403,7 +1677,7 @@ Resultado:
 
 8/8 controles satisfactorios.
 
-### 18.2. Regresión técnica
+### 18.2. Regresión técnica de HU-004
 
 | Control | Resultado |
 |---|---|
@@ -1412,7 +1686,7 @@ Resultado:
 | Compilación de producción | Exitosa |
 | Tiempo de compilación final | 3,49 segundos |
 
-### 18.3. Regresión funcional general
+### 18.3. Regresión funcional de HU-004
 
 | Control | Resultado |
 |---|---|
@@ -1471,6 +1745,59 @@ la variante de peligro existente.
 Estas verificaciones deberán
 evaluarse en las etapas
 correspondientes.
+
+### 18.7. Verificación técnica de HU-005
+
+| Control | Resultado |
+|---|---|
+| ESLint | Ejecución sin errores informados |
+| Compilación de producción | Exitosa |
+| Tiempo de compilación | 2,52 segundos |
+| Pruebas unitarias de backend | 102/102 |
+| Pruebas de integración de backend | 3/3 |
+| Total de pruebas automatizadas | 105/105 |
+| Pruebas fallidas | 0 |
+| Validaciones funcionales | 17/17 |
+| Adaptación responsive | Confirmada mediante navegador |
+| Registros temporales | Limpieza confirmada |
+
+Los resultados de backend se obtuvieron mediante
+ejecuciones separadas. No constituyen pruebas
+visuales automatizadas del frontend.
+
+La compilación y el análisis estático se realizaron
+antes de la actualización final de versión a 0.3.0.
+El reinicio de los servidores fue confirmado
+posteriormente. No se registra una nueva ejecución
+de lint o build después de ese cambio de versión.
+
+### 18.8. Verificación funcional de EDICIONES
+
+Durante el desarrollo se comprobó la gestión
+de ediciones desde TORNEOS, incluyendo:
+
+- Estado vacío e indicadores iniciales.
+- Creación sin fechas y posterior incorporación de fechas.
+- Cambios de estado: iniciar, finalizar y reabrir.
+- Existencia simultánea de ediciones en curso.
+- Edición de datos y eliminación de fechas opcionales.
+- Búsqueda y filtros.
+- Actualización de indicadores al regresar a TORNEOS.
+- Advertencias y restricciones del torneo archivado.
+- Finalización de una edición en curso de torneo archivado.
+- Rechazo de la eliminación de un torneo con ediciones.
+- Eliminación de ediciones y limpieza de registros de prueba.
+- Adaptación responsive simulada a 390 × 844 px.
+
+El conjunto de 17 verificaciones funcionales
+fue confirmado durante el desarrollo local.
+No todos los controles disponen de evidencia
+visual independiente en la conversación.
+
+Las capturas oficiales de v0.3.0 permanecen
+pendientes de incorporación al repositorio.
+La aprobación integral de HU-005 se registrará
+al finalizar su cierre formal.
 
 ---
 
@@ -1539,17 +1866,17 @@ de una versión interna.
 
 Su versión inicial es 1.0.
 
-Esta versión forma parte de
-ALTO-SISTEMA 0.2.0.
+Esta versión se incorporó en
+ALTO-SISTEMA 0.2.0 y continúa vigente
+en ALTO-SISTEMA 0.3.0.
 
 No constituye un producto
 independiente de la aplicación.
 
 ### 19.8. Evolución de confirmaciones
 
-La versión 0.2.0 utiliza
-confirmaciones nativas del
-navegador.
+Las versiones 0.2.0 y 0.3.0 utilizan
+confirmaciones nativas del navegador.
 
 La eventual incorporación de
 un diálogo personalizado deberá:
@@ -1563,7 +1890,7 @@ un diálogo personalizado deberá:
 - Mantener las garantías funcionales.
 
 Esta evolución no forma parte
-del alcance definitivo de HU-004.
+del alcance de HU-004 ni HU-005.
 
 ---
 
@@ -1586,6 +1913,7 @@ del alcance definitivo de HU-004.
 | Filtros | Implementados |
 | Mensajes | Implementados |
 | Estados administrativos | Implementados |
+| Estados deportivos de EDICIONES | Implementados |
 | Estados vacíos | Implementados |
 | Indicadores de carga | Implementados |
 | Estilos de tablas | Implementados |
@@ -1602,7 +1930,7 @@ del alcance definitivo de HU-004.
 | Dashboard | Aplicado |
 | Módulos provisionales | Aplicado |
 | Torneos | Aplicado y verificado |
-| Ediciones | Pendiente |
+| Ediciones | Aplicado y verificado |
 | Categorías | Pendiente |
 | Equipos | Pendiente |
 | Listas de buena fe | Pendiente |
@@ -1638,9 +1966,11 @@ del alcance definitivo de HU-004.
 - [x] Validación funcional satisfactoria.
 - [x] ESLint sin errores ni advertencias.
 - [x] Compilación de producción exitosa.
-- [ ] Capturas oficiales v0.2.0.
-- [ ] Aprobación formal del CHECK integral.
-- [ ] Consolidación mediante Git.
+- [x] Capturas oficiales v0.2.0.
+- [x] Aprobación formal del CHECK integral.
+- [x] Consolidación mediante Git.
+
+HU-004 se encuentra consolidada en v0.2.0.
 
 ### 20.4. Limitaciones actuales
 
@@ -1663,15 +1993,17 @@ No contempla todavía:
 | Propiedad | Valor |
 |---|---|
 | Sistema de Diseño | 1.0 |
-| ALTO-SISTEMA | 0.2.0 |
-| Historia de usuario | HU-004 |
+| ALTO-SISTEMA | 0.3.0 |
+| Historia de usuario de origen | HU-004 |
+| Incremento actual | HU-005 |
 | Color institucional | #3333FF |
 | Tipografía de encabezados | Barlow Condensed |
 | Tipografía administrativa | Inter |
 | Iconografía | Lucide React |
 | Estado técnico | Verificado |
 | Estado funcional | Verificado |
-| Aprobación formal | Pendiente de CHECK integral |
+| Aprobación formal de HU-004 | Consolidada |
+| Aprobación formal de HU-005 | Pendiente de CHECK integral |
 
 El Sistema de Diseño v1.0 constituye
 la referencia visual institucional
@@ -1681,6 +2013,34 @@ Su evolución deberá respetar
 las decisiones previamente aprobadas
 y mantener la coherencia general
 de ALTO-SISTEMA.
+
+### 20.6. Lista de control de HU-005
+
+- [x] Sistema de Diseño v1.0 aplicado a EDICIONES.
+- [x] Identidad institucional conservada.
+- [x] Acceso contextual desde TORNEOS.
+- [x] Indicadores de ediciones por torneo.
+- [x] Cuatro indicadores de EDICIONES.
+- [x] Formularios con fechas opcionales y editables.
+- [x] Estados deportivos diferenciados mediante color y texto.
+- [x] Acciones de cambio de estado y eliminación.
+- [x] Restricciones visuales de torneos archivados.
+- [x] Actualización de indicadores y listados.
+- [x] Validación funcional: 17/17.
+- [x] Pruebas automatizadas de backend: 105/105.
+- [x] ESLint sin errores informados.
+- [x] Compilación de producción exitosa.
+- [x] Adaptación responsive confirmada mediante navegador.
+- [x] Actualización de versión de ALTO-SISTEMA a 0.3.0.
+- [ ] Capturas oficiales v0.3.0.
+- [ ] Consolidación documental definitiva.
+- [ ] Aprobación formal del CHECK integral de HU-005.
+- [ ] Consolidación mediante Git y publicación.
+
+La numeración interna del Sistema de Diseño
+permanece en 1.0. La incorporación de EDICIONES
+amplía su aplicación sin redefinir los estándares
+institucionales previamente aprobados.
 
 ---
 

@@ -359,11 +359,212 @@ async function verificarTablaTorneos(conexion) {
     }
 }
 
+/* VERIFICACION ESTRUCTURAL DE EDICIONES */
+
+async function verificarTablaEdiciones(conexion) {
+    const [tablas] = await conexion.query(`
+        SELECT
+            ENGINE AS motor,
+            TABLE_COLLATION AS collation
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'ediciones'
+    `);
+
+    if (
+        tablas.length !== 1 ||
+        tablas[0].motor !== 'InnoDB' ||
+        tablas[0].collation !== 'utf8mb4_unicode_ci'
+    ) {
+        throw new Error(
+            'La configuración de la tabla ediciones es incompatible.'
+        );
+    }
+
+    const [columnas] = await conexion.query(
+        'SHOW FULL COLUMNS FROM ediciones'
+    );
+
+    const campos = new Map(
+        columnas.map((columna) => [columna.Field, columna])
+    );
+
+    const id = campos.get('id');
+    const torneoId = campos.get('torneo_id');
+    const nombre = campos.get('nombre');
+    const descripcion = campos.get('descripcion');
+    const fechaInicio = campos.get('fecha_inicio');
+    const fechaFinalizacion = campos.get('fecha_finalizacion');
+    const estado = campos.get('estado');
+    const fechaCreacion = campos.get('fecha_creacion');
+    const fechaActualizacion = campos.get('fecha_actualizacion');
+
+    const estructuraCorrecta =
+        columnas.length === 9 &&
+
+        id?.Type === 'int' &&
+        id?.Null === 'NO' &&
+        id?.Extra.includes('auto_increment') &&
+
+        torneoId?.Type === 'int' &&
+        torneoId?.Null === 'NO' &&
+        torneoId?.Default === null &&
+
+        nombre?.Type === 'varchar(100)' &&
+        nombre?.Null === 'NO' &&
+        nombre?.Collation === 'utf8mb4_unicode_ci' &&
+
+        descripcion?.Type === 'varchar(500)' &&
+        descripcion?.Null === 'YES' &&
+        descripcion?.Default === null &&
+        descripcion?.Collation === 'utf8mb4_unicode_ci' &&
+
+        fechaInicio?.Type === 'date' &&
+        fechaInicio?.Null === 'YES' &&
+        fechaInicio?.Default === null &&
+
+        fechaFinalizacion?.Type === 'date' &&
+        fechaFinalizacion?.Null === 'YES' &&
+        fechaFinalizacion?.Default === null &&
+
+        estado?.Type === "enum('PLANIFICADA','EN_CURSO','FINALIZADA')" &&
+        estado?.Null === 'NO' &&
+        estado?.Default === 'PLANIFICADA' &&
+        estado?.Collation === 'utf8mb4_unicode_ci' &&
+
+        fechaCreacion?.Type === 'timestamp' &&
+        fechaCreacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaCreacion?.Default)
+        ) &&
+        !/on update/i.test(String(fechaCreacion?.Extra)) &&
+
+        fechaActualizacion?.Type === 'timestamp' &&
+        fechaActualizacion?.Null === 'NO' &&
+        /^current_timestamp(?:\(\))?$/i.test(
+            String(fechaActualizacion?.Default)
+        ) &&
+        /on update current_timestamp(?:\(\))?/i.test(
+            String(fechaActualizacion?.Extra)
+        );
+
+    if (!estructuraCorrecta) {
+        throw new Error(
+            'La estructura de la tabla ediciones no coincide con la migración 003.'
+        );
+    }
+
+    const [indices] = await conexion.query(
+        'SHOW INDEX FROM ediciones'
+    );
+
+    function coincideIndice(clave, columnasEsperadas, noUnico) {
+        const filas = indices.filter(
+            (indice) => indice.Key_name === clave
+        ).sort(
+            (a, b) => Number(a.Seq_in_index) - Number(b.Seq_in_index)
+        );
+
+        return filas.length === columnasEsperadas.length &&
+            filas.every((fila, i) =>
+                fila.Column_name === columnasEsperadas[i] &&
+                Number(fila.Seq_in_index) === i + 1 &&
+                Number(fila.Non_unique) === noUnico &&
+                fila.Sub_part === null
+            );
+    }
+
+    if (
+        !coincideIndice('PRIMARY', ['id'], 0) ||
+        !coincideIndice(
+            'uq_ediciones_torneo_nombre', ['torneo_id', 'nombre'], 0
+        ) ||
+        !coincideIndice(
+            'idx_ediciones_torneo_estado', ['torneo_id', 'estado'], 1
+        )
+    ) {
+        throw new Error(
+            'Los índices de la tabla ediciones son incompatibles.'
+        );
+    }
+
+    const [referencias] = await conexion.query(`
+        SELECT
+            k.COLUMN_NAME AS columna,
+            k.REFERENCED_TABLE_SCHEMA AS esquema_referenciado,
+            k.TABLE_SCHEMA AS esquema_local,
+            k.REFERENCED_TABLE_NAME AS tabla_referenciada,
+            k.REFERENCED_COLUMN_NAME AS columna_referenciada,
+            k.ORDINAL_POSITION AS posicion,
+            r.DELETE_RULE AS regla_eliminacion,
+            r.UPDATE_RULE AS regla_actualizacion
+        FROM information_schema.KEY_COLUMN_USAGE AS k
+        INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS r
+            ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA
+           AND r.TABLE_NAME = k.TABLE_NAME
+           AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+        WHERE k.TABLE_SCHEMA = DATABASE()
+          AND k.TABLE_NAME = 'ediciones'
+          AND k.CONSTRAINT_NAME = 'fk_ediciones_torneo'
+    `);
+
+    const referencia = referencias[0];
+
+    if (
+        referencias.length !== 1 ||
+        referencia.columna !== 'torneo_id' ||
+        referencia.esquema_referenciado !== referencia.esquema_local ||
+        referencia.tabla_referenciada !== 'torneos' ||
+        referencia.columna_referenciada !== 'id' ||
+        Number(referencia.posicion) !== 1 ||
+        referencia.regla_eliminacion !== 'RESTRICT' ||
+        referencia.regla_actualizacion !== 'RESTRICT'
+    ) {
+        throw new Error(
+            'La clave foránea de ediciones no coincide con la migración 003.'
+        );
+    }
+
+    const [restricciones] = await conexion.query(`
+        SELECT
+            t.ENFORCED AS aplicada,
+            c.CHECK_CLAUSE AS expresion
+        FROM information_schema.TABLE_CONSTRAINTS AS t
+        INNER JOIN information_schema.CHECK_CONSTRAINTS AS c
+            ON c.CONSTRAINT_SCHEMA = t.CONSTRAINT_SCHEMA
+           AND c.CONSTRAINT_NAME = t.CONSTRAINT_NAME
+        WHERE t.TABLE_SCHEMA = DATABASE()
+          AND t.TABLE_NAME = 'ediciones'
+          AND t.CONSTRAINT_TYPE = 'CHECK'
+          AND t.CONSTRAINT_NAME = 'chk_ediciones_fechas'
+    `);
+
+    // MySQL puede agregar paréntesis, espacios y comillas de identificador
+    // al representar esta expresión, que solo contiene disyunciones (OR).
+    const normalizarExpresion = (expresion) =>
+        String(expresion).toLowerCase().replace(/[\s`()]/g, '');
+
+    const expresionEsperada = normalizarExpresion(
+        'fecha_inicio IS NULL OR fecha_finalizacion IS NULL OR fecha_finalizacion >= fecha_inicio'
+    );
+
+    if (
+        restricciones.length !== 1 ||
+        restricciones[0].aplicada !== 'YES' ||
+        normalizarExpresion(restricciones[0].expresion) !== expresionEsperada
+    ) {
+        throw new Error(
+            'La restricción de fechas de ediciones es incompatible.'
+        );
+    }
+}
+
 /* REGISTRO DE VERIFICADORES */
 
 const VERIFICADORES = new Map([
     [1, verificarTablaUsuarios],
-    [2, verificarTablaTorneos]
+    [2, verificarTablaTorneos],
+    [3, verificarTablaEdiciones]
 ]);
 
 /* VERIFICACION PREVENTIVA */

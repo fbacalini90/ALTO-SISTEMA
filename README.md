@@ -1,11 +1,10 @@
-
 # ⚽ ALTO-SISTEMA
 
 ### Sistema integral de gestión deportiva
 
-![Version](https://img.shields.io/badge/Versión-0.2.0-3333FF)
+![Version](https://img.shields.io/badge/Versión-0.3.0-3333FF)
 ![Estado](https://img.shields.io/badge/Estado-En%20desarrollo-orange)
-![Tests](https://img.shields.io/badge/Tests-45%2F45-success)
+![Tests](https://img.shields.io/badge/Tests-105%2F105-success)
 ![React](https://img.shields.io/badge/Frontend-React-61DAFB)
 ![Node.js](https://img.shields.io/badge/Backend-Node.js-339933)
 ![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1)
@@ -35,7 +34,59 @@ mantenibilidad y escalabilidad.
 
 ---
 
-## 🆕 Novedades de la v0.2.0
+## 🆕 Novedades de la v0.3.0
+
+### HU-005 — Gestión de ediciones
+
+Cada torneo puede contener múltiples ediciones independientes,
+incluso del mismo año y simultáneamente en curso.
+
+Funcionalidades incorporadas:
+
+- Creación, consulta, listado, edición y eliminación de ediciones.
+- Nombre libre, con el año integrado en el nombre si corresponde.
+- Nombre obligatorio de hasta 100 caracteres, único dentro del torneo.
+- Descripción opcional de hasta 500 caracteres.
+- Fechas de inicio y finalización opcionales, editables y eliminables.
+- Validación de fechas reales y coherencia cronológica.
+- Búsqueda por nombre y descripción, filtros por estado e indicadores dinámicos.
+- Acceso mediante GESTIONAR EDICIONES desde cada tarjeta de TORNEOS.
+- Indicadores de ediciones totales y en curso en TORNEOS.
+- Independencia de registros entre torneos.
+- Persistencia en MySQL y protección mediante autenticación.
+- Confirmación de cambios de estado y eliminación definitiva.
+
+### Ciclo de vida deportivo
+
+| Estado | Significado | Transición permitida |
+|---|---|---|
+| PLANIFICADA | Estado inicial | INICIAR → EN_CURSO |
+| EN_CURSO | Edición iniciada | FINALIZAR → FINALIZADA |
+| FINALIZADA | Edición cerrada | REABRIR → EN_CURSO |
+
+Las fechas son informativas y no producen cambios automáticos
+de estado. Repetir el estado vigente no modifica el registro.
+
+Los torneos archivados permiten consultar, editar, finalizar
+y eliminar sus ediciones sin dependencias, pero no crear,
+iniciar ni reabrir ediciones hasta su reactivación.
+
+La migración 003 incorpora una clave foránea restrictiva:
+no se puede eliminar un torneo con ediciones asociadas.
+
+### Interfaz de ediciones
+
+Se conserva el Sistema de Diseño v1.0, con colorimetría azul
+para PLANIFICADA, verde para EN_CURSO y gris para FINALIZADA.
+La pantalla incorpora indicadores generales, búsqueda, filtros,
+formularios y tarjetas adaptables a pantallas pequeñas.
+
+No se agrega una opción al menú lateral: se accede mediante
+la ruta privada `/torneos/:torneoId/ediciones`.
+
+---
+
+## 📜 Novedades de la v0.2.0 — Registro histórico
 
 ### HU-004 — Gestión integral de torneos
 
@@ -81,9 +132,9 @@ activos y archivados.
 Requiere confirmación expresa y no puede
 deshacerse desde la aplicación.
 
-Las futuras entidades dependientes deberán
-impedir la eliminación de competiciones
-que posean información asociada.
+Desde v0.3.0, las ediciones asociadas impiden efectivamente
+la eliminación de su torneo mediante una restricción de clave foránea.
+Las futuras entidades dependientes deberán conservar este principio.
 
 ### Sistema de Diseño v1.0
 
@@ -109,6 +160,88 @@ Características:
 La identidad institucional es independiente
 de las futuras identidades visuales de las
 competiciones y publicaciones deportivas.
+
+---
+
+## 📸 Capturas de pantalla — v0.3.0
+
+Las siguientes doce capturas corresponden a la implementación real de HU-005.
+Los nombres, descripciones y fechas de los registros son demostrativos.
+Los registros temporales se eliminaron después de obtener las evidencias.
+
+### Panel principal
+
+![Panel principal v0.3.0](docs/capturas/18-dashboard-v030.png)
+
+El Dashboard muestra la versión 0.3.0 y la disponibilidad del frontend, backend y base de datos.
+
+### Torneos — Estado vacío
+
+![Torneos — Estado vacío v0.3.0](docs/capturas/19-torneos-vacio-v030.png)
+
+La interfaz refleja la ausencia de torneos registrados y permite crear una competición.
+
+### Torneos — Indicadores de ediciones
+
+![Torneos — Indicadores de ediciones v0.3.0](docs/capturas/20-torneos-indicadores-ediciones-v030.png)
+
+Cada tarjeta incorpora los indicadores de ediciones totales y en curso, junto con el acceso a su gestión.
+
+### Ediciones — Estado vacío
+
+![Ediciones — Estado vacío v0.3.0](docs/capturas/21-ediciones-vacio-v030.png)
+
+La pantalla identifica el torneo seleccionado e incluye cuatro indicadores, buscador y filtros por estado.
+
+### Formulario de creación
+
+![Formulario de creación v0.3.0](docs/capturas/22-ediciones-creacion-v030.png)
+
+El nombre es obligatorio; la descripción y ambas fechas son opcionales. Las fechas son informativas y el estado se administra manualmente.
+
+### Edición planificada
+
+![Edición planificada v0.3.0](docs/capturas/23-edicion-planificada-v030.png)
+
+Estado inicial PLANIFICADA, identificado en azul, con la acción INICIAR disponible.
+
+### Edición en curso
+
+![Edición en curso v0.3.0](docs/capturas/24-edicion-en-curso-v030.png)
+
+Estado EN CURSO, identificado en verde, con la acción FINALIZAR disponible.
+
+### Edición finalizada
+
+![Edición finalizada v0.3.0](docs/capturas/25-edicion-finalizada-v030.png)
+
+Estado FINALIZADA, identificado en gris, con la acción REABRIR disponible.
+
+### Ediciones simultáneas
+
+![Ediciones simultáneas v0.3.0](docs/capturas/26-ediciones-simultaneas-v030.png)
+
+Dos ediciones del mismo torneo se encuentran en curso simultáneamente. Una de ellas no tiene fechas definidas.
+
+### Restricciones de torneo archivado
+
+![Restricciones de torneo archivado v0.3.0](docs/capturas/27-ediciones-torneo-archivado-v030.png)
+
+El archivado conserva las ediciones existentes. La creación queda deshabilitada y se informa que no se permite iniciar ni reabrir ediciones.
+
+### Adaptación móvil
+
+<p align="center">
+  <img src="docs/capturas/28-movil-ediciones-v030.png" alt="Adaptación móvil v0.3.0" width="70%">
+</p>
+
+Simulación de 390 × 844 píxeles mediante el navegador. Los indicadores se reorganizan en dos columnas. No constituye una prueba en un dispositivo físico.
+
+### Pruebas automatizadas
+
+![Pruebas automatizadas v0.3.0](docs/capturas/29-pruebas-v030.png)
+
+Regresión de v0.3.0: 105 pruebas detectadas, 102 aprobadas, 3 integraciones omitidas intencionalmente y 0 fallos. Las tres integraciones habían sido aprobadas por separado; resultado acumulado: 105/105.
 
 ---
 
@@ -288,7 +421,7 @@ Las responsabilidades se distribuyen en capas
 para separar la presentación, las reglas de
 negocio y el acceso a los datos.
 
-```mermaid id="mu92x1"
+```mermaid
 flowchart TD
     U[Administrador]
     F[Frontend React]
@@ -327,7 +460,7 @@ flowchart TD
 
 ## 📁 Estructura del proyecto
 
-```text id="jp6q3w"
+```text
 ALTO-SISTEMA/
 │
 ├── backend/
@@ -348,7 +481,8 @@ ALTO-SISTEMA/
 ├── database/
 │   └── migrations/
 │       ├── 001_usuarios.sql
-│       └── 002_torneos.sql
+│       ├── 002_torneos.sql
+│       └── 003_ediciones.sql
 │
 ├── docs/
 │   ├── capturas/
@@ -423,6 +557,12 @@ ALTO-SISTEMA/
 - Eliminación definitiva.
 - Búsqueda y filtros.
 - Indicadores administrativos.
+- Gestión integral de ediciones por torneo.
+- Fechas opcionales y editables.
+- Estados deportivos manuales y reapertura.
+- Ediciones simultáneas.
+- Indicadores de ediciones por torneo.
+- Protección referencial efectiva entre torneos y ediciones.
 
 ### Persistencia
 
@@ -451,7 +591,7 @@ ALTO-SISTEMA/
 | Módulo | Estado |
 |---|---|
 | Inicio | Implementado |
-| Torneos | Implementado y verificado |
+| Torneos | Implementado y verificado (incluye gestión de ediciones) |
 | Equipos | Pendiente |
 | Listas de buena fe | Pendiente |
 | Partidos | Pendiente |
@@ -478,17 +618,18 @@ pantalla provisional identificada.
 |---|---|---|
 | 001 | `001_usuarios.sql` | Usuarios administrativos |
 | 002 | `002_torneos.sql` | Registro de competiciones |
+| 003 | `003_ediciones.sql` | Ediciones, estados, fechas y relación restrictiva con torneos |
 
 ### Estado verificado
 
-- Migraciones registradas: 2.
+- Migraciones registradas: 3.
 - Migraciones pendientes: 0.
 - Base de datos actualizada.
 - Verificación de integridad satisfactoria.
 
-La incorporación de la eliminación definitiva
-de torneos no requirió modificaciones
-estructurales adicionales.
+Se verificó la actualización de una instalación existente,
+la instalación desde una base vacía y la repetición de las
+migraciones sin nuevas ejecuciones pendientes.
 
 Las migraciones aplicadas deberán conservarse
 sin modificaciones posteriores.
@@ -555,9 +696,49 @@ Las futuras relaciones deportivas deberán
 implementarse con restricciones adecuadas
 para evitar pérdidas de información.
 
-La comprobación real de estas relaciones
-corresponderá a las siguientes historias
-de usuario.
+La restricción entre torneos y ediciones fue comprobada
+en HU-005 mediante integración con MySQL y validación funcional.
+
+---
+
+## 🔌 API REST — Ediciones
+
+Todas las operaciones requieren autenticación y se limitan
+al torneo identificado por `:torneoId`.
+
+| Método | Endpoint | Operación |
+|---|---|---|
+| GET | `/api/torneos/:torneoId/ediciones` | Listar ediciones e indicadores |
+| GET | `/api/torneos/:torneoId/ediciones/:edicionId` | Consultar edición |
+| POST | `/api/torneos/:torneoId/ediciones` | Crear edición |
+| PUT | `/api/torneos/:torneoId/ediciones/:edicionId` | Actualizar datos |
+| PATCH | `/api/torneos/:torneoId/ediciones/:edicionId/estado` | Cambiar estado |
+| DELETE | `/api/torneos/:torneoId/ediciones/:edicionId` | Eliminar edición |
+
+Filtros disponibles: `busqueda` y `estado`.
+
+El listado devuelve el torneo, las ediciones, el total de
+resultados y los indicadores generales (`total`, `planificadas`,
+`en_curso`, `finalizadas`). Los indicadores no dependen del filtro.
+
+Los campos editables son `nombre`, `descripcion`, `fecha_inicio`
+y `fecha_finalizacion`. Las fechas utilizan el formato
+`YYYY-MM-DD` o `null` cuando no se informan. La edición
+no puede cambiar de torneo mediante una actualización.
+
+Las restricciones de unicidad, fechas y dependencia referencial
+se complementan con validaciones y transacciones del backend.
+
+| Código HTTP | Resultado |
+|---|---|
+| 200 | Consulta, modificación, cambio de estado o eliminación correctos |
+| 201 | Edición creada |
+| 400 | Datos, fechas, estado o identificadores inválidos |
+| 401 | Autenticación requerida |
+| 403 | Solicitud no permitida |
+| 404 | Torneo o edición inexistente en el contexto solicitado |
+| 409 | Conflicto de nombre, estado, restricciones o dependencias |
+| 500 | Error interno inesperado |
 
 ---
 
@@ -584,7 +765,91 @@ La definición completa se encuentra en:
 
 ---
 
-## 🧪 Resultados de pruebas — v0.2.0
+## 🧪 Resultados de pruebas — v0.3.0
+
+### Pruebas automatizadas
+
+| Tipo | Resultado |
+|---|---:|
+| Unitarias de autenticación | 13/13 |
+| Unitarias de torneos | 30/30 |
+| Unitarias de ediciones | 59/59 |
+| Integración de autenticación | 1/1 |
+| Integración de torneos | 1/1 |
+| Integración de ediciones | 1/1 |
+| **Total acumulado** | **105/105** |
+| Fallidas y canceladas en las ejecuciones informadas | 0 |
+
+Los resultados corresponden a ejecuciones separadas,
+sin contabilizar nuevamente las pruebas de regresión ni
+los controles internos de integración como pruebas adicionales.
+
+Regresión final con `npm test` sobre v0.3.0:
+
+| Control | Resultado |
+|---|---:|
+| Pruebas detectadas | 105 |
+| Aprobadas | 102 |
+| Omitidas intencionalmente (integraciones) | 3 |
+| Fallidas | 0 |
+| Canceladas | 0 |
+| TODO | 0 |
+| Duración | 671,7839 ms |
+
+Las tres integraciones se aprobaron en ejecuciones anteriores.
+La duración corresponde al entorno local, no a una prueba de carga.
+
+### Verificaciones técnicas
+
+| Control | Resultado |
+|---|---|
+| ESLint | Sin errores informados |
+| Compilación de producción | Exitosa (2,52 segundos) |
+| Migración sobre instalación existente | Satisfactoria |
+| Migraciones desde cero | 3/3 |
+| Idempotencia | 3 registradas, 0 pendientes |
+| Integración y regresión con MySQL | Satisfactorias |
+| Coherencia de versiones | 8/8 valores |
+| Arranque del backend v0.3.0 | Satisfactorio |
+| Reinicio del frontend v0.3.0 | Confirmado |
+| Capturas oficiales v0.3.0 | 12/12 revisadas |
+| Limpieza de registros demostrativos | Confirmada |
+
+### Validaciones funcionales de HU-005
+
+1. Integración visual con TORNEOS.
+2. Navegación hacia EDICIONES.
+3. Creación de ediciones.
+4. Fechas opcionales.
+5. Modificación de fechas.
+6. Inicio de edición.
+7. Finalización de edición.
+8. Reapertura de edición.
+9. Indicadores internos.
+10. Ediciones simultáneas.
+11. Modificación de nombre y descripción.
+12. Eliminación de fechas.
+13. Búsqueda y filtros.
+14. Indicadores externos en TORNEOS.
+15. Restricciones de torneos archivados.
+16. Eliminación independiente e integridad referencial.
+17. Adaptación responsive.
+
+Resultado: **17/17 controles validados**, según las
+comprobaciones y confirmaciones realizadas en el entorno local.
+
+La validación responsive fue confirmada mediante simulación
+en el navegador; no equivale a una prueba en un celular físico.
+La captura 28 documenta la simulación móvil de 390 × 844 píxeles.
+
+Los registros deportivos temporales utilizados en la base principal
+se eliminaron al finalizar las comprobaciones y, posteriormente,
+las capturas oficiales. La limpieza de los registros demostrativos
+fue confirmada por el administrador.
+
+---
+
+## 🧪 Resultados de pruebas — v0.2.0 (histórico)
 
 ### Pruebas automatizadas
 
@@ -706,14 +971,14 @@ del despliegue público.
 
 Desde la raíz:
 
-```bash id="2ut49e"
+```bash
 cd backend
 npm ci
 ```
 
 ### 2. Preparar la base de datos
 
-```sql id="ft9w12"
+```sql
 CREATE DATABASE alto_sistema
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
@@ -726,7 +991,7 @@ necesarios sobre la base correspondiente.
 
 Crear el archivo privado `backend/.env`:
 
-```env id="v3ap5e"
+```env
 PORT=3000
 HOST=127.0.0.1
 FRONTEND_URL=http://localhost:5173
@@ -749,7 +1014,7 @@ Nunca publicar el archivo `.env`.
 
 ### 4. Ejecutar las migraciones
 
-```bash id="fgcj8a"
+```bash
 npm run migrate
 ```
 
@@ -765,7 +1030,7 @@ La contraseña deberá contener al menos
 
 Ejecutar:
 
-```bash id="nyx7re"
+```bash
 npm run create-admin
 ```
 
@@ -774,7 +1039,7 @@ de completar la creación.
 
 ### 6. Iniciar el backend
 
-```bash id="9twu4p"
+```bash
 npm start
 ```
 
@@ -786,7 +1051,7 @@ http://localhost:3000
 
 Desde otra terminal ubicada en la raíz:
 
-```bash id="vc53pq"
+```bash
 cd frontend
 npm ci
 npm run dev
@@ -804,19 +1069,22 @@ http://localhost:5173
 
 Desde la carpeta backend:
 
-```bash id="bzc28n"
+```bash
 npm test
 ```
 
 Las pruebas unitarias se ejecutan
 de forma predeterminada.
 
-Resultado esperado sin integraciones:
+Resultado esperado sin integraciones habilitadas:
 
-- 45 pruebas totales.
-- 43 aprobadas.
-- 2 omitidas.
+- 105 pruebas totales.
+- 102 aprobadas.
+- 3 omitidas.
 - 0 fallidas.
+
+Este resumen es el resultado esperado de una ejecución conjunta;
+las 105 aprobaciones de HU-005 se obtuvieron en ejecuciones separadas.
 
 ### Integración de autenticación
 
@@ -844,6 +1112,29 @@ de pruebas y un backend en el puerto 3001.
 
 No deberá ejecutarse contra la base principal.
 
+### Integración de ediciones
+
+Variables temporales:
+
+- `ALTO_EDICION_INTEGRATION_TEST=1`
+- `DB_NAME=altosistemahu004test`
+- `ALTO_TEST_USER`
+- `ALTO_TEST_PASSWORD`
+
+Requiere la base aislada con las migraciones 001 a 003,
+un administrador de pruebas y un backend en el puerto 3001.
+
+Desde `backend`, con las variables configuradas:
+
+```bash
+node --test tests/edicion.integration.test.js
+```
+
+No deberá ejecutarse contra la base principal.
+
+La instalación desde cero se verificó en `altosistemahu005fresh`.
+Ambas bases aisladas se conservan para futuras verificaciones.
+
 Consultar el manual de mantenimiento
 antes de habilitar las integraciones.
 
@@ -851,7 +1142,7 @@ antes de habilitar las integraciones.
 
 Desde la carpeta frontend:
 
-```bash id="2whf9g"
+```bash
 npm run lint
 npm run build
 ```
@@ -875,8 +1166,8 @@ npm run build
 - [x] ETAPA 00 — Definición y planificación.
 - [x] ETAPA 01 — Infraestructura y consolidación.
 - [ ] ETAPA 02 — Torneos, ediciones, categorías e identidad visual.
-  - [x] HU-004 — Gestión integral de torneos: verificada, pendiente de consolidación.
-  - [ ] HU-005 — Gestión de ediciones.
+  - [x] HU-004 — Gestión integral de torneos: aprobada y consolidada.
+  - [ ] HU-005 — Gestión de ediciones: implementada y verificada, pendiente de cierre formal.
   - [ ] HU-006 — Gestión de categorías.
   - [ ] HU-007 — Identidad visual de competiciones.
   - [ ] HU-008 — Selección del contexto deportivo.
@@ -902,31 +1193,31 @@ npm run build
 | v0.1.1 | HU-002 — Autenticación | Aprobada |
 | v0.1.2 | HU-003 — Interfaz base | Aprobada |
 | v0.1.3 | Consolidación arquitectónica | Aprobada |
-| v0.2.0 | HU-004 — Gestión integral de torneos y Sistema de Diseño | Aprobada |
+| v0.2.0 | HU-004 — Gestión integral de torneos y Sistema de Diseño | Aprobada y consolidada |
+| v0.3.0 | HU-005 — Gestión de ediciones | Verificada, pendiente de cierre formal y publicación |
 
 ---
 
 ## 📌 Estado actual
 
-**Versión local: v0.2.0**
+**Versión local: v0.3.0**
 
-**Última versión consolidada: v0.1.3**
+**Última versión consolidada: v0.2.0**
 
 ALTO-SISTEMA se encuentra en desarrollo activo.
 
-La gestión integral de torneos constituye
-el primer módulo deportivo implementado.
+Los módulos de gestión de torneos y ediciones se encuentran
+implementados y verificados. HU-005 superó 105 pruebas
+automatizadas y 17 validaciones funcionales.
 
-Las verificaciones técnicas y funcionales
-de HU-004 fueron completadas satisfactoriamente.
+La documentación técnica y las capturas históricas se conservan.
+Se actualizaron los siete documentos Markdown y se incorporaron
+las doce evidencias de v0.3.0 a este README. Su presencia en el
+repositorio local deberá verificarse antes del commit.
 
-La documentación técnica y las capturas
-oficiales de la versión 0.2.0 se encuentran
-incorporadas.
-
-La aprobación integral y publicación
-de la versión permanecen pendientes
-del cierre formal y del control de versiones.
+La aprobación integral, el cierre formal y la publicación de
+HU-005 permanecen pendientes. HU-006 no se inicia hasta
+completar este cierre.
 
 ### Limitaciones actuales
 
@@ -936,8 +1227,9 @@ del cierre formal y del control de versiones.
 - Sin pruebas visuales automatizadas.
 - Validación móvil física pendiente.
 - Optimización tipográfica pendiente.
-- Restauración de respaldo con la nueva tabla pendiente.
-- Verificación real de futuras claves foráneas pendiente.
+- Restauración de respaldo que incluya torneos y ediciones pendiente de verificación.
+- Verificación de claves foráneas de entidades deportivas futuras pendiente.
+- Indicadores de ediciones en TORNEOS mediante una consulta adicional por torneo, con concurrencia limitada; optimización agregada futura si resulta necesaria.
 - Módulos deportivos restantes pendientes.
 - Generación de publicaciones PNG pendiente.
 

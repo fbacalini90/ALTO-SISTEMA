@@ -1,3 +1,4 @@
+
 const { APP_CONFIG } = require('./config/app.config');
 
 const express = require('express');
@@ -17,10 +18,12 @@ const { requireAuth } = require('./middlewares/auth');
 
 const authRoutes = require('./routes/auth.routes');
 const torneoRoutes = require('./routes/torneo.routes');
+const edicionRoutes = require('./routes/edicion.routes');
 
 const app = express();
 
 const { nombre, version, servidor } = APP_CONFIG;
+
 
 /* CONFIGURACION GENERAL */
 
@@ -34,6 +37,7 @@ app.use(cors({
 app.use(express.json({
     limit: servidor.limiteJson
 }));
+
 
 /* PROTECCION DE SOLICITUDES */
 
@@ -58,9 +62,11 @@ app.use((req, res, next) => {
     next();
 });
 
+
 /* SESIONES PERSISTENTES */
 
 app.use(sessionMiddleware);
+
 
 /* CONTROL DE CACHE */
 
@@ -69,6 +75,7 @@ app.use('/api', (req, res, next) => {
 
     next();
 });
+
 
 /* RUTA PUBLICA DEL SERVIDOR */
 
@@ -79,6 +86,7 @@ app.get('/', (req, res) => {
         mensaje: 'Servidor funcionando correctamente'
     });
 });
+
 
 /* ESTADO DE LA INFRAESTRUCTURA */
 
@@ -105,13 +113,24 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+
 /* RUTAS DE AUTENTICACION */
 
 app.use('/api/auth', authRoutes);
 
+
+/* MODULO DE EDICIONES */
+
+app.use(
+    '/api/torneos/:torneoId/ediciones',
+    edicionRoutes
+);
+
+
 /* MODULO DE TORNEOS */
 
 app.use('/api/torneos', torneoRoutes);
+
 
 /* RUTA PRIVADA DE PRUEBA */
 
@@ -122,6 +141,7 @@ app.get('/api/privado', requireAuth, (req, res) => {
     });
 });
 
+
 /* RUTAS INEXISTENTES */
 
 app.use((req, res) => {
@@ -129,6 +149,7 @@ app.use((req, res) => {
         mensaje: 'Ruta no encontrada.'
     });
 });
+
 
 /* MANEJO GENERAL DE ERRORES */
 
@@ -139,6 +160,7 @@ app.use((error, req, res, next) => {
         mensaje: 'Error interno del servidor.'
     });
 });
+
 
 /* INICIO DEL SERVIDOR */
 
@@ -167,6 +189,7 @@ async function startServer() {
                 console.log('Sesiones MySQL: ONLINE');
                 console.log('Autenticacion: HABILITADA');
                 console.log('Modulo de torneos: HABILITADO');
+                console.log('Modulo de ediciones: HABILITADO');
                 console.log('================================');
             }
         );

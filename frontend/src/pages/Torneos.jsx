@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
     Trophy,
@@ -122,6 +123,13 @@ function obtenerMensajeError(error, mensajeAlternativo) {
 
 export default function Torneos() {
 
+    const navigate = useNavigate();
+
+    const [resumenEdiciones, setResumenEdiciones] = useState({
+        torneos: null,
+        datos: {}
+    });
+
     const [torneos, setTorneos] = useState([]);
 
     const [cargando, setCargando] = useState(true);
@@ -197,6 +205,91 @@ export default function Torneos() {
         return () => controlador.abort();
 
     }, [recarga]);
+
+    /* INDICADORES DE EDICIONES POR TORNEO */
+
+    useEffect(() => {
+
+        if (cargando || errorCarga || torneos.length === 0) {
+            return;
+        }
+
+        const controlador = new AbortController();
+        const resultados = {};
+        let siguiente = 0;
+
+        async function consultarIndicadores() {
+
+            while (!controlador.signal.aborted && siguiente < torneos.length) {
+
+                const torneo = torneos[siguiente++];
+
+                try {
+
+                    const datos = await api.get(
+                        `/torneos/${torneo.id}/ediciones`,
+                        { signal: controlador.signal }
+                    );
+
+                    const { total, en_curso } = datos.indicadores ?? {};
+
+                    if (
+                        !Number.isSafeInteger(total) || total < 0 ||
+                        !Number.isSafeInteger(en_curso) || en_curso < 0 ||
+                        en_curso > total
+                    ) {
+                        throw new Error('Indicadores de ediciones inválidos.');
+                    }
+
+                    resultados[torneo.id] = { total, en_curso };
+
+                } catch {
+
+                    if (controlador.signal.aborted) {
+                        return;
+                    }
+
+                    resultados[torneo.id] = null;
+
+                }
+
+            }
+
+        }
+
+        async function cargarIndicadores() {
+
+            await Promise.all(
+                Array.from(
+                    { length: Math.min(4, torneos.length) },
+                    () => consultarIndicadores()
+                )
+            );
+
+            if (!controlador.signal.aborted) {
+                setResumenEdiciones({
+                    torneos,
+                    datos: resultados
+                });
+            }
+
+        }
+
+        cargarIndicadores();
+
+        return () => controlador.abort();
+
+    }, [torneos, cargando, errorCarga]);
+
+    function gestionarEdiciones(torneo) {
+
+        if (ocupado || formulario || errorCarga) {
+            return;
+        }
+
+        navigate(`/torneos/${torneo.id}/ediciones`);
+
+    }
 
     /* RECARGA MANUAL */
 
@@ -1229,6 +1322,13 @@ export default function Torneos() {
                             const activo =
                                 torneo.estado === ESTADOS.ACTIVO;
 
+                            const indicadoresPendientes =
+                                resumenEdiciones.torneos !== torneos;
+
+                            const resumen = indicadoresPendientes
+                                ? undefined
+                                : resumenEdiciones.datos[torneo.id];
+
                             return (
 
                                 <article
@@ -1308,6 +1408,53 @@ export default function Torneos() {
                                         </span>
 
                                     </div>
+
+                                    {/* EDICIONES DEL TORNEO */}
+
+                                    <section
+                                        className="torneos-ediciones"
+                                        aria-label={`Ediciones de ${torneo.nombre}`}
+                                    >
+
+                                        <div
+                                            className="torneos-ediciones-indicadores"
+                                            aria-busy={indicadoresPendientes}
+                                        >
+
+                                            <div className="torneos-ediciones-indicador">
+                                                <span className="as-stat-label">EDICIONES</span>
+                                                <strong className="as-stat-value">
+                                                    {resumen?.total ?? '—'}
+                                                </strong>
+                                            </div>
+
+                                            <div className="torneos-ediciones-indicador">
+                                                <span className="as-stat-label">EN CURSO</span>
+                                                <strong className="as-stat-value as-text-success">
+                                                    {resumen?.en_curso ?? '—'}
+                                                </strong>
+                                            </div>
+
+                                        </div>
+
+                                        {resumen === null && (
+                                            <p className="as-text-description" role="status">
+                                                Indicadores no disponibles. Actualizá el listado para reintentar.
+                                            </p>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            className="as-button as-button-primary as-button-block torneos-ediciones-acceso"
+                                            onClick={() => gestionarEdiciones(torneo)}
+                                            disabled={ocupado || Boolean(formulario)}
+                                            aria-label={`Gestionar ediciones de ${torneo.nombre}`}
+                                        >
+                                            <CalendarDays aria-hidden="true" />
+                                            GESTIONAR EDICIONES
+                                        </button>
+
+                                    </section>
 
                                     {/* ACCIONES */}
 
